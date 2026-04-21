@@ -40,26 +40,106 @@ body {
   grid-template-columns: 340px minmax(0, 1fr);
   width: 100%;
   height: 100%;
+  position: relative;
+  transition: grid-template-columns 260ms ease;
+}
+
+.layout.sidebar-collapsed {
+  grid-template-columns: 0px minmax(0, 1fr);
 }
 
 .sidebar {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(180deg, rgba(247, 251, 254, 0.96), rgba(240, 247, 252, 0.88));
+  border-right: 1px solid var(--panel-border);
+  backdrop-filter: blur(16px);
+  overflow: hidden;
+  transition: width 260ms ease;
+}
+
+.sidebar-inner {
   display: flex;
   flex-direction: column;
   gap: 16px;
   padding: 24px;
-  background: linear-gradient(180deg, rgba(247, 251, 254, 0.96), rgba(240, 247, 252, 0.88));
-  border-right: 1px solid var(--panel-border);
-  backdrop-filter: blur(16px);
   overflow-y: auto;
+  height: 100%;
+  width: 340px;
 }
 
-.eyebrow {
-  margin: 0 0 8px;
+/* PC collapse toggle button — lives in .layout, always visible */
+.sidebar-toggle {
+  position: absolute;
+  top: 50%;
+  left: 340px;
+  transform: translate(-50%, -50%);
+  z-index: 20;
+  width: 32px;
+  height: 56px;
+  border: 1px solid var(--panel-border);
+  border-radius: 0 14px 14px 0;
+  background: linear-gradient(180deg, rgba(247,251,254,0.98), rgba(235,245,252,0.96));
   color: var(--accent);
-  font-size: 12px;
+  font-size: 18px;
   font-weight: 700;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 2px 0 10px rgba(21, 47, 68, 0.14);
+  transition: left 260ms ease, background 180ms ease, color 180ms ease, box-shadow 180ms ease;
+  padding: 0;
+  line-height: 1;
+}
+
+.sidebar-toggle:hover {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+  box-shadow: 2px 0 16px rgba(30, 136, 168, 0.35);
+}
+
+.layout.sidebar-collapsed .sidebar-toggle {
+  left: 0px;
+}
+
+.sidebar-toggle-icon {
+  display: inline-block;
+  transition: transform 260ms ease;
+}
+
+.layout.sidebar-collapsed .sidebar-toggle-icon {
+  transform: rotate(180deg);
+}
+
+.sidebar-head {
+  /* no extra padding needed, sidebar-inner handles it */
+}
+
+/* hide mobile sheet-toggle on desktop */
+.sheet-toggle {
+  display: none;
+}
+
+.map-shell {
+  position: relative;
+  min-width: 0;
+}
+
+.map-frame {
+  position: absolute;
+  inset: 18px;
+  border: 1px solid var(--panel-border);
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  transition: inset 260ms ease;
+}
+
+.layout.sidebar-collapsed .map-frame {
+  inset: 18px;
 }
 
 .headline {
@@ -185,6 +265,16 @@ body {
 .map {
   width: 100%;
   height: 100%;
+  background: url('/basemap/placeholder.jpg') center 38% / cover no-repeat;
+}
+
+.map.map--loaded .maplibregl-canvas {
+  animation: fadeInMap 400ms ease forwards;
+}
+
+@keyframes fadeInMap {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .maplibregl-popup-content {
@@ -222,36 +312,278 @@ body {
   margin-top: 8px;
 }
 
-@media (max-width: 980px) {
-  .layout {
-    grid-template-columns: 1fr;
-    grid-template-rows: auto minmax(0, 1fr);
-  }
-
-  .sidebar {
-    max-height: 46vh;
-    border-right: 0;
-    border-bottom: 1px solid var(--panel-border);
-  }
+/* ── News panel ── */
+.news-panel {
+  max-height: 360px;
+  overflow-y: auto;
 }
 
-@media (max-width: 640px) {
-  .sidebar {
-    padding: 16px;
+/* ── Commodity panel ── */
+.commodity-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.commodity-card {
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(22, 50, 71, 0.03);
+}
+
+.commodity-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.commodity-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.commodity-price {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+.commodity-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 2px;
+}
+
+.commodity-up {
+  color: var(--success);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.commodity-down {
+  color: var(--danger);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.commodity-unit {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.commodity-sparkline {
+  margin-top: 6px;
+}
+
+.sparkline-svg {
+  width: 100%;
+  height: 36px;
+  display: block;
+}
+
+.commodity-geo {
+  margin-top: 4px;
+  font-size: 11px;
+  color: var(--accent);
+  opacity: 0.8;
+}
+
+.commodity-updated {
+  font-size: 11px;
+  color: var(--muted);
+  text-align: right;
+  padding-top: 6px;
+}
+
+.commodity-empty {
+  color: var(--muted);
+  font-size: 13px;
+  text-align: center;
+  padding: 12px 0;
+  margin: 0;
+}
+
+/* ── Briefing panel ── */
+.panel--briefing {
+  border-left: 3px solid var(--accent);
+}
+
+.briefing-badge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  background: var(--accent);
+  color: #fff;
+  border-radius: 4px;
+  padding: 1px 5px;
+  vertical-align: middle;
+  margin-left: 4px;
+}
+
+.briefing-body {
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--text);
+}
+
+.briefing-para {
+  margin: 0 0 10px;
+}
+
+.briefing-para:last-child {
+  margin-bottom: 0;
+}
+
+/* Color-code long/short lines */
+.briefing-para--long {
+  color: var(--success);
+  font-weight: 600;
+}
+
+.briefing-para--short {
+  color: var(--danger);
+  font-weight: 600;
+}
+
+.briefing-loading {
+  color: var(--muted);
+  font-size: 13px;
+  margin: 0;
+  animation: briefing-pulse 1.4s ease-in-out infinite;
+}
+
+.briefing-time {
+  color: var(--muted);
+  font-size: 11px;
+  margin: 0 0 8px;
+  opacity: 0.6;
+}
+
+@keyframes briefing-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.briefing-hint {
+  color: var(--muted);
+  font-size: 12px;
+  margin: 0;
+  line-height: 1.6;
+}
+
+.briefing-hint code {
+  font-size: 11px;
+  background: rgba(22, 50, 71, 0.07);
+  border-radius: 3px;
+  padding: 1px 4px;
+}
+
+/* ── Video panel ── */
+.video-wrap {
+  position: relative;
+  width: 100%;
+  padding-top: 56.25%; /* 16:9 */
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.video-wrap iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+@media (max-width: 768px) {
+  /* ── Full-screen map + bottom sheet ── */
+  .layout {
+    display: block;
+    position: relative;
   }
 
-  .panel {
-    padding: 14px;
+  .layout.sidebar-collapsed {
+    /* no-op on mobile, handled by sheet state */
+  }
+
+  /* Map fills top half of viewport */
+  .map-shell {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50vh;
+    z-index: 0;
   }
 
   .map-frame {
-    inset: 10px;
+    inset: 0;
+    border-radius: 0;
+    border: none;
   }
 
-  .caption {
-    left: 12px;
-    right: 12px;
-    max-width: none;
-    bottom: 12px;
+  /* Sidebar is a bottom sheet occupying the lower half by default */
+  .sidebar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 10;
+    border-right: none;
+    border-top: 1px solid var(--panel-border);
+    border-radius: 20px 20px 0 0;
+    box-shadow: 0 -8px 32px rgba(21, 47, 68, 0.16);
+    height: 50vh;
+    overflow: hidden;
+    transition: height 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Collapsed: only show the toggle button */
+  .sidebar.sheet-collapsed {
+    height: 36px;
+  }
+
+  .sidebar-inner {
+    width: 100%;
+    padding: 0 20px 24px;
+    height: 100%;
+    overflow-y: auto;
+  }
+
+  /* Hide PC collapse button */
+  .sidebar-toggle {
+    display: none;
+  }
+
+  /* Mobile sheet toggle button */
+  .sheet-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 36px;
+    flex-shrink: 0;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: var(--text-muted, rgba(22, 50, 71, 0.5));
+    padding: 0;
+  }
+
+  .sheet-toggle-icon {
+    font-size: 16px;
+    line-height: 1;
+  }
+
+  .sidebar-head {
+    padding-top: 0;
+  }
+
+  .headline {
+    font-size: 22px;
   }
 }

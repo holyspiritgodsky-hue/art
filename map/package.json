@@ -6,13 +6,17 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build --base=./",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "fetch-news": "node scripts/fetch-news.mjs",
+    "fetch-commodities": "node scripts/fetch-commodities.mjs",
+    "fetch-all": "node scripts/fetch-news.mjs && node scripts/fetch-commodities.mjs"
   },
   "dependencies": {
     "maplibre-gl": "^5.9.0"
   },
   "devDependencies": {
     "@types/geojson": "^7946.0.16",
+    "sharp": "^0.34.5",
     "typescript": "^5.8.3",
     "vite": "^6.3.5"
   }

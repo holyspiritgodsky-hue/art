@@ -177,6 +177,25 @@ export const PIPELINE_COLORS: Record<PipelineType, string> = {
   products: '#ffd166',
 };
 
+export type NewsCategory = 'ukraine' | 'iran' | 'cailian';
+
+export interface NewsBrief {
+  id: string;
+  category: NewsCategory;
+  title: string;
+  summary?: string;
+  date: string;
+  lat: number;
+  lon: number;
+  source?: string;
+}
+
+export const NEWS_CATEGORY_META: Record<NewsCategory, { label: string; color: string }> = {
+  ukraine: { label: '🇺🇦 俄乌战争', color: '#ff6b6b' },
+  iran: { label: '🇮🇷 伊朗局势', color: '#f7a035' },
+  cailian: { label: '📰 财联社', color: '#4a9eff' },
+};
+
 export function getMilitaryBaseColor(type: BaseType, alpha = 1): string {
   const colors: Record<BaseType, string> = {
     'us-nato': `rgba(68, 136, 255, ${alpha})`,
@@ -192,3 +211,68 @@ export function getMilitaryBaseColor(type: BaseType, alpha = 1): string {
 }
 
 export const BASEMAP_STYLE = 'https://tiles.openfreemap.org/styles/bright';
+
+export interface GoldReserve {
+  country: string;
+  tonnes: number;
+  yoyTonnes: number;   // year-over-year net change (+ = buying, - = selling)
+  note?: string;       // geopolitical context
+  lat: number;
+  lon: number;
+}
+
+export const GOLD_RESERVES: GoldReserve[] = [
+  { country: '美国',     tonnes: 8133.5, yoyTonnes:   0.0, lat:  38.9, lon:  -77.0 },
+  { country: '德国',     tonnes: 3352.3, yoyTonnes:   0.0, lat:  52.5, lon:   13.4 },
+  { country: '意大利',   tonnes: 2451.8, yoyTonnes:   0.0, lat:  41.9, lon:   12.5 },
+  { country: '法国',     tonnes: 2436.9, yoyTonnes:   0.0, lat:  48.9, lon:    2.3 },
+  { country: '俄罗斯',   tonnes: 2332.7, yoyTonnes: +31.1, note: '去美元化战略储备', lat: 55.8, lon:  37.6 },
+  { country: '中国',     tonnes: 2279.6, yoyTonnes: +44.2, note: '人民币国际化压舱石', lat: 39.9, lon: 116.4 },
+  { country: '瑞士',     tonnes: 1040.0, yoyTonnes:   0.0, lat:  46.9, lon:    7.4 },
+  { country: '日本',     tonnes:  845.97,yoyTonnes:   0.0, lat:  35.7, lon:  139.7 },
+  { country: '印度',     tonnes:  803.6, yoyTonnes: +72.6, note: '央行加速多元化外储', lat: 28.6, lon:   77.2 },
+  { country: '荷兰',     tonnes:  612.5, yoyTonnes:   0.0, lat:  52.1, lon:    5.3 },
+  { country: '土耳其',   tonnes:  570.6, yoyTonnes: +76.9, note: '对冲里拉贬值风险', lat: 39.9, lon:   32.9 },
+  { country: '波兰',     tonnes:  377.4, yoyTonnes: +78.7, note: '东翼安全储备战略', lat: 52.2, lon:   21.0 },
+  { country: '沙特阿拉伯', tonnes: 323.1, yoyTonnes: +4.6, note: '石油美元向实物黄金转移', lat: 24.7, lon: 46.7 },
+  { country: '英国',     tonnes:  310.3, yoyTonnes:   0.0, lat:  51.5, lon:   -0.1 },
+  { country: '哈萨克斯坦', tonnes: 300.3, yoyTonnes: +14.8, note: '国内矿产直接转储', lat: 51.2, lon:  71.4 },
+];
+
+export interface GoldMine {
+  name: string;
+  country: string;
+  annualTonnes: number;  // approximate annual production (tonnes)
+  lat: number;
+  lon: number;
+}
+
+export const GOLD_MINES: GoldMine[] = [
+  { name: 'Muruntau',         country: '乌兹别克斯坦', annualTonnes: 62,  lat:  41.5, lon:   64.6 },
+  { name: 'Olimpiada',        country: '俄罗斯',       annualTonnes: 47,  lat:  58.5, lon:   93.0 },
+  { name: 'Grasberg',         country: '印度尼西亚',   annualTonnes: 44,  lat:  -4.05,lon:  137.1 },
+  { name: 'Kibali',           country: '刚果民主共和国', annualTonnes: 40, lat:   3.5, lon:   29.2 },
+  { name: 'Carlin Trend',     country: '美国',         annualTonnes: 38,  lat:  40.7, lon: -116.1 },
+  { name: 'Loulo-Gounkoto',   country: '马里',         annualTonnes: 26,  lat:  13.9, lon:  -11.8 },
+  { name: 'Boddington',       country: '澳大利亚',     annualTonnes: 26,  lat: -32.8, lon:  116.4 },
+  { name: 'Yanacocha',        country: '秘鲁',         annualTonnes: 22,  lat:  -6.97,lon:  -78.5 },
+  { name: 'Kumtor',           country: '吉尔吉斯斯坦', annualTonnes: 18,  lat:  41.8, lon:   78.2 },
+  { name: 'Mponeng',          country: '南非',         annualTonnes: 15,  lat: -26.4, lon:   27.4 },
+  { name: 'Pueblo Viejo',     country: '多米尼加',     annualTonnes: 28,  lat:  18.8, lon:  -70.1 },
+  { name: 'Detour Lake',      country: '加拿大',       annualTonnes: 18,  lat:  49.7, lon:  -79.9 },
+];
+
+export interface OilReserve {
+  country: string;
+  billionBarrels: number;
+  lat: number;
+  lon: number;
+}
+
+export const OIL_RESERVES: OilReserve[] = [
+  { country: '委内瑞拉', billionBarrels: 303.8, lat: 8.0, lon: -66.0 },
+  { country: '沙特阿拉伯', billionBarrels: 258.6, lat: 24.7, lon: 46.7 },
+  { country: '加拿大', billionBarrels: 170.3, lat: 56.1, lon: -106.3 },
+  { country: '伊朗', billionBarrels: 157.8, lat: 32.4, lon: 53.7 },
+  { country: '伊拉克', billionBarrels: 145.0, lat: 33.3, lon: 44.4 },
+];
