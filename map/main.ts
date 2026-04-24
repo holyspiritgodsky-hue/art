@@ -136,8 +136,8 @@ const basemapLabelLanguage: BasemapLabelLanguage = 'zh';
 const map = new maplibregl.Map({
   container: mapContainer,
   style: BASEMAP_STYLE,
-  center: [12, 22],
-  zoom: 1.55,
+  center: [112, 30],
+  zoom: 2.35,
   minZoom: 1,
   maxZoom: 7,
   attributionControl: {},
