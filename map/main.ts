@@ -76,11 +76,6 @@ app.innerHTML = `
         </section>
 
         <section class="panel">
-          <h2>图层开关</h2>
-          <div class="toggle-list" id="toggle-list"></div>
-        </section>
-
-        <section class="panel">
           <h2>大宗商品</h2>
           <div id="commodity-list" class="commodity-list"></div>
         </section>
@@ -102,6 +97,19 @@ app.innerHTML = `
     <main class="map-shell">
       <div class="map-frame">
         <div id="map" class="map"></div>
+        <div class="map-layer-control" id="map-layer-control">
+          <button
+            class="map-layer-toggle"
+            id="map-layer-toggle"
+            aria-expanded="false"
+            aria-controls="map-layer-panel"
+            aria-label="打开图层开关"
+          >图层</button>
+          <section class="map-layer-panel" id="map-layer-panel" hidden>
+            <h2>图层开关</h2>
+            <div class="toggle-list map-toggle-list" id="toggle-list"></div>
+          </section>
+        </div>
       </div>
     </main>
   </div>
@@ -109,19 +117,25 @@ app.innerHTML = `
 
 const mapContainer = document.querySelector('#map');
 const toggleList = document.querySelector('#toggle-list');
+const mapLayerToggle = document.querySelector('#map-layer-toggle');
+const mapLayerPanel = document.querySelector('#map-layer-panel');
 
 if (
   !(mapContainer instanceof HTMLDivElement)
   || !(toggleList instanceof HTMLDivElement)
+  || !(mapLayerToggle instanceof HTMLButtonElement)
+  || !(mapLayerPanel instanceof HTMLElement)
 ) {
   throw new Error('Map UI mount points not found.');
 }
 
 const toggleListElement: HTMLDivElement = toggleList;
+const mapLayerToggleButton: HTMLButtonElement = mapLayerToggle;
+const mapLayerPanelElement: HTMLElement = mapLayerPanel;
 
 const layerToggles: LayerToggleConfig[] = [
   { id: 'countries', title: '国家边界', description: '底图自带国家边界线', layerIds: ['boundary_country_z0-4', 'boundary_country_z5-'], checked: true },
-  { id: 'conflicts', title: '冲突区', description: '六个静态冲突多边形', layerIds: ['conflicts-fill', 'conflicts-outline'], checked: true },
+  { id: 'conflicts', title: '冲突区', description: '七个静态冲突多边形', layerIds: ['conflicts-fill', 'conflicts-outline'], checked: true },
   { id: 'pipelines', title: '管道', description: '八条主要能源走廊', layerIds: ['pipelines-line'], checked: true },
   { id: 'waterways', title: '战略水道', description: '六个全球咽喉点', layerIds: ['waterways-circle', 'waterways-label'], checked: true },
   { id: 'news', title: '新闻标记', description: '俄乌·伊朗·财联社要闻', layerIds: ['news-circle', 'news-pulse'], checked: true },
@@ -147,6 +161,7 @@ map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-ri
 
 renderToggles();
 wireSheetAndSidebar();
+wireMapLayerControl();
 
 let allNews: NewsBriefJSON[] = [];
 let filteredNews: NewsBriefJSON[] = [];
@@ -890,4 +905,32 @@ function buildSparklineSVG(values: number[], isUp: boolean): string {
     <path d="${areaPath}" fill="${fillColor}" />
     <polyline points="${points.join(' ')}" fill="none" stroke="${color}" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" />
   </svg>`;
+}
+
+function wireMapLayerControl(): void {
+  const setOpen = (isOpen: boolean): void => {
+    mapLayerPanelElement.hidden = !isOpen;
+    mapLayerToggleButton.setAttribute('aria-expanded', String(isOpen));
+    mapLayerToggleButton.setAttribute('aria-label', isOpen ? '收起图层开关' : '打开图层开关');
+  };
+
+  setOpen(false);
+
+  mapLayerToggleButton.addEventListener('click', (event) => {
+    event.stopPropagation();
+    const next = mapLayerPanelElement.hidden;
+    setOpen(next);
+  });
+
+  mapLayerPanelElement.addEventListener('click', (event) => {
+    event.stopPropagation();
+  });
+
+  map.getCanvasContainer().addEventListener('click', () => {
+    setOpen(false);
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') setOpen(false);
+  });
 }

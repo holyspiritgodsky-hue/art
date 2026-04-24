@@ -81,6 +81,15 @@ export const STRATEGIC_WATERWAYS: StrategicWaterway[] = [
 
 export const CONFLICT_ZONES: ConflictZone[] = [
   {
+    id: 'taiwan_strait',
+    name: 'Taiwan Strait Crisis',
+    intensity: 'high',
+    location: 'Taiwan Strait',
+    parties: ['China', 'Taiwan', 'US regional presence'],
+    description: 'Escalating cross-strait military activity with heightened maritime and airspace confrontation risk.',
+    coords: [[118.3, 26.6], [123.3, 26.8], [123.1, 22.0], [118.5, 21.8], [118.3, 26.6]],
+  },
+  {
     id: 'ukraine',
     name: 'Ukraine War',
     intensity: 'high',
