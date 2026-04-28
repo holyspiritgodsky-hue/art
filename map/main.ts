@@ -148,11 +148,6 @@ app.innerHTML = `
           </div>
         </section>
 
-        <section class="panel panel--commodity">
-          <h2>大宗商品</h2>
-          <div id="commodity-list" class="commodity-list"></div>
-        </section>
-
         <section class="panel panel--video">
           <h2>相关视频</h2>
           <div class="video-wrap">
@@ -205,7 +200,6 @@ const mapLayerToggleButton: HTMLButtonElement = mapLayerToggle;
 const mapLayerPanelElement: HTMLElement = mapLayerPanel;
 
 const layerToggles: LayerToggleConfig[] = [
-  { id: 'countries', title: '国家边界', description: '底图自带国家边界线', layerIds: ['boundary_country_z0-4', 'boundary_country_z5-'], checked: true },
   { id: 'conflicts', title: '冲突区', description: '七个静态冲突多边形', layerIds: ['conflicts-fill', 'conflicts-outline'], checked: true },
   { id: 'pipelines', title: '管道', description: '八条主要能源走廊', layerIds: ['pipelines-line'], checked: true },
   { id: 'waterways', title: '战略水道', description: '六个全球咽喉点', layerIds: ['waterways-circle', 'waterways-label'], checked: true },
@@ -478,7 +472,6 @@ map.on('load', async () => {
     filteredNews = filterNewsByDays(allNews, timelineDays);
     addNewsLayer(filteredNews);
     wireInteractions();
-    loadAndRenderCommodities();
     loadAndRenderBriefing();
   } catch (error) {
     console.error('[map] Failed to initialize.', error);
@@ -1073,6 +1066,7 @@ function buildPopupContent(layerId: string, properties?: FeatureProperties): str
       return `
         <p class="popup-kicker">冲突区</p>
         <h3 class="popup-title">${escapeHtml(profile.title)}</h3>
+        <p class="popup-copy">${escapeHtml(profile.startLine)}</p>
         ${game}
       `;
     }
@@ -1300,24 +1294,6 @@ function shorten(text: string, maxLength: number): string {
   return `${text.slice(0, maxLength)}...`;
 }
 
-// ── Commodity panel ──
-
-interface CommodityItem {
-  symbol: string;
-  name: string;
-  unit: string;
-  geoTag?: string;
-  price: number;
-  change: number;
-  changePct: number;
-  points: { date: string; close: number }[];
-}
-
-interface CommodityData {
-  updated: string;
-  items: CommodityItem[];
-}
-
 async function loadAndRenderBriefing(): Promise<boolean> {
   const body = document.querySelector<HTMLElement>('#briefing-body');
   if (!body) return false;
@@ -1387,69 +1363,6 @@ function renderLocalForecast(body: HTMLElement): void {
     <p class="briefing-para briefing-para--long">做多：黄金与高股息防御（分批，不追高）</p>
     <p class="briefing-para briefing-para--short">做空：高弹性题材与弱现金流标的（仅在放量转弱时）</p>
   `;
-}
-
-async function loadAndRenderCommodities(): Promise<void> {
-  const container = document.querySelector('#commodity-list');
-  if (!container) return;
-
-  try {
-    const res = await fetch('./commodities/latest.json');
-    if (!res.ok) {
-      container.innerHTML = '<p class="commodity-empty">暂无数据</p>';
-      return;
-    }
-    const data: CommodityData = await res.json();
-    renderCommodities(container as HTMLDivElement, data);
-  } catch {
-    container.innerHTML = '<p class="commodity-empty">加载失败</p>';
-  }
-}
-
-function renderCommodities(container: HTMLDivElement, data: CommodityData): void {
-  container.innerHTML = '';
-
-  for (const item of data.items) {
-    const card = document.createElement('div');
-    card.className = 'commodity-card';
-
-    const isUp = item.change >= 0;
-    const arrow = isUp ? '▲' : '▼';
-    const sign = isUp ? '+' : '';
-    const colorClass = isUp ? 'commodity-up' : 'commodity-down';
-    const closes = item.points.map((p) => p.close);
-    const low = closes.length > 0 ? Math.min(...closes) : item.price;
-    const high = closes.length > 0 ? Math.max(...closes) : item.price;
-    const baseForRange = low === 0 ? 1 : low;
-    const rangePct = ((high - low) / baseForRange) * 100;
-
-    card.innerHTML = `
-      <div class="commodity-header">
-        <span class="commodity-name">${escapeHtml(item.name)}</span>
-        <span class="commodity-price">${item.price.toLocaleString()}</span>
-      </div>
-      <div class="commodity-meta">
-        <span class="${colorClass}">${arrow} ${sign}${item.changePct}%</span>
-        ${item.unit ? `<span class="commodity-unit">${escapeHtml(item.unit)}</span>` : ''}
-      </div>
-      <div class="commodity-stats" aria-label="价格区间数据">
-        <span class="commodity-stat">涨跌额 <strong class="${colorClass}">${sign}${item.change.toLocaleString()}</strong></span>
-        <span class="commodity-stat">区间高 <strong>${high.toLocaleString()}</strong></span>
-        <span class="commodity-stat">区间低 <strong>${low.toLocaleString()}</strong></span>
-        <span class="commodity-stat">振幅 <strong>${rangePct.toFixed(2)}%</strong></span>
-      </div>
-      ${item.geoTag ? `<div class="commodity-geo">${escapeHtml(item.geoTag)}</div>` : ''}
-    `;
-
-    container.appendChild(card);
-  }
-
-  const updated = new Date(data.updated);
-  const timeStr = `${updated.toLocaleDateString('zh-CN')} ${updated.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}`;
-  const footer = document.createElement('div');
-  footer.className = 'commodity-updated';
-  footer.textContent = `数据更新：${timeStr}`;
-  container.appendChild(footer);
 }
 
 function wireMapLayerControl(): void {
