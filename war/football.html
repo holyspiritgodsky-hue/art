@@ -287,6 +287,11 @@
       const DOWN_KNOCKOUT = 3.6;
       const REVIVE_HP_RATIO = 0.55;
       const BLUE_LINEUP_KEY = "warFootballBlueLineupV1";
+      const IS_MOBILE_VIEW = window.matchMedia("(pointer: coarse), (max-width: 900px)").matches;
+      const MAX_SKILL_FX = IS_MOBILE_VIEW ? 18 : 34;
+      const LIGHTNING_POINTS = IS_MOBILE_VIEW ? 8 : 9;
+      const ENABLE_LIGHTNING_OVERLAY = !IS_MOBILE_VIEW;
+      const MAX_CRATERS = IS_MOBILE_VIEW ? 6 : 10;
 
       const state = {
         blue: [],
@@ -307,13 +312,15 @@
         pointerTarget: null,
         pointerDown: false,
         skillFx: [],
+        craters: [],
+        frameMsEma: 16,
         selectedBlueIds: [],
         inDraft: true,
         camera: {
           x: 0,
           y: 0,
-          smooth: 0.18,
-          scale: 1
+          smooth: IS_MOBILE_VIEW ? 0.22 : 0.18,
+          scale: IS_MOBILE_VIEW ? 0.76 : 1
         }
       };
 
@@ -579,6 +586,7 @@
         state.ball.vx = kickoffTeam === "blue" ? 90 : -90;
         state.ball.vy = 0;
         state.ball.carrier = null;
+        state.craters.length = 0;
         const viewW = window.innerWidth / state.camera.scale;
         const viewH = window.innerHeight / state.camera.scale;
         const minX = -CAMERA_PAD_X;
@@ -600,7 +608,9 @@
       }
 
       function resize() {
-        const dpr = Math.max(1, window.devicePixelRatio || 1);
+        const rawDpr = window.devicePixelRatio || 1;
+        const dprCap = IS_MOBILE_VIEW ? 1.5 : 2;
+        const dpr = Math.max(1, Math.min(rawDpr, dprCap));
         canvas.width = Math.floor(window.innerWidth * dpr);
         canvas.height = Math.floor(window.innerHeight * dpr);
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -641,8 +651,8 @@
 
       function generateLightningSegs(x1, y1, x2, y2, roughness) {
         const pts = [{ x: x1, y: y1 }];
-        for (let i = 1; i < 8; i += 1) {
-          const t = i / 8;
+        for (let i = 1; i < LIGHTNING_POINTS - 1; i += 1) {
+          const t = i / (LIGHTNING_POINTS - 1);
           pts.push({
             x: x1 + (x2 - x1) * t + (Math.random() - 0.5) * roughness * 2,
             y: y1 + (y2 - y1) * t
@@ -666,32 +676,104 @@
       }
 
       function createSkillFx(kind, sx, sy, tx, ty) {
-        const rough = kind === "sunray" ? 14 : 20;
-        const splash = kind === "sunray" ? 52 : (kind === "pulse" ? 44 : 34);
-        const life = kind === "sunray" ? 1.08 : 0.92;
+        const rough = kind === "sunray" ? 14 : (kind === "meteor" ? 26 : (kind === "kame" ? 16 : 20));
+        const splash = kind === "sunray"
+          ? 52
+          : (kind === "pulse"
+            ? 44
+            : (kind === "meteor"
+              ? 78
+              : (kind === "kame" ? 58 : (kind === "fire" ? 40 : 34))));
+        const life = kind === "sunray"
+          ? 1.08
+          : (kind === "meteor" ? 1.18 : (kind === "kame" ? 1.02 : 0.92));
         return {
           kind: kind,
+          sx: sx,
+          sy: sy,
           segs: generateLightningSegs(sx, sy, tx, ty, rough),
           tx: tx,
           ty: ty,
           splashR: splash,
-          life: life
+          life: life,
+          maxLife: life
         };
       }
 
       function pushLightningFx(sx, sy, tx, ty) {
+        if (state.skillFx.length >= MAX_SKILL_FX) {
+          state.skillFx.splice(0, state.skillFx.length - MAX_SKILL_FX + 1);
+        }
         state.skillFx.push(createLightningFx(sx, sy, tx, ty));
       }
 
       function updateSkillFx(dt) {
+        if (state.skillFx.length > MAX_SKILL_FX) {
+          state.skillFx.splice(0, state.skillFx.length - MAX_SKILL_FX);
+        }
         for (let i = state.skillFx.length - 1; i >= 0; i -= 1) {
           const fx = state.skillFx[i];
           const kind = fx.kind || "lightning";
           const decay = kind === "lightning"
             ? 3.1
-            : (kind === "sunray" ? 1.9 : 2.25);
+            : (kind === "sunray" ? 1.9 : (kind === "meteor" ? 1.5 : 2.25));
           fx.life -= dt * decay;
           if (fx.life <= 0) state.skillFx.splice(i, 1);
+        }
+      }
+
+      function spawnCrater(x, y, r) {
+        if (state.craters.length >= MAX_CRATERS) {
+          state.craters.splice(0, state.craters.length - MAX_CRATERS + 1);
+        }
+        state.craters.push({
+          x: clamp(x, 40, W - 40),
+          y: clamp(y, 40, H - 40),
+          r: clamp(r, 30, 90),
+          life: 24
+        });
+      }
+
+      function updateCraters(dt) {
+        for (let i = state.craters.length - 1; i >= 0; i -= 1) {
+          state.craters[i].life -= dt;
+          if (state.craters[i].life <= 0) state.craters.splice(i, 1);
+        }
+      }
+
+      function applyAreaImpact(enemies, x, y, radius, damage, attacker) {
+        for (let i = 0; i < enemies.length; i += 1) {
+          const e = enemies[i];
+          if (!e || e.down) continue;
+          const dx = e.x - x;
+          const dy = e.y - y;
+          const d = Math.hypot(dx, dy);
+          if (d > radius) continue;
+          const ratio = 1 - d / radius;
+          e.hp -= damage * (0.35 + ratio * 0.65);
+          e.hitFlash = Math.max(e.hitFlash || 0, 0.6);
+          const nx = d > 0.001 ? dx / d : Math.cos((attacker && attacker.dir) || 0);
+          const ny = d > 0.001 ? dy / d : Math.sin((attacker && attacker.dir) || 0);
+          e.vx += nx * (120 + 170 * ratio);
+          e.vy += ny * (100 + 130 * ratio);
+          if (e.hp <= 0 && !e.down) {
+            e.down = true;
+            e.downTimer = DOWN_KNOCKOUT;
+            e.hp = 0;
+            if (state.ball.carrier === e) state.ball.carrier = null;
+          }
+        }
+
+        const bdx = state.ball.x - x;
+        const bdy = state.ball.y - y;
+        const bd = Math.hypot(bdx, bdy);
+        if (bd <= radius * 1.15) {
+          const n = bd > 0.001 ? { x: bdx / bd, y: bdy / bd } : normalize(Math.cos((attacker && attacker.dir) || 0), Math.sin((attacker && attacker.dir) || 0));
+          const force = (1 - Math.min(1, bd / (radius * 1.15))) * 320;
+          if (!state.ball.carrier) {
+            state.ball.vx += n.x * force;
+            state.ball.vy += n.y * force;
+          }
         }
       }
 
@@ -718,11 +800,19 @@
       }
 
       function drawSkillFx(t) {
+        const minX = -90;
+        const minY = -90;
+        const maxX = window.innerWidth + 90;
+        const maxY = window.innerHeight + 90;
+        const lowPowerMode = IS_MOBILE_VIEW && (state.frameMsEma > 19.5 || state.skillFx.length > 10);
         for (let i = 0; i < state.skillFx.length; i += 1) {
           const fx = state.skillFx[i];
           const kind = fx.kind || "lightning";
           const mapped = {
             life: fx.life,
+            maxLife: fx.maxLife || 1,
+            sx: t.ox + (fx.sx !== undefined ? fx.sx : fx.tx) * t.scale,
+            sy: t.oy + (fx.sy !== undefined ? fx.sy : fx.ty) * t.scale,
             tx: t.ox + fx.tx * t.scale,
             ty: t.oy + fx.ty * t.scale,
             splashR: fx.splashR * t.scale,
@@ -735,21 +825,98 @@
             });
           }
 
-          if (kind === "lightning" && renderStd && renderStd.drawLightningFx) {
+          if (mapped.tx < minX || mapped.tx > maxX || mapped.ty < minY || mapped.ty > maxY) {
+            continue;
+          }
+
+          if (kind === "meteor") {
+            const p = 1 - clamp(mapped.life / Math.max(0.001, mapped.maxLife), 0, 1);
+            const fromX = mapped.tx + (mapped.sx - mapped.tx) * (1 - p * 0.9);
+            const fromY = (mapped.ty - 320 * t.scale) + (mapped.ty - (mapped.ty - 320 * t.scale)) * p;
+            const r = Math.max(4, (5 + p * 9) * t.scale);
+
+            ctx.save();
+            ctx.globalCompositeOperation = "lighter";
+            ctx.strokeStyle = "rgba(255,142,86," + (0.45 + mapped.life * 0.45) + ")";
+            ctx.lineWidth = Math.max(2, 5 * t.scale);
+            ctx.shadowColor = "rgba(255,110,56," + (0.45 + mapped.life * 0.4) + ")";
+            ctx.shadowBlur = Math.max(6, 14 * t.scale);
+            ctx.beginPath();
+            ctx.moveTo(fromX, fromY - 18 * t.scale);
+            ctx.lineTo(mapped.tx, mapped.ty);
+            ctx.stroke();
+
+            ctx.fillStyle = "rgba(92,72,58," + (0.8 + mapped.life * 0.12) + ")";
+            ctx.beginPath();
+            ctx.arc(fromX, fromY, r, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.strokeStyle = "rgba(255,173,108," + (mapped.life * 0.95) + ")";
+            ctx.lineWidth = Math.max(1.8, 3 * t.scale);
+            ctx.beginPath();
+            ctx.arc(mapped.tx, mapped.ty, mapped.splashR * (0.55 + p * 0.7), 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.restore();
+            continue;
+          }
+
+          if (kind === "fire") {
+            const n = normalize(mapped.tx - mapped.sx, mapped.ty - mapped.sy);
+            const px = -n.y;
+            const py = n.x;
+            const spread = Math.max(6, 14 * t.scale);
+
+            ctx.save();
+            ctx.globalCompositeOperation = "lighter";
+            ctx.fillStyle = "rgba(255,120,62," + (mapped.life * 0.78) + ")";
+            ctx.beginPath();
+            ctx.moveTo(mapped.sx + px * spread * 0.26, mapped.sy + py * spread * 0.26);
+            ctx.lineTo(mapped.sx - px * spread * 0.26, mapped.sy - py * spread * 0.26);
+            ctx.lineTo(mapped.tx - px * spread, mapped.ty - py * spread);
+            ctx.lineTo(mapped.tx + px * spread, mapped.ty + py * spread);
+            ctx.closePath();
+            ctx.fill();
+
+            ctx.strokeStyle = "rgba(255,220,136," + (mapped.life * 0.88) + ")";
+            ctx.lineWidth = Math.max(1.4, 2.4 * t.scale);
+            ctx.beginPath();
+            ctx.moveTo(mapped.sx, mapped.sy);
+            ctx.lineTo(mapped.tx, mapped.ty);
+            ctx.stroke();
+
+            for (let pIdx = 0; pIdx < 3; pIdx += 1) {
+              const q = (pIdx + 1) / 4;
+              const fxX = mapped.sx + (mapped.tx - mapped.sx) * q + (Math.random() - 0.5) * spread;
+              const fxY = mapped.sy + (mapped.ty - mapped.sy) * q + (Math.random() - 0.5) * spread;
+              ctx.fillStyle = "rgba(255,183,93," + (mapped.life * (0.6 - pIdx * 0.12)) + ")";
+              ctx.beginPath();
+              ctx.arc(fxX, fxY, Math.max(1.2, (3.2 - pIdx) * t.scale), 0, Math.PI * 2);
+              ctx.fill();
+            }
+            ctx.restore();
+            continue;
+          }
+
+          if (kind === "lightning" && renderStd && renderStd.drawLightningFx && (!IS_MOBILE_VIEW || !lowPowerMode)) {
             renderStd.drawLightningFx(ctx, mapped);
           } else {
             ctx.save();
             ctx.globalCompositeOperation = "lighter";
-            const stroke = kind === "sunray"
-              ? "rgba(255,120,96," + (fx.life * 0.98) + ")"
-              : (kind === "pulse"
-                ? "rgba(255,226,130," + (fx.life * 0.96) + ")"
-                : (kind === "arrow"
-                  ? "rgba(166,255,234," + (fx.life * 0.9) + ")"
-                  : "rgba(255,164,198," + (fx.life * 0.92) + ")"));
+            let stroke = "rgba(255,164,198," + (fx.life * 0.92) + ")";
+            if (kind === "sunray") stroke = "rgba(255,120,96," + (fx.life * 0.98) + ")";
+            else if (kind === "pulse") stroke = "rgba(255,226,130," + (fx.life * 0.96) + ")";
+            else if (kind === "meteor") stroke = "rgba(255,120,62," + (fx.life * 0.98) + ")";
+            else if (kind === "kame") stroke = "rgba(121,220,255," + (fx.life * 0.95) + ")";
+            else if (kind === "fire") stroke = "rgba(255,124,72," + (fx.life * 0.94) + ")";
+            else if (kind === "arrow") stroke = "rgba(166,255,234," + (fx.life * 0.9) + ")";
             ctx.strokeStyle = stroke;
             ctx.shadowColor = stroke;
-            ctx.shadowBlur = Math.max(8, (kind === "sunray" ? 20 : 15) * t.scale);
+            const blurBase = lowPowerMode
+              ? (kind === "sunray" ? 8 : 6)
+              : (IS_MOBILE_VIEW
+                ? (kind === "sunray" ? 14 : (kind === "meteor" ? 16 : 10))
+                : (kind === "sunray" ? 20 : (kind === "meteor" ? 24 : 15)));
+            ctx.shadowBlur = Math.max(5, blurBase * t.scale);
             ctx.lineWidth = Math.max(1.8, (kind === "sunray" ? 4.8 : 3.6) * t.scale);
             ctx.beginPath();
             ctx.moveTo(mapped.segs[0].x, mapped.segs[0].y);
@@ -781,7 +948,7 @@
             ctx.restore();
           }
 
-          if (kind === "lightning") {
+          if (kind === "lightning" && (ENABLE_LIGHTNING_OVERLAY || (IS_MOBILE_VIEW && !lowPowerMode))) {
             ctx.save();
             ctx.globalCompositeOperation = "lighter";
             ctx.strokeStyle = "rgba(210,240,255," + (fx.life * 0.55) + ")";
@@ -806,7 +973,10 @@
           blackwidow: true,
           ironman: true,
           homelander: true,
-          hawkeye: true
+          hawkeye: true,
+          supersaiyan: true,
+          liuxiu: true,
+          diablo: true
         };
         const teamLeader = team && team.length ? team[0] : null;
 
@@ -844,8 +1014,15 @@
               if (target.hitFlash !== undefined) {
                 target.hitFlash = Math.max(target.hitFlash || 0, 0.55);
               }
+              if (state.skillFx.length >= MAX_SKILL_FX) {
+                state.skillFx.splice(0, state.skillFx.length - MAX_SKILL_FX + 1);
+              }
               state.skillFx.push(createSkillFx("arrow", h.x, h.y - 8, target.x, target.y - 8));
             },
+            applyAreaImpact: function (x, y, radius, damage, attacker) {
+              applyAreaImpact(enemies, x, y, radius, damage, attacker || p);
+            },
+            spawnCrater: spawnCrater,
             skillFx: state.skillFx,
             createSkillFx: createSkillFx
           });
@@ -1155,8 +1332,15 @@
         const maxX = Math.max(minX, W - viewW + CAMERA_PAD_X);
         const minY = -CAMERA_PAD_Y;
         const maxY = Math.max(minY, H - viewH + CAMERA_PAD_Y);
-        const tx = clamp(p.x - viewW * 0.5, minX, maxX);
-        const ty = clamp(p.y - viewH * 0.5, minY, maxY);
+        const b = state.ball;
+        const dx = b.x - p.x;
+        const dy = b.y - p.y;
+        const d = Math.hypot(dx, dy);
+        const ballWeight = d > 180 ? 0.32 : 0.18;
+        const focusX = p.x * (1 - ballWeight) + b.x * ballWeight;
+        const focusY = p.y * (1 - ballWeight) + b.y * ballWeight;
+        const tx = clamp(focusX - viewW * 0.5, minX, maxX);
+        const ty = clamp(focusY - viewH * 0.5, minY, maxY);
         state.camera.x += (tx - state.camera.x) * state.camera.smooth;
         state.camera.y += (ty - state.camera.y) * state.camera.smooth;
       }
@@ -1196,6 +1380,7 @@
         pickBallIfClose(state.red);
         updateBall(dt);
         updateSkillFx(dt);
+        updateCraters(dt);
         updateCamera();
 
         refreshHud();
@@ -1222,6 +1407,18 @@
         }
         ctx.globalAlpha = 1;
 
+        for (let i = 0; i < state.craters.length; i += 1) {
+          const c = state.craters[i];
+          const alpha = Math.max(0.18, Math.min(0.44, c.life / 24 * 0.44));
+          ctx.fillStyle = "rgba(58,38,30," + alpha + ")";
+          ctx.beginPath();
+          ctx.ellipse(ox + c.x * scale, oy + c.y * scale, c.r * scale, c.r * 0.72 * scale, 0.2, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = "rgba(88,60,42," + (alpha * 0.9) + ")";
+          ctx.lineWidth = Math.max(1.2, 2.2 * scale);
+          ctx.stroke();
+        }
+
         ctx.strokeStyle = "rgba(245, 240, 218, 0.86)";
         ctx.lineWidth = Math.max(2, 3 * scale);
         ctx.strokeRect(ox, oy, W * scale, H * scale);
@@ -1244,6 +1441,12 @@
         const sx = t.ox + p.x * t.scale;
         const sy = t.oy + p.y * t.scale;
         const r = p.r * t.scale;
+        const visualScale = p.heroId === "diablo" ? 2 : 1;
+        const allyNameColor = "#9dd9ff";
+        const enemyNameColor = "#ff8b8b";
+        const allyHpColor = "#7fd2ff";
+        const enemyHpColor = "#ffb0a0";
+        const downHpColor = "#ffd789";
 
         if (p.down) {
           ctx.fillStyle = "rgba(30, 20, 20, 0.35)";
@@ -1268,6 +1471,9 @@
             ironman: heroDetail && heroDetail.drawIronmanHero,
             homelander: heroDetail && heroDetail.drawHomelanderHero,
             hawkeye: heroDetail && heroDetail.drawHawkeyeHero,
+            supersaiyan: heroDetail && heroDetail.drawSupersaiyanHero,
+            liuxiu: heroDetail && heroDetail.drawLiuxiuHero,
+            diablo: heroDetail && heroDetail.drawDiabloHero,
             zhangliao: heroDetail && heroDetail.drawEnemyGeneralHero,
             caocao: heroDetail && heroDetail.drawEnemyGeneralHero,
             xuchu: heroDetail && heroDetail.drawEnemyGeneralHero
@@ -1278,19 +1484,21 @@
 
           if (canUseSpecialDraw) {
             const drawHealthBarScreen = function (x, y, w, hp, maxHp, color) {
-              const barW = Math.max(20, w * Math.max(0.72, t.scale));
+              const barW = Math.max(20, w * Math.max(0.72, t.scale) * (p.heroId === "diablo" ? 1.28 : 1));
               const barH = Math.max(3, 4 * t.scale);
               const ratio = clamp(hp / Math.max(1, maxHp), 0, 1);
+              const teamColor = p.down ? downHpColor : (p.team === "red" ? enemyHpColor : allyHpColor);
               ctx.fillStyle = "rgba(0,0,0,0.54)";
               ctx.fillRect(x - barW * 0.5, y, barW, barH);
-              ctx.fillStyle = color || "#7fd2ff";
+              void color;
+              ctx.fillStyle = teamColor;
               ctx.fillRect(x - barW * 0.5 + 1, y + 1, (barW - 2) * ratio, Math.max(1, barH - 2));
             };
 
             ctx.save();
             ctx.fillStyle = p.team === "blue" ? "rgba(96,184,255,0.35)" : "rgba(255,126,104,0.35)";
             ctx.beginPath();
-            ctx.ellipse(sx, sy + r * 0.72, r * 0.94, r * 0.36, 0, 0, Math.PI * 2);
+            ctx.ellipse(sx, sy + r * 0.72, r * 0.94 * visualScale, r * 0.36 * visualScale, 0, 0, Math.PI * 2);
             ctx.fill();
             ctx.restore();
 
@@ -1304,7 +1512,8 @@
                 maxHp: p.maxHp,
                 name: p.name,
                 slashTimer: p.slashTimer || 0,
-                weaponType: p.weaponType || "saber"
+                weaponType: p.weaponType || "saber",
+                sizeScale: visualScale
               },
               ctx: ctx,
               drawHealthBar: drawHealthBarScreen,
@@ -1332,10 +1541,11 @@
             specialDrawFn(specialOpts);
 
             const shortName = p.name.length > 8 ? p.name.slice(0, 8) : p.name;
-            ctx.fillStyle = p.team === "red" ? "#ff8b8b" : "rgba(255,255,255,0.92)";
+            ctx.fillStyle = p.team === "red" ? enemyNameColor : allyNameColor;
             ctx.font = "700 " + Math.max(10, 12 * t.scale) + "px Microsoft YaHei";
             ctx.textAlign = "center";
-            ctx.fillText(shortName, sx, sy - 31 * Math.max(0.78, t.scale));
+            const nameOffset = p.heroId === "diablo" ? 52 : 31;
+            ctx.fillText(shortName, sx, sy - nameOffset * Math.max(0.78, t.scale));
 
             return;
           }
@@ -1429,10 +1639,10 @@
 
         ctx.fillStyle = "rgba(0,0,0,0.54)";
         ctx.fillRect(bx, by, barW, barH);
-        ctx.fillStyle = p.down ? "#ffd789" : (p.team === "blue" ? "#7fd2ff" : "#ffb0a0");
+        ctx.fillStyle = p.down ? downHpColor : (p.team === "red" ? enemyHpColor : allyHpColor);
         ctx.fillRect(bx + 1, by + 1, (barW - 2) * ratio, Math.max(1, barH - 2));
 
-        ctx.fillStyle = p.team === "red" ? "#ff8b8b" : "rgba(255,255,255,0.92)";
+        ctx.fillStyle = p.team === "red" ? enemyNameColor : allyNameColor;
         ctx.font = "600 " + Math.max(10, 11 * t.scale) + "px Microsoft YaHei";
         ctx.textAlign = "center";
         const shortName = p.name.length > 8 ? p.name.slice(0, 8) : p.name;
@@ -1479,7 +1689,9 @@
 
       function frameLoop(ts) {
         if (!frameLoop.last) frameLoop.last = ts;
-        const dt = clamp((ts - frameLoop.last) / 1000, 0, 0.033);
+        const frameMs = clamp(ts - frameLoop.last, 8, 50);
+        state.frameMsEma += (frameMs - state.frameMsEma) * 0.08;
+        const dt = clamp(frameMs / 1000, 0, 0.033);
         frameLoop.last = ts;
         update(dt);
         draw();

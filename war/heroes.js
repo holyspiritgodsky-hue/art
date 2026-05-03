@@ -288,6 +288,78 @@
         range: 300,
         splash: 20
       })
+    }),
+    supersaiyan: Object.freeze({
+      id: "supersaiyan",
+      name: "超级赛亚人",
+      style: Object.freeze({
+        body: "#d49b28",
+        head: "#efc99e",
+        accent: "#ffe56b",
+        mounted: false
+      }),
+      stats: Object.freeze({
+        hp: 360,
+        speed: 228,
+        attackRange: 280,
+        radius: 12
+      }),
+      skill: Object.freeze({
+        key: "kameWave",
+        label: "冲击波",
+        damage: 58,
+        cooldown: 1,
+        range: 280,
+        splash: 46
+      })
+    }),
+    liuxiu: Object.freeze({
+      id: "liuxiu",
+      name: "刘秀",
+      style: Object.freeze({
+        body: "#4f355f",
+        head: "#edc8a1",
+        accent: "#ff9f6e",
+        mounted: false
+      }),
+      stats: Object.freeze({
+        hp: 380,
+        speed: 196,
+        attackRange: 300,
+        radius: 12
+      }),
+      skill: Object.freeze({
+        key: "meteorFall",
+        label: "天降陨火",
+        damage: 52,
+        cooldown: 3.2,
+        range: 300,
+        splash: 62
+      })
+    }),
+    diablo: Object.freeze({
+      id: "diablo",
+      name: "Diablo",
+      style: Object.freeze({
+        body: "#7a2421",
+        head: "#dca67f",
+        accent: "#ff6a32",
+        mounted: false
+      }),
+      stats: Object.freeze({
+        hp: 410,
+        speed: 206,
+        attackRange: 190,
+        radius: 12
+      }),
+      skill: Object.freeze({
+        key: "hellFlame",
+        label: "地狱吐息",
+        damage: 52,
+        cooldown: 0.72,
+        range: 190,
+        splash: 34
+      })
     })
   });
 
@@ -335,7 +407,10 @@
       blackwidow: false,
       ironman: false,
       homelander: false,
-      hawkeye: false
+      hawkeye: false,
+      supersaiyan: false,
+      liuxiu: false,
+      diablo: false
     };
   }
 
@@ -1381,6 +1456,138 @@
     drawHealthBar(h.x, h.y - 28, 42, h.hp, h.maxHp, "#8fded0");
   }
 
+  function drawSupersaiyanHero(opts) {
+    const h = opts.hero;
+    const ctx = opts.ctx;
+    const drawHealthBar = opts.drawHealthBar;
+    const showName = opts.showName !== false;
+    const nameColor = opts.nameColor || "#ffe88e";
+
+    ctx.save();
+    ctx.translate(h.x, h.y);
+    ctx.scale(1.12, 1.12);
+    ctx.fillStyle = "rgba(255,224,110,0.2)";
+    ctx.beginPath();
+    ctx.arc(0, -3, 15, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#cf9224";
+    ctx.fillRect(-5, -8, 10, 12);
+    ctx.fillStyle = "#efc99e";
+    ctx.beginPath();
+    ctx.arc(0, -12, 4.6, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#ffe36a";
+    ctx.beginPath();
+    ctx.moveTo(-4.6, -14.2);
+    ctx.lineTo(-2.3, -20.2);
+    ctx.lineTo(0, -15.8);
+    ctx.lineTo(2.3, -20.2);
+    ctx.lineTo(4.6, -14.2);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+
+    if (showName) {
+      ctx.fillStyle = nameColor;
+      ctx.font = "700 12px Microsoft YaHei";
+      ctx.textAlign = "center";
+      ctx.fillText(h.name || "超级赛亚人", h.x, h.y - 33);
+    }
+    drawHealthBar(h.x, h.y - 28, 44, h.hp, h.maxHp, "#ffd56c");
+  }
+
+  function drawLiuxiuHero(opts) {
+    const h = opts.hero;
+    const ctx = opts.ctx;
+    const drawHealthBar = opts.drawHealthBar;
+    const showName = opts.showName !== false;
+    const nameColor = opts.nameColor || "#ffb48a";
+
+    ctx.save();
+    ctx.translate(h.x, h.y);
+    ctx.scale(1.1, 1.1);
+    ctx.fillStyle = "#4f355f";
+    ctx.fillRect(-5, -8, 10, 12);
+    ctx.fillStyle = "#ff9f6e";
+    ctx.fillRect(-1.6, -8, 3.2, 12);
+    ctx.fillStyle = "#edc8a1";
+    ctx.beginPath();
+    ctx.arc(0, -12, 4.6, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#ff8d4d";
+    ctx.beginPath();
+    ctx.arc(0, -3, 2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    if (showName) {
+      ctx.fillStyle = nameColor;
+      ctx.font = "700 12px Microsoft YaHei";
+      ctx.textAlign = "center";
+      ctx.fillText(h.name || "刘秀", h.x, h.y - 33);
+    }
+    drawHealthBar(h.x, h.y - 28, 44, h.hp, h.maxHp, "#ff9f7b");
+  }
+
+  function drawDiabloHero(opts) {
+    const h = opts.hero;
+    const ctx = opts.ctx;
+    const drawHealthBar = opts.drawHealthBar;
+    const showName = opts.showName !== false;
+    const nameColor = opts.nameColor || "#ff8f7d";
+    const sizeScale = h.sizeScale || 1;
+
+    ctx.save();
+    ctx.translate(h.x, h.y);
+    ctx.scale(1.1 * sizeScale, 1.1 * sizeScale);
+    ctx.fillStyle = "rgba(120,34,24,0.2)";
+    ctx.beginPath();
+    ctx.ellipse(0, 3.5, 9.5, 3.2, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = "#7a2421";
+    ctx.beginPath();
+    ctx.ellipse(0, -1.4, 7.8, 6, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#a3342e";
+    ctx.beginPath();
+    ctx.ellipse(0, 0.6, 6.1, 3.7, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = "#dca67f";
+    ctx.beginPath();
+    ctx.ellipse(0, -8.6, 4.8, 4.2, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#3a1716";
+    ctx.beginPath();
+    ctx.moveTo(-4.2, -9.8);
+    ctx.lineTo(-6.4, -14.2);
+    ctx.lineTo(-2.7, -11.4);
+    ctx.closePath();
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(4.2, -9.8);
+    ctx.lineTo(6.4, -14.2);
+    ctx.lineTo(2.7, -11.4);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle = "#ff8c55";
+    ctx.fillRect(-1.7, -2.4, 3.4, 1.3);
+    ctx.fillStyle = "#ffd3b4";
+    ctx.fillRect(-3.1, -7.2, 1.2, 1.2);
+    ctx.fillRect(1.9, -7.2, 1.2, 1.2);
+    ctx.restore();
+
+    if (showName) {
+      ctx.fillStyle = nameColor;
+      ctx.font = "700 12px Microsoft YaHei";
+      ctx.textAlign = "center";
+      ctx.fillText(h.name || "Diablo", h.x, h.y - (33 + 10 * Math.max(0, sizeScale - 1)));
+    }
+    drawHealthBar(h.x, h.y - (28 + 8 * Math.max(0, sizeScale - 1)), 52 * Math.max(1, sizeScale * 0.75), h.hp, h.maxHp, "#ff8d61");
+  }
+
   function updateBlackwidow(opts) {
     const h = opts.hero;
     const nearestEnemy = opts.nearestEnemy;
@@ -1469,6 +1676,76 @@
     if (opts.skillFx && opts.createSkillFx) opts.skillFx.push(opts.createSkillFx("arrow", h.x, h.y - 8, ne.target.x, ne.target.y - 8));
   }
 
+  function updateSupersaiyan(opts) {
+    const h = opts.hero;
+    const nearestEnemy = opts.nearestEnemy;
+    const moveToward = opts.moveToward;
+    const dt = opts.dt;
+    if (!nearestEnemy) return;
+    const ne = nearestEnemy(h, 310);
+    if (!ne || !ne.target) return;
+
+    h.dir = Math.atan2(ne.target.y - h.y, ne.target.x - h.x);
+    if (ne.d > 270) {
+      moveToward(h, ne.target.x, ne.target.y, h.speed * 1.05, dt);
+      return;
+    }
+    if (h.attackCd > 0) return;
+
+    h.attackCd = 1;
+    ne.target.hp -= 58;
+    if (ne.target.hitFlash !== undefined) ne.target.hitFlash = Math.max(ne.target.hitFlash || 0, 0.72);
+    if (opts.skillFx && opts.createSkillFx) opts.skillFx.push(opts.createSkillFx("kame", h.x, h.y - 8, ne.target.x, ne.target.y - 8));
+    if (opts.applyAreaImpact) opts.applyAreaImpact(ne.target.x, ne.target.y, 48, 18, h);
+  }
+
+  function updateLiuxiu(opts) {
+    const h = opts.hero;
+    const nearestEnemy = opts.nearestEnemy;
+    const moveToward = opts.moveToward;
+    const dt = opts.dt;
+    if (!nearestEnemy) return;
+    const ne = nearestEnemy(h, 330);
+    if (!ne || !ne.target) return;
+
+    h.dir = Math.atan2(ne.target.y - h.y, ne.target.x - h.x);
+    if (ne.d > 300) {
+      moveToward(h, ne.target.x, ne.target.y, h.speed * 0.94, dt);
+      return;
+    }
+    if (h.attackCd > 0) return;
+
+    h.attackCd = 3.2;
+    ne.target.hp -= 52;
+    if (ne.target.hitFlash !== undefined) ne.target.hitFlash = Math.max(ne.target.hitFlash || 0, 0.76);
+    if (opts.skillFx && opts.createSkillFx) opts.skillFx.push(opts.createSkillFx("meteor", h.x, h.y - 18, ne.target.x, ne.target.y - 6));
+    if (opts.applyAreaImpact) opts.applyAreaImpact(ne.target.x, ne.target.y, 68, 18, h);
+    if (opts.spawnCrater) opts.spawnCrater(ne.target.x, ne.target.y, 52);
+  }
+
+  function updateDiablo(opts) {
+    const h = opts.hero;
+    const nearestEnemy = opts.nearestEnemy;
+    const moveToward = opts.moveToward;
+    const dt = opts.dt;
+    if (!nearestEnemy) return;
+    const ne = nearestEnemy(h, 210);
+    if (!ne || !ne.target) return;
+
+    h.dir = Math.atan2(ne.target.y - h.y, ne.target.x - h.x);
+    if (ne.d > 175) {
+      moveToward(h, ne.target.x, ne.target.y, h.speed * 0.98, dt);
+      return;
+    }
+    if (h.attackCd > 0) return;
+
+    h.attackCd = 0.72;
+    ne.target.hp -= 52;
+    if (ne.target.hitFlash !== undefined) ne.target.hitFlash = Math.max(ne.target.hitFlash || 0, 0.62);
+    if (opts.skillFx && opts.createSkillFx) opts.skillFx.push(opts.createSkillFx("fire", h.x, h.y - 8, ne.target.x, ne.target.y - 8));
+    if (opts.applyAreaImpact) opts.applyAreaImpact(ne.target.x, ne.target.y, 38, 10, h);
+  }
+
   function updateSanada(opts) {
     const a = opts.hero;
     const player = opts.player;
@@ -1549,6 +1826,18 @@
       updateHawkeye(opts);
       return;
     }
+    if (a.heroId === "supersaiyan") {
+      updateSupersaiyan(opts);
+      return;
+    }
+    if (a.heroId === "liuxiu") {
+      updateLiuxiu(opts);
+      return;
+    }
+    if (a.heroId === "diablo") {
+      updateDiablo(opts);
+      return;
+    }
 
     // Generic fallback for other companions.
     if (!opts.nearestEnemy) return;
@@ -1588,7 +1877,10 @@
     drawBlackwidowHero,
     drawIronmanHero,
     drawHomelanderHero,
-    drawHawkeyeHero
+    drawHawkeyeHero,
+    drawSupersaiyanHero,
+    drawLiuxiuHero,
+    drawDiabloHero
   });
 
   window.WarHeroes = {
