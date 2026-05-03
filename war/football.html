@@ -1,0 +1,1342 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>热血足球: 英雄 6v6</title>
+  <style>
+    :root {
+      --ink: #f5f2dc;
+      --line: rgba(255, 255, 255, 0.24);
+      --panel: rgba(10, 16, 24, 0.72);
+      --blue: #6cc0ff;
+      --red: #ff8574;
+      --field-a: #305f2e;
+      --field-b: #244924;
+      --field-c: #7ab35c;
+      --goal: #f8edd0;
+    }
+
+    * { box-sizing: border-box; }
+
+    html,
+    body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: "Microsoft YaHei", "Segoe UI", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 18% 14%, #3f7040 0%, transparent 38%),
+        radial-gradient(circle at 84% 80%, #2f5a36 0%, transparent 44%),
+        linear-gradient(160deg, #1e3322 0%, #223c27 48%, #1a2e20 100%);
+      user-select: none;
+    }
+
+    #game {
+      width: 100vw;
+      height: 100vh;
+      display: block;
+      touch-action: none;
+      cursor: crosshair;
+    }
+
+    #hud {
+      position: fixed;
+      left: 12px;
+      right: 12px;
+      top: 12px;
+      z-index: 5;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+      pointer-events: none;
+    }
+
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--panel);
+      backdrop-filter: blur(4px);
+      padding: 8px 12px;
+      pointer-events: auto;
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.3);
+    }
+
+    #score {
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      min-width: 170px;
+      text-align: center;
+    }
+
+    #clock {
+      min-width: 86px;
+      text-align: center;
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    #tips {
+      font-size: 12px;
+      opacity: 0.92;
+    }
+
+    #actions {
+      display: inline-flex;
+      gap: 8px;
+      pointer-events: auto;
+    }
+
+    .btn {
+      border: 1px solid var(--line);
+      background: rgba(26, 36, 50, 0.85);
+      color: var(--ink);
+      height: 34px;
+      padding: 0 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .btn:hover { filter: brightness(1.1); }
+
+    #shootBtn {
+      position: fixed;
+      right: 12px;
+      bottom: 12px;
+      z-index: 6;
+      min-width: 92px;
+      height: 44px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 230, 150, 0.65);
+      background: rgba(89, 61, 24, 0.9);
+      color: #ffeec2;
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+    }
+
+    #flash {
+      position: fixed;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 7;
+      font-size: clamp(26px, 6vw, 62px);
+      font-weight: 900;
+      color: #ffe8a6;
+      text-shadow: 0 0 16px rgba(255, 214, 108, 0.75), 0 8px 24px rgba(0, 0, 0, 0.55);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 160ms ease;
+    }
+
+    @media (max-width: 900px), (pointer: coarse) {
+      #hud { top: 8px; left: 8px; right: 8px; }
+      #score { font-size: 16px; }
+      #clock { font-size: 14px; }
+      .btn { height: 32px; font-size: 12px; }
+      #shootBtn { right: 8px; bottom: 8px; height: 42px; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="game"></canvas>
+
+  <div id="hud">
+    <div id="score" class="card">蜀汉联队 0 : 0 群雄联队</div>
+    <div id="clock" class="card">03:00</div>
+    <div id="tips" class="card">操作: WASD移动, J冲撞抢球, K射门, 鼠标/触摸可点地移动</div>
+    <div id="actions" class="card">
+      <a class="btn" href="index.html">返回战场</a>
+      <button class="btn" id="pauseBtn" type="button">暂停</button>
+      <button class="btn" id="restartBtn" type="button">重开</button>
+    </div>
+  </div>
+
+  <button id="shootBtn" class="btn" type="button">射门</button>
+  <div id="flash"></div>
+
+  <script src="heroes.js"></script>
+  <script src="sense.js"></script>
+  <script>
+    (function () {
+      "use strict";
+
+      const canvas = document.getElementById("game");
+      const ctx = canvas.getContext("2d");
+      const scoreEl = document.getElementById("score");
+      const clockEl = document.getElementById("clock");
+      const flashEl = document.getElementById("flash");
+      const pauseBtn = document.getElementById("pauseBtn");
+      const restartBtn = document.getElementById("restartBtn");
+      const shootBtn = document.getElementById("shootBtn");
+
+      const heroStore = window.WarHeroes;
+      const renderStd = window.WarSense || null;
+      const heroDetail = heroStore && heroStore.detailRuntime ? heroStore.detailRuntime : null;
+      const heroPool = heroStore && Array.isArray(heroStore.HERO_IDS)
+        ? heroStore.HERO_IDS.slice()
+        : ["zhugeliang", "lancelot", "sanada", "sunshangxiang", "daqiao", "xiaoqiao", "elizabeth"];
+
+      const W = 1760;
+      const H = 1040;
+      const GOAL_H = 248;
+      const HALF_X = W * 0.5;
+      const MATCH_SECONDS = 180;
+      const PLAYER_COUNT = 6;
+      const DOWN_KNOCKOUT = 3.6;
+      const REVIVE_HP_RATIO = 0.55;
+
+      const state = {
+        blue: [],
+        red: [],
+        ball: {
+          x: HALF_X,
+          y: H * 0.5,
+          vx: 0,
+          vy: 0,
+          r: 10,
+          carrier: null
+        },
+        blueScore: 0,
+        redScore: 0,
+        flash: 0,
+        flashText: "",
+        paused: false,
+        elapsed: 0,
+        gameOver: false,
+        pointerTarget: null,
+        pointerDown: false,
+        skillFx: []
+      };
+
+      const input = {
+        w: false,
+        a: false,
+        s: false,
+        d: false,
+        j: false,
+        k: false
+      };
+
+      function clamp(v, min, max) {
+        return Math.max(min, Math.min(max, v));
+      }
+
+      function dist(a, b) {
+        return Math.hypot(a.x - b.x, a.y - b.y);
+      }
+
+      function normalize(x, y) {
+        const d = Math.hypot(x, y) || 0.001;
+        return { x: x / d, y: y / d };
+      }
+
+      function pickHeroId(i, teamTag) {
+        if (!heroPool.length) return "lancelot";
+        return heroPool[(i + (teamTag === "red" ? 3 : 0)) % heroPool.length];
+      }
+
+      function makeHero(teamTag, slot, x, y) {
+        const id = pickHeroId(slot, teamTag);
+        if (heroStore && heroStore.createFootballHero) {
+          return heroStore.createFootballHero(id, x, y, {
+            id: teamTag + "-" + slot,
+            team: teamTag,
+            dir: teamTag === "blue" ? 0 : Math.PI,
+            homeX: x,
+            homeY: y
+          });
+        }
+
+        const base = heroStore && heroStore.createCompanion
+          ? heroStore.createCompanion(id, x, y)
+          : null;
+        const speed = base && base.speed ? base.speed : 210;
+        const maxHp = base && base.maxHp ? base.maxHp : 320;
+        const damage = base && base.skill && base.skill.damage ? base.skill.damage : 42;
+        return {
+          id: teamTag + "-" + slot,
+          heroId: id,
+          name: base && base.name ? base.name : id,
+          x: x,
+          y: y,
+          vx: 0,
+          vy: 0,
+          dir: teamTag === "blue" ? 0 : Math.PI,
+          r: 13,
+          team: teamTag,
+          speed: clamp(speed * 0.98, 180, 300),
+          sprint: clamp(speed * 1.22, 220, 360),
+          hp: maxHp,
+          maxHp: maxHp,
+          damage: clamp(damage * 0.42, 16, 34),
+          attackCd: 0,
+          hitFlash: 0,
+          down: false,
+          downTimer: 0,
+          recoverTimer: 0,
+          mounted: !!(base && base.mounted),
+          body: base && base.body ? base.body : (teamTag === "blue" ? "#63b8ff" : "#ff7f71"),
+          head: base && base.head ? base.head : "#efcda2",
+          accent: base && base.accent ? base.accent : (teamTag === "blue" ? "#d4efff" : "#ffe2c6"),
+          homeX: x,
+          homeY: y
+        };
+      }
+
+      function setupTeams() {
+        state.blue.length = 0;
+        state.red.length = 0;
+
+        const rows = [0.18, 0.34, 0.5, 0.66, 0.82, 0.5];
+        for (let i = 0; i < PLAYER_COUNT; i += 1) {
+          const xBlue = i === PLAYER_COUNT - 1 ? 120 : 260 + (i % 2) * 120;
+          const y = H * rows[i];
+          state.blue.push(makeHero("blue", i, xBlue, y));
+        }
+
+        for (let i = 0; i < PLAYER_COUNT; i += 1) {
+          const xRed = i === PLAYER_COUNT - 1 ? W - 120 : W - 260 - (i % 2) * 120;
+          const y = H * rows[i];
+          state.red.push(makeHero("red", i, xRed, y));
+        }
+
+        // Each side has one fixed goalkeeper.
+        state.blue[PLAYER_COUNT - 1].isGoalkeeper = true;
+        state.red[PLAYER_COUNT - 1].isGoalkeeper = true;
+        state.blue[PLAYER_COUNT - 1].name = state.blue[PLAYER_COUNT - 1].name + "(门将)";
+        state.red[PLAYER_COUNT - 1].name = state.red[PLAYER_COUNT - 1].name + "(门将)";
+
+        // 蓝队第 1 人作为玩家操控的队长。
+        state.blue[0].name = state.blue[0].name + "(你)";
+      }
+
+      function resetPositions(kickoffTeam) {
+        const all = state.blue.concat(state.red);
+        for (let i = 0; i < all.length; i += 1) {
+          const p = all[i];
+          p.x = p.homeX;
+          p.y = p.homeY;
+          p.vx = 0;
+          p.vy = 0;
+          p.attackCd = 0;
+          p.down = false;
+          p.downTimer = 0;
+          p.recoverTimer = 0;
+          p.hp = p.maxHp;
+        }
+
+        state.ball.x = HALF_X;
+        state.ball.y = H * 0.5;
+        state.ball.vx = kickoffTeam === "blue" ? 90 : -90;
+        state.ball.vy = 0;
+        state.ball.carrier = null;
+      }
+
+      function resetMatch() {
+        state.blueScore = 0;
+        state.redScore = 0;
+        state.elapsed = 0;
+        state.gameOver = false;
+        state.flash = 0;
+        state.flashText = "";
+        setupTeams();
+        resetPositions("blue");
+        refreshHud();
+      }
+
+      function resize() {
+        const dpr = Math.max(1, window.devicePixelRatio || 1);
+        canvas.width = Math.floor(window.innerWidth * dpr);
+        canvas.height = Math.floor(window.innerHeight * dpr);
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      }
+
+      function worldToScreen(x, y) {
+        const scale = Math.min(window.innerWidth / W, window.innerHeight / H);
+        const offsetX = (window.innerWidth - W * scale) * 0.5;
+        const offsetY = (window.innerHeight - H * scale) * 0.5;
+        return {
+          x: offsetX + x * scale,
+          y: offsetY + y * scale,
+          scale: scale,
+          ox: offsetX,
+          oy: offsetY
+        };
+      }
+
+      function screenToWorld(x, y) {
+        const t = worldToScreen(0, 0);
+        return {
+          x: clamp((x - t.ox) / t.scale, 0, W),
+          y: clamp((y - t.oy) / t.scale, 0, H)
+        };
+      }
+
+      function refreshHud() {
+        scoreEl.textContent = "蜀汉联队 " + state.blueScore + " : " + state.redScore + " 群雄联队";
+        const remain = Math.max(0, Math.ceil(MATCH_SECONDS - state.elapsed));
+        const mm = String(Math.floor(remain / 60)).padStart(2, "0");
+        const ss = String(remain % 60).padStart(2, "0");
+        clockEl.textContent = mm + ":" + ss;
+      }
+
+      function showFlash(text) {
+        state.flashText = text;
+        state.flash = 1.2;
+        flashEl.textContent = text;
+        flashEl.style.opacity = "1";
+      }
+
+      function generateLightningSegs(x1, y1, x2, y2, roughness) {
+        const pts = [{ x: x1, y: y1 }];
+        for (let i = 1; i < 8; i += 1) {
+          const t = i / 8;
+          pts.push({
+            x: x1 + (x2 - x1) * t + (Math.random() - 0.5) * roughness * 2,
+            y: y1 + (y2 - y1) * t
+          });
+        }
+        pts.push({ x: x2, y: y2 });
+        return pts;
+      }
+
+      function createLightningFx(sx, sy, tx, ty) {
+        void sx;
+        void sy;
+        return {
+          kind: "lightning",
+          segs: generateLightningSegs(tx, ty - 280, tx, ty, 40),
+          tx: tx,
+          ty: ty,
+          splashR: 52,
+          life: 1
+        };
+      }
+
+      function createSkillFx(kind, sx, sy, tx, ty) {
+        const rough = kind === "sunray" ? 14 : 20;
+        const splash = kind === "sunray" ? 52 : (kind === "pulse" ? 44 : 34);
+        const life = kind === "sunray" ? 1.08 : 0.92;
+        return {
+          kind: kind,
+          segs: generateLightningSegs(sx, sy, tx, ty, rough),
+          tx: tx,
+          ty: ty,
+          splashR: splash,
+          life: life
+        };
+      }
+
+      function pushLightningFx(sx, sy, tx, ty) {
+        state.skillFx.push(createLightningFx(sx, sy, tx, ty));
+      }
+
+      function updateSkillFx(dt) {
+        for (let i = state.skillFx.length - 1; i >= 0; i -= 1) {
+          const fx = state.skillFx[i];
+          const kind = fx.kind || "lightning";
+          const decay = kind === "lightning"
+            ? 3.1
+            : (kind === "sunray" ? 1.9 : 2.25);
+          fx.life -= dt * decay;
+          if (fx.life <= 0) state.skillFx.splice(i, 1);
+        }
+      }
+
+      function runZhugeSkillLikeOrigin(team, enemies, dt) {
+        if (!heroDetail || !heroDetail.updateZhugeliangAlly) return;
+        for (let i = 0; i < team.length; i += 1) {
+          const p = team[i];
+          if (p.down || p.heroId !== "zhugeliang") continue;
+
+          heroDetail.updateZhugeliangAlly({
+            hero: p,
+            dt: dt,
+            player: p,
+            enemyUnits: enemies,
+            enemyLeaders: [],
+            dist: dist,
+            moveToward: function (h, x, y, speed, delta) {
+              movePlayer(h, x, y, speed, delta);
+            },
+            createLightningFx: createLightningFx,
+            skillFx: state.skillFx
+          });
+        }
+      }
+
+      function drawSkillFx(t) {
+        for (let i = 0; i < state.skillFx.length; i += 1) {
+          const fx = state.skillFx[i];
+          const kind = fx.kind || "lightning";
+          const mapped = {
+            life: fx.life,
+            tx: t.ox + fx.tx * t.scale,
+            ty: t.oy + fx.ty * t.scale,
+            splashR: fx.splashR * t.scale,
+            segs: []
+          };
+          for (let j = 0; j < fx.segs.length; j += 1) {
+            mapped.segs.push({
+              x: t.ox + fx.segs[j].x * t.scale,
+              y: t.oy + fx.segs[j].y * t.scale
+            });
+          }
+
+          if (kind === "lightning" && renderStd && renderStd.drawLightningFx) {
+            renderStd.drawLightningFx(ctx, mapped);
+          } else {
+            ctx.save();
+            ctx.globalCompositeOperation = "lighter";
+            const stroke = kind === "sunray"
+              ? "rgba(255,120,96," + (fx.life * 0.98) + ")"
+              : (kind === "pulse"
+                ? "rgba(255,226,130," + (fx.life * 0.96) + ")"
+                : (kind === "arrow"
+                  ? "rgba(166,255,234," + (fx.life * 0.9) + ")"
+                  : "rgba(255,164,198," + (fx.life * 0.92) + ")"));
+            ctx.strokeStyle = stroke;
+            ctx.shadowColor = stroke;
+            ctx.shadowBlur = Math.max(8, (kind === "sunray" ? 20 : 15) * t.scale);
+            ctx.lineWidth = Math.max(1.8, (kind === "sunray" ? 4.8 : 3.6) * t.scale);
+            ctx.beginPath();
+            ctx.moveTo(mapped.segs[0].x, mapped.segs[0].y);
+            for (let k = 1; k < mapped.segs.length; k += 1) {
+              ctx.lineTo(mapped.segs[k].x, mapped.segs[k].y);
+            }
+            ctx.stroke();
+
+            ctx.shadowBlur = Math.max(3, 8 * t.scale);
+            ctx.strokeStyle = "rgba(255,255,255," + (fx.life * 0.9) + ")";
+            ctx.lineWidth = Math.max(1.2, 2 * t.scale);
+            ctx.beginPath();
+            ctx.moveTo(mapped.segs[0].x, mapped.segs[0].y);
+            for (let k = 1; k < mapped.segs.length; k += 1) {
+              ctx.lineTo(mapped.segs[k].x, mapped.segs[k].y);
+            }
+            ctx.stroke();
+
+            ctx.strokeStyle = stroke;
+            ctx.lineWidth = Math.max(1.4, 2.6 * t.scale);
+            ctx.beginPath();
+            ctx.arc(mapped.tx, mapped.ty, mapped.splashR * (0.65 + (1 - fx.life) * 0.45), 0, Math.PI * 2);
+            ctx.stroke();
+
+            ctx.fillStyle = "rgba(255,255,255," + (fx.life * 0.4) + ")";
+            ctx.beginPath();
+            ctx.arc(mapped.tx, mapped.ty, Math.max(1.5, 4.2 * t.scale), 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+          }
+
+          if (kind === "lightning") {
+            ctx.save();
+            ctx.globalCompositeOperation = "lighter";
+            ctx.strokeStyle = "rgba(210,240,255," + (fx.life * 0.55) + ")";
+            ctx.shadowColor = "rgba(170,225,255," + (fx.life * 0.7) + ")";
+            ctx.shadowBlur = Math.max(6, 13 * t.scale);
+            ctx.lineWidth = Math.max(1.4, 2.1 * t.scale);
+            ctx.beginPath();
+            ctx.moveTo(mapped.segs[0].x, mapped.segs[0].y);
+            for (let k = 1; k < mapped.segs.length; k += 1) {
+              ctx.lineTo(mapped.segs[k].x, mapped.segs[k].y);
+            }
+            ctx.stroke();
+            ctx.restore();
+          }
+        }
+      }
+
+      function runUSASkillPack(team, enemies, dt) {
+        if (!heroDetail || !heroDetail.updateCompanion) return;
+        const activeIds = {
+          sunshangxiang: true,
+          blackwidow: true,
+          ironman: true,
+          homelander: true,
+          hawkeye: true
+        };
+        const teamLeader = team && team.length ? team[0] : null;
+
+        function nearestEnemy(hero, range) {
+          let target = null;
+          let best = Infinity;
+          for (let i = 0; i < enemies.length; i += 1) {
+            const e = enemies[i];
+            if (!e || e.down) continue;
+            const d = dist(hero, e);
+            if (d < range && d < best) {
+              target = e;
+              best = d;
+            }
+          }
+          return target ? { target: target, d: best } : null;
+        }
+
+        for (let i = 0; i < team.length; i += 1) {
+          const p = team[i];
+          if (!p || p.down || !activeIds[p.heroId]) continue;
+
+          heroDetail.updateCompanion({
+            hero: p,
+            dt: dt,
+            player: teamLeader || p,
+            dist: dist,
+            nearestEnemy: nearestEnemy,
+            moveToward: function (h, x, y, speed, delta) {
+              movePlayer(h, x, y, speed, delta);
+            },
+            fireArrow: function (h, target, damage) {
+              if (!target || target.down) return;
+              target.hp -= damage;
+              if (target.hitFlash !== undefined) {
+                target.hitFlash = Math.max(target.hitFlash || 0, 0.55);
+              }
+              state.skillFx.push(createSkillFx("arrow", h.x, h.y - 8, target.x, target.y - 8));
+            },
+            skillFx: state.skillFx,
+            createSkillFx: createSkillFx
+          });
+        }
+      }
+
+      function nearestAlive(list, target) {
+        let best = null;
+        let bestD = Infinity;
+        for (let i = 0; i < list.length; i += 1) {
+          const p = list[i];
+          if (p.down) continue;
+          const d = dist(p, target);
+          if (d < bestD) {
+            best = p;
+            bestD = d;
+          }
+        }
+        return { unit: best, d: bestD };
+      }
+
+      function applyDamage(target, amount, n) {
+        target.hp -= amount;
+        target.hitFlash = 0.45;
+        if (n) {
+          target.vx += n.x * 170;
+          target.vy += n.y * 170;
+        }
+
+        if (target.hp <= 0 && !target.down) {
+          target.down = true;
+          target.downTimer = DOWN_KNOCKOUT;
+          target.hp = 0;
+          if (state.ball.carrier === target) {
+            state.ball.carrier = null;
+            if (n) {
+              state.ball.vx = n.x * 190;
+              state.ball.vy = n.y * 120;
+            }
+          }
+        }
+      }
+
+      function tryTackle(attacker, enemyList, dt) {
+        if (attacker.down) return;
+        attacker.attackCd = Math.max(0, attacker.attackCd - dt);
+        if (attacker.attackCd > 0) return;
+
+        let target = null;
+        let bestD = 32;
+        for (let i = 0; i < enemyList.length; i += 1) {
+          const e = enemyList[i];
+          if (e.down) continue;
+          const d = dist(attacker, e);
+          if (d < bestD) {
+            bestD = d;
+            target = e;
+          }
+        }
+
+        if (!target) return;
+        attacker.attackCd = 0.62;
+        const n = normalize(target.x - attacker.x, target.y - attacker.y);
+        applyDamage(target, attacker.damage, n);
+      }
+
+      function carryBallLogic(p) {
+        const dir = normalize(Math.cos(p.dir), Math.sin(p.dir));
+        state.ball.x = p.x + dir.x * (p.r + 11);
+        state.ball.y = p.y + dir.y * (p.r + 8);
+        state.ball.vx = p.vx;
+        state.ball.vy = p.vy;
+      }
+
+      function shootBall(player, powerScale) {
+        if (state.gameOver || player.down || state.ball.carrier !== player) return;
+        const toGoalX = player.team === "blue" ? W - 10 : 10;
+        const toGoalY = H * 0.5 + (Math.random() - 0.5) * 90;
+        const n = normalize(toGoalX - player.x, toGoalY - player.y);
+        const power = 420 * powerScale;
+        state.ball.carrier = null;
+        state.ball.vx = n.x * power;
+        state.ball.vy = n.y * power;
+      }
+
+      function pickBallIfClose(list) {
+        if (state.ball.carrier) return;
+        for (let i = 0; i < list.length; i += 1) {
+          const p = list[i];
+          if (p.down) continue;
+          const catchBonus = p.isGoalkeeper ? 8 : 0;
+          if (dist(p, state.ball) < p.r + state.ball.r + 2 + catchBonus) {
+            state.ball.carrier = p;
+            return;
+          }
+        }
+      }
+
+      function movePlayer(p, tx, ty, speed, dt) {
+        const dx = tx - p.x;
+        const dy = ty - p.y;
+        const d = Math.hypot(dx, dy);
+        if (d < 1) return;
+        const step = Math.min(d, speed * dt);
+        const nx = dx / d;
+        const ny = dy / d;
+        p.x += nx * step;
+        p.y += ny * step;
+        p.dir = Math.atan2(ny, nx);
+      }
+
+      function updateDownState(p, dt) {
+        p.hitFlash = Math.max(0, p.hitFlash - dt * 1.7);
+        if (!p.down) return;
+
+        p.downTimer -= dt;
+        p.vx *= 0.88;
+        p.vy *= 0.88;
+
+        if (p.downTimer > 0) return;
+
+        p.recoverTimer += dt;
+        p.hp = Math.min(p.maxHp * REVIVE_HP_RATIO, p.hp + p.maxHp * 0.12 * dt);
+        if (p.recoverTimer > 2.1 && p.hp >= p.maxHp * REVIVE_HP_RATIO) {
+          p.down = false;
+          p.recoverTimer = 0;
+          p.vx = 0;
+          p.vy = 0;
+        }
+      }
+
+      function updateUserCaptain(dt) {
+        const p = state.blue[0];
+        if (!p || p.down) return;
+
+        let mx = 0;
+        let my = 0;
+        if (input.w) my -= 1;
+        if (input.s) my += 1;
+        if (input.a) mx -= 1;
+        if (input.d) mx += 1;
+
+        if (mx !== 0 || my !== 0) {
+          const n = normalize(mx, my);
+          movePlayer(p, p.x + n.x * 100, p.y + n.y * 100, p.sprint, dt);
+        } else if (state.pointerTarget) {
+          movePlayer(p, state.pointerTarget.x, state.pointerTarget.y, p.speed, dt);
+        }
+
+        if (input.j) {
+          tryTackle(p, state.red, dt);
+        }
+
+        if (input.k) {
+          shootBall(p, 1);
+          input.k = false;
+        }
+      }
+
+      function getAttackTarget(p, mates, enemies) {
+        if (p.down) return null;
+
+        if (p.isGoalkeeper) {
+          const goalX = p.team === "blue" ? 64 : (W - 64);
+          const lineY = clamp(state.ball.y, H * 0.5 - GOAL_H * 0.58, H * 0.5 + GOAL_H * 0.58);
+          const nearOwnGoal = p.team === "blue" ? (state.ball.x < 260) : (state.ball.x > W - 260);
+          const closeToBall = dist(p, state.ball) < 120;
+          if ((nearOwnGoal || closeToBall) && !state.ball.carrier) {
+            return { x: state.ball.x, y: state.ball.y };
+          }
+          if (state.ball.carrier && state.ball.carrier.team !== p.team) {
+            const carrier = state.ball.carrier;
+            const danger = p.team === "blue" ? (carrier.x < 300) : (carrier.x > W - 300);
+            if (danger) return { x: carrier.x, y: carrier.y };
+          }
+          return { x: goalX, y: lineY };
+        }
+
+        const carrier = state.ball.carrier;
+        if (carrier && carrier.team !== p.team && !carrier.down) {
+          return carrier;
+        }
+
+        if (!carrier) {
+          return state.ball;
+        }
+
+        if (carrier.team === p.team) {
+          const gx = p.team === "blue" ? W : 0;
+          const gy = H * 0.5;
+          const laneBias = (mates.indexOf(p) - 2.5) * 52;
+          return { x: (carrier.x + gx) * 0.5, y: clamp((carrier.y + gy) * 0.5 + laneBias, 34, H - 34) };
+        }
+
+        return carrier;
+      }
+
+      function updateAiTeam(team, enemies, dt, isBlue) {
+        for (let i = 0; i < team.length; i += 1) {
+          const p = team[i];
+          if (isBlue && i === 0) continue;
+
+          if (p.down) continue;
+
+          const target = getAttackTarget(p, team, enemies);
+          if (target) {
+            const fast = state.ball.carrier === p ? p.sprint : p.speed;
+            movePlayer(p, target.x, target.y, fast, dt);
+          }
+
+          if (state.ball.carrier === p) {
+            if (p.isGoalkeeper) {
+              const clearX = p.team === "blue" ? W - 180 : 180;
+              const clearY = H * (0.35 + Math.random() * 0.3);
+              const n = normalize(clearX - p.x, clearY - p.y);
+              state.ball.carrier = null;
+              state.ball.vx = n.x * 520;
+              state.ball.vy = n.y * 400;
+              continue;
+            }
+            const nearGoal = p.team === "blue" ? p.x > W - 220 : p.x < 220;
+            if (nearGoal || Math.random() < 0.006) {
+              shootBall(p, nearGoal ? 1.05 : 0.9);
+            }
+          }
+
+          tryTackle(p, enemies, dt);
+        }
+      }
+
+      function integratePhysics(list, dt) {
+        for (let i = 0; i < list.length; i += 1) {
+          const p = list[i];
+          p.x += p.vx * dt;
+          p.y += p.vy * dt;
+          p.vx *= p.down ? 0.88 : 0.8;
+          p.vy *= p.down ? 0.88 : 0.8;
+          p.x = clamp(p.x, 22, W - 22);
+          p.y = clamp(p.y, 22, H - 22);
+        }
+      }
+
+      function keepSeparation(all, dt) {
+        for (let i = 0; i < all.length; i += 1) {
+          for (let j = i + 1; j < all.length; j += 1) {
+            const a = all[i];
+            const b = all[j];
+            const dx = b.x - a.x;
+            const dy = b.y - a.y;
+            const d = Math.hypot(dx, dy) || 0.001;
+            const minD = (a.down || b.down) ? 20 : 24;
+            if (d >= minD) continue;
+            const push = (minD - d) * 0.5;
+            const nx = dx / d;
+            const ny = dy / d;
+            a.x -= nx * push * dt * 36;
+            a.y -= ny * push * dt * 36;
+            b.x += nx * push * dt * 36;
+            b.y += ny * push * dt * 36;
+          }
+        }
+      }
+
+      function updateBall(dt) {
+        if (state.ball.carrier && state.ball.carrier.down) {
+          state.ball.carrier = null;
+        }
+
+        function checkGoalScored() {
+          const inGoalMouth = state.ball.y > (H - GOAL_H) * 0.5 && state.ball.y < (H + GOAL_H) * 0.5;
+          if (!inGoalMouth) return false;
+
+          if (state.ball.x < 0) {
+            state.redScore += 1;
+            showFlash("群雄联队 破门!");
+            resetPositions("blue");
+            return true;
+          }
+          if (state.ball.x > W) {
+            state.blueScore += 1;
+            showFlash("蜀汉联队 破门!");
+            resetPositions("red");
+            return true;
+          }
+          return false;
+        }
+
+        if (state.ball.carrier) {
+          carryBallLogic(state.ball.carrier);
+          if (checkGoalScored()) return;
+          return;
+        }
+
+        state.ball.x += state.ball.vx * dt;
+        state.ball.y += state.ball.vy * dt;
+        state.ball.vx *= 0.992;
+        state.ball.vy *= 0.992;
+
+        if (state.ball.y < 14) {
+          state.ball.y = 14;
+          state.ball.vy *= -0.78;
+        }
+        if (state.ball.y > H - 14) {
+          state.ball.y = H - 14;
+          state.ball.vy *= -0.78;
+        }
+
+        if (checkGoalScored()) return;
+
+        if (state.ball.x < 10) {
+          state.ball.x = 10;
+          state.ball.vx *= -0.82;
+        }
+        if (state.ball.x > W - 10) {
+          state.ball.x = W - 10;
+          state.ball.vx *= -0.82;
+        }
+      }
+
+      function update(dt) {
+        if (state.paused || state.gameOver) return;
+
+        state.elapsed += dt;
+        if (state.elapsed >= MATCH_SECONDS) {
+          state.gameOver = true;
+          if (state.blueScore > state.redScore) showFlash("比赛结束: 蜀汉联队胜利!");
+          else if (state.blueScore < state.redScore) showFlash("比赛结束: 群雄联队胜利!");
+          else showFlash("比赛结束: 平局!");
+        }
+
+        const all = state.blue.concat(state.red);
+
+        for (let i = 0; i < all.length; i += 1) {
+          all[i].attackCd = Math.max(0, (all[i].attackCd || 0) - dt);
+          all[i].dead = !!all[i].down;
+          updateDownState(all[i], dt);
+        }
+
+        updateUserCaptain(dt);
+        updateAiTeam(state.blue, state.red, dt, true);
+        updateAiTeam(state.red, state.blue, dt, false);
+        runZhugeSkillLikeOrigin(state.blue, state.red, dt);
+        runZhugeSkillLikeOrigin(state.red, state.blue, dt);
+        runUSASkillPack(state.blue, state.red, dt);
+        runUSASkillPack(state.red, state.blue, dt);
+
+        integratePhysics(state.blue, dt);
+        integratePhysics(state.red, dt);
+        keepSeparation(all, dt);
+
+        pickBallIfClose(state.blue);
+        pickBallIfClose(state.red);
+        updateBall(dt);
+        updateSkillFx(dt);
+
+        if (state.flash > 0) {
+          state.flash -= dt;
+          if (state.flash <= 0) {
+            flashEl.style.opacity = "0";
+          }
+        }
+
+        refreshHud();
+      }
+
+      function drawField(t) {
+        const scale = t.scale;
+        const ox = t.ox;
+        const oy = t.oy;
+
+        ctx.fillStyle = "#1c2e1f";
+        ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
+
+        const grad = ctx.createLinearGradient(0, oy, 0, oy + H * scale);
+        grad.addColorStop(0, "#3f7a3d");
+        grad.addColorStop(1, "#2b5e2c");
+        ctx.fillStyle = grad;
+        ctx.fillRect(ox, oy, W * scale, H * scale);
+
+        ctx.globalAlpha = 0.22;
+        for (let i = 0; i < 12; i += 1) {
+          ctx.fillStyle = i % 2 ? "#7ab35c" : "#244924";
+          ctx.fillRect(ox + (W / 12) * i * scale, oy, (W / 12) * scale, H * scale);
+        }
+        ctx.globalAlpha = 1;
+
+        ctx.strokeStyle = "rgba(245, 240, 218, 0.86)";
+        ctx.lineWidth = Math.max(2, 3 * scale);
+        ctx.strokeRect(ox, oy, W * scale, H * scale);
+
+        ctx.beginPath();
+        ctx.moveTo(ox + HALF_X * scale, oy);
+        ctx.lineTo(ox + HALF_X * scale, oy + H * scale);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(ox + HALF_X * scale, oy + H * 0.5 * scale, 92 * scale, 0, Math.PI * 2);
+        ctx.stroke();
+
+        const gy = (H - GOAL_H) * 0.5;
+        ctx.strokeRect(ox - 10 * scale, oy + gy * scale, 10 * scale, GOAL_H * scale);
+        ctx.strokeRect(ox + W * scale, oy + gy * scale, 10 * scale, GOAL_H * scale);
+      }
+
+      function drawHero(p, t) {
+        const sx = t.ox + p.x * t.scale;
+        const sy = t.oy + p.y * t.scale;
+        const r = p.r * t.scale;
+
+        if (p.down) {
+          ctx.fillStyle = "rgba(30, 20, 20, 0.35)";
+          ctx.beginPath();
+          ctx.ellipse(sx, sy + r * 0.62, r * 1.2, r * 0.4, 0, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        if (renderStd && renderStd.drawUprightUnit) {
+          const bodyColor = p.body;
+          const accentColor = p.accent;
+          const scaleBoost = 0.95 + t.scale * 0.25;
+
+          const specialDrawMap = {
+            zhugeliang: heroDetail && heroDetail.drawZhugeliangHero,
+            lancelot: heroDetail && heroDetail.drawLancelotHero,
+            sunshangxiang: heroDetail && heroDetail.drawSunshangxiang,
+            daqiao: heroDetail && heroDetail.drawDaqiao,
+            xiaoqiao: heroDetail && heroDetail.drawXiaoqiao,
+            elizabeth: heroDetail && heroDetail.drawElizabeth,
+            blackwidow: heroDetail && heroDetail.drawBlackwidowHero,
+            ironman: heroDetail && heroDetail.drawIronmanHero,
+            homelander: heroDetail && heroDetail.drawHomelanderHero,
+            hawkeye: heroDetail && heroDetail.drawHawkeyeHero,
+            zhangliao: heroDetail && heroDetail.drawEnemyGeneralHero,
+            caocao: heroDetail && heroDetail.drawEnemyGeneralHero,
+            xuchu: heroDetail && heroDetail.drawEnemyGeneralHero
+          };
+
+          const specialDrawFn = !p.down ? specialDrawMap[p.heroId] : null;
+          const canUseSpecialDraw = !!specialDrawFn;
+
+          if (canUseSpecialDraw) {
+            const drawHealthBarScreen = function (x, y, w, hp, maxHp, color) {
+              const barW = Math.max(20, w * Math.max(0.72, t.scale));
+              const barH = Math.max(3, 4 * t.scale);
+              const ratio = clamp(hp / Math.max(1, maxHp), 0, 1);
+              ctx.fillStyle = "rgba(0,0,0,0.54)";
+              ctx.fillRect(x - barW * 0.5, y, barW, barH);
+              ctx.fillStyle = color || "#7fd2ff";
+              ctx.fillRect(x - barW * 0.5 + 1, y + 1, (barW - 2) * ratio, Math.max(1, barH - 2));
+            };
+
+            ctx.save();
+            ctx.fillStyle = p.team === "blue" ? "rgba(96,184,255,0.35)" : "rgba(255,126,104,0.35)";
+            ctx.beginPath();
+            ctx.ellipse(sx, sy + r * 0.72, r * 0.94, r * 0.36, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+
+            const specialOpts = {
+              hero: {
+                x: sx,
+                y: sy,
+                dir: p.dir,
+                hitFlash: p.hitFlash,
+                hp: p.hp,
+                maxHp: p.maxHp,
+                name: p.name,
+                slashTimer: p.slashTimer || 0,
+                weaponType: p.weaponType || "saber"
+              },
+              ctx: ctx,
+              drawHealthBar: drawHealthBarScreen,
+              showName: false
+            };
+
+            if (p.heroId === "xiaoqiao") {
+              specialOpts.drawSoldier = function (entity, _isFemale, body, accent) {
+                renderStd.drawUprightUnit(ctx, {
+                  x: entity.x,
+                  y: entity.y,
+                  dir: entity.dir,
+                  mounted: false,
+                  body: body || entity.body,
+                  head: entity.head || p.head,
+                  accent: accent || entity.accent
+                }, {
+                  unitScale: scaleBoost,
+                  hideHeadband: false,
+                  shadowColor: "rgba(0,0,0,0.25)"
+                });
+              };
+            }
+
+            specialDrawFn(specialOpts);
+
+            const shortName = p.name.length > 8 ? p.name.slice(0, 8) : p.name;
+            ctx.fillStyle = p.team === "red" ? "#ff8b8b" : "rgba(255,255,255,0.92)";
+            ctx.font = "700 " + Math.max(10, 12 * t.scale) + "px Microsoft YaHei";
+            ctx.textAlign = "center";
+            ctx.fillText(shortName, sx, sy - 31 * Math.max(0.78, t.scale));
+
+            return;
+          }
+
+          ctx.save();
+          ctx.fillStyle = p.team === "blue" ? "rgba(96,184,255,0.35)" : "rgba(255,126,104,0.35)";
+          ctx.beginPath();
+          ctx.ellipse(sx, sy + r * 0.72, r * 0.94, r * 0.36, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+
+          if (p.down) {
+            ctx.save();
+            ctx.translate(sx, sy);
+            ctx.rotate(p.team === "blue" ? -1.02 : 1.02);
+            renderStd.drawUprightUnit(ctx, {
+              x: 0,
+              y: 0,
+              dir: p.dir,
+              mounted: false,
+              body: bodyColor,
+              head: p.head,
+              accent: accentColor
+            }, {
+              unitScale: scaleBoost,
+              hideHeadband: false,
+              shadowColor: "rgba(0,0,0,0.3)",
+              shadowRX: 7,
+              shadowRY: 2.2
+            });
+            ctx.restore();
+          } else {
+            renderStd.drawUprightUnit(ctx, {
+              x: sx,
+              y: sy,
+              dir: p.dir,
+              mounted: p.mounted,
+              body: bodyColor,
+              head: p.head,
+              accent: accentColor
+            }, {
+              unitScale: scaleBoost,
+              hideHeadband: false,
+              mountLegs: true
+            });
+          }
+
+          if (p.hitFlash > 0) {
+            ctx.fillStyle = "rgba(255, 240, 220, " + (p.hitFlash * 0.6) + ")";
+            ctx.beginPath();
+            ctx.arc(sx, sy, r * 1.24, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        } else {
+          ctx.save();
+          ctx.translate(sx, sy);
+          if (p.down) ctx.rotate(p.team === "blue" ? -0.9 : 0.9);
+
+          ctx.fillStyle = p.body;
+          ctx.beginPath();
+          ctx.arc(0, 0, r, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = p.head;
+          ctx.beginPath();
+          ctx.arc(0, -r * 0.68, r * 0.55, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.strokeStyle = p.accent;
+          ctx.lineWidth = Math.max(1, 2 * t.scale);
+          ctx.beginPath();
+          ctx.moveTo(-r * 0.9, r * 0.2);
+          ctx.lineTo(r * 0.9, r * 0.2);
+          ctx.stroke();
+
+          if (p.hitFlash > 0) {
+            ctx.fillStyle = "rgba(255, 240, 220, " + (p.hitFlash * 0.6) + ")";
+            ctx.beginPath();
+            ctx.arc(0, 0, r * 1.24, 0, Math.PI * 2);
+            ctx.fill();
+          }
+
+          ctx.restore();
+        }
+
+        const barW = 36 * t.scale;
+        const barH = Math.max(3, 4 * t.scale);
+        const bx = sx - barW * 0.5;
+        const by = sy - r - 12 * t.scale;
+        const ratio = clamp(p.hp / Math.max(1, p.maxHp), 0, 1);
+
+        ctx.fillStyle = "rgba(0,0,0,0.54)";
+        ctx.fillRect(bx, by, barW, barH);
+        ctx.fillStyle = p.down ? "#ffd789" : (p.team === "blue" ? "#7fd2ff" : "#ffb0a0");
+        ctx.fillRect(bx + 1, by + 1, (barW - 2) * ratio, Math.max(1, barH - 2));
+
+        ctx.fillStyle = p.team === "red" ? "#ff8b8b" : "rgba(255,255,255,0.92)";
+        ctx.font = "600 " + Math.max(10, 11 * t.scale) + "px Microsoft YaHei";
+        ctx.textAlign = "center";
+        const shortName = p.name.length > 8 ? p.name.slice(0, 8) : p.name;
+        ctx.fillText(shortName, sx, by - 3 * t.scale);
+
+        if (p.down) {
+          ctx.fillStyle = "#ffe4b8";
+          ctx.font = "700 " + Math.max(11, 12 * t.scale) + "px Microsoft YaHei";
+          ctx.fillText("倒地回血", sx, sy + r + 14 * t.scale);
+        }
+      }
+
+      function drawBall(t) {
+        const sx = t.ox + state.ball.x * t.scale;
+        const sy = t.oy + state.ball.y * t.scale;
+        const r = state.ball.r * t.scale;
+        ctx.fillStyle = "#f7f2de";
+        ctx.beginPath();
+        ctx.arc(sx, sy, r, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = "#754f34";
+        ctx.lineWidth = Math.max(1, 1.5 * t.scale);
+        ctx.beginPath();
+        ctx.arc(sx, sy, r * 0.56, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+
+      function draw() {
+        const t = worldToScreen(0, 0);
+        drawField(t);
+
+        const all = state.blue.concat(state.red);
+        for (let i = 0; i < all.length; i += 1) {
+          drawHero(all[i], t);
+        }
+
+        drawBall(t);
+        drawSkillFx(t);
+
+        if (state.paused) {
+          ctx.fillStyle = "rgba(0, 0, 0, 0.35)";
+          ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
+          ctx.fillStyle = "#fff2c4";
+          ctx.font = "700 clamp(28px,5vw,48px) Microsoft YaHei";
+          ctx.textAlign = "center";
+          ctx.fillText("已暂停", window.innerWidth * 0.5, window.innerHeight * 0.5);
+        }
+      }
+
+      function frameLoop(ts) {
+        if (!frameLoop.last) frameLoop.last = ts;
+        const dt = clamp((ts - frameLoop.last) / 1000, 0, 0.033);
+        frameLoop.last = ts;
+        update(dt);
+        draw();
+        requestAnimationFrame(frameLoop);
+      }
+
+      function onPointer(clientX, clientY) {
+        state.pointerTarget = screenToWorld(clientX, clientY);
+      }
+
+      function togglePause() {
+        state.paused = !state.paused;
+        pauseBtn.textContent = state.paused ? "继续" : "暂停";
+      }
+
+      window.addEventListener("resize", resize);
+
+      canvas.addEventListener("pointerdown", function (e) {
+        state.pointerDown = true;
+        onPointer(e.clientX, e.clientY);
+      });
+      canvas.addEventListener("pointermove", function (e) {
+        if (!state.pointerDown) return;
+        onPointer(e.clientX, e.clientY);
+      });
+      window.addEventListener("pointerup", function () {
+        state.pointerDown = false;
+      });
+
+      window.addEventListener("keydown", function (e) {
+        const key = e.key.toLowerCase();
+        if (key === "w") {
+          input.w = true;
+          state.pointerTarget = null;
+        }
+        if (key === "a") {
+          input.a = true;
+          state.pointerTarget = null;
+        }
+        if (key === "s") {
+          input.s = true;
+          state.pointerTarget = null;
+        }
+        if (key === "d") {
+          input.d = true;
+          state.pointerTarget = null;
+        }
+        if (key === "j") input.j = true;
+        if (key === "k") input.k = true;
+        if (key === "p" || e.code === "Space") {
+          e.preventDefault();
+          togglePause();
+        }
+      });
+
+      window.addEventListener("keyup", function (e) {
+        const key = e.key.toLowerCase();
+        if (key === "w") input.w = false;
+        if (key === "a") input.a = false;
+        if (key === "s") input.s = false;
+        if (key === "d") input.d = false;
+        if (key === "j") input.j = false;
+      });
+
+      pauseBtn.addEventListener("click", function () {
+        togglePause();
+      });
+
+      restartBtn.addEventListener("click", function () {
+        resetMatch();
+      });
+
+      shootBtn.addEventListener("click", function () {
+        if (!state.blue[0]) return;
+        shootBall(state.blue[0], 1);
+      });
+
+      resetMatch();
+      resize();
+      requestAnimationFrame(frameLoop);
+    })();
+  </script>
+</body>
+</html>

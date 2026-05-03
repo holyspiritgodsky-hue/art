@@ -64,7 +64,8 @@
 		#pauseBtn,
 		#musicBtn,
 		#cardsBtn,
-		#labBtn {
+		#labBtn,
+		#footballBtn {
 			position: fixed;
 			top: 14px;
 			z-index: 4;
@@ -80,6 +81,10 @@
 
 		#cardsBtn {
 			right: 262px;
+		}
+
+		#footballBtn {
+			right: 350px;
 		}
 
 		#musicBtn {
@@ -311,6 +316,7 @@
 			#cardsBtn,
 			#musicBtn,
 			#labBtn,
+			#footballBtn,
 			#chargeBtn,
 			#bydTestBtn {
 				font-size: 12px;
@@ -331,6 +337,11 @@
 			#cardsBtn {
 				top: max(8px, env(safe-area-inset-top));
 				right: calc(max(8px, env(safe-area-inset-right)) + 246px);
+			}
+
+			#footballBtn {
+				top: max(8px, env(safe-area-inset-top));
+				right: calc(max(8px, env(safe-area-inset-right)) + 330px);
 			}
 
 			#musicBtn {
@@ -360,6 +371,7 @@
 </head>
 <body>
 	<a id="cardsBtn" class="sense-panel-btn" href="hero-cards.html">英雄展示</a>
+	<a id="footballBtn" class="sense-panel-btn" href="football.html">热血足球</a>
 	<a id="labBtn" class="sense-panel-btn" href="https://gameart.top">首页</a>
 	<button id="musicBtn" class="sense-panel-btn">音乐: 开</button>
 	<button id="pauseBtn" class="sense-panel-btn">暂停</button>
@@ -447,7 +459,7 @@
 			if (!window.WarSense || !window.WarSense.layoutTopPanelButtons) return;
 			const compact = window.matchMedia("(max-width: 900px), (pointer: coarse)").matches;
 			window.WarSense.layoutTopPanelButtons({
-				ids: ["pauseBtn", "musicBtn", "labBtn", "cardsBtn"],
+				ids: ["pauseBtn", "musicBtn", "labBtn", "cardsBtn", "footballBtn"],
 				rightStart: compact ? 8 : 14,
 				top: compact ? 8 : 14,
 				gap: compact ? 6 : 8,

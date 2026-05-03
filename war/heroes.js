@@ -192,10 +192,136 @@
         cooldown: 2.4,
         range: 170
       })
+    }),
+    blackwidow: Object.freeze({
+      id: "blackwidow",
+      name: "黑寡妇",
+      style: Object.freeze({
+        body: "#2e3348",
+        head: "#e8c7a6",
+        accent: "#e2576c",
+        mounted: false
+      }),
+      stats: Object.freeze({
+        hp: 290,
+        speed: 232,
+        attackRange: 58,
+        radius: 11
+      }),
+      skill: Object.freeze({
+        key: "smokeDash",
+        label: "影网突袭",
+        damage: 46,
+        cooldown: 0.62,
+        range: 64,
+        splash: 24
+      })
+    }),
+    ironman: Object.freeze({
+      id: "ironman",
+      name: "钢铁侠",
+      style: Object.freeze({
+        body: "#a6472d",
+        head: "#f0cfad",
+        accent: "#f3c55c",
+        mounted: false
+      }),
+      stats: Object.freeze({
+        hp: 340,
+        speed: 208,
+        attackRange: 260,
+        radius: 12
+      }),
+      skill: Object.freeze({
+        key: "pulseBeam",
+        label: "脉冲炮束",
+        damage: 48,
+        cooldown: 0.86,
+        range: 260,
+        splash: 34
+      })
+    }),
+    homelander: Object.freeze({
+      id: "homelander",
+      name: "祖国人",
+      style: Object.freeze({
+        body: "#245591",
+        head: "#efcc9e",
+        accent: "#f2d277",
+        mounted: false
+      }),
+      stats: Object.freeze({
+        hp: 360,
+        speed: 214,
+        attackRange: 230,
+        radius: 12
+      }),
+      skill: Object.freeze({
+        key: "sunRay",
+        label: "炽目灼线",
+        damage: 52,
+        cooldown: 1.08,
+        range: 230,
+        splash: 30
+      })
+    }),
+    hawkeye: Object.freeze({
+      id: "hawkeye",
+      name: "鹰眼",
+      style: Object.freeze({
+        body: "#52647b",
+        head: "#e8c89e",
+        accent: "#6fc7b9",
+        mounted: false
+      }),
+      stats: Object.freeze({
+        hp: 300,
+        speed: 220,
+        attackRange: 300,
+        radius: 11
+      }),
+      skill: Object.freeze({
+        key: "rapidVolley",
+        label: "鹰弦连射",
+        damage: 38,
+        cooldown: 0.66,
+        range: 300,
+        splash: 20
+      })
     })
   });
 
   const HERO_IDS = Object.freeze(Object.keys(HERO_DEFINITIONS));
+
+  const FOOTBALL_TUNING = Object.freeze({
+    radius: 13,
+    speedScale: 0.98,
+    speedMin: 180,
+    speedMax: 300,
+    sprintScale: 1.22,
+    sprintMin: 220,
+    sprintMax: 360,
+    damageScale: 0.42,
+    damageMin: 16,
+    damageMax: 34
+  });
+
+  const FOOTBALL_GENERIC_ENEMY_STYLE = Object.freeze({
+    body: "#cd6f5a",
+    head: "#e7c59e",
+    accent: "#f1b0a0",
+    mounted: false
+  });
+
+  const FOOTBALL_ENEMY_ALIAS = Object.freeze({
+    daqiao: Object.freeze({ heroId: "zhangliao", name: "张辽", weaponType: "spear" }),
+    xiaoqiao: Object.freeze({ heroId: "caocao", name: "曹操", weaponType: "halberd" }),
+    elizabeth: Object.freeze({ heroId: "xuchu", name: "许褚", weaponType: "hammer" })
+  });
+
+  function clampNumber(v, min, max) {
+    return Math.max(min, Math.min(max, v));
+  }
 
   function defaultFlags() {
     return {
@@ -205,7 +331,11 @@
       sunshangxiang: false,
       daqiao: false,
       xiaoqiao: false,
-      elizabeth: false
+      elizabeth: false,
+      blackwidow: false,
+      ironman: false,
+      homelander: false,
+      hawkeye: false
     };
   }
 
@@ -341,6 +471,45 @@
     return Object.assign(base, overrides || {});
   }
 
+  function createFootballHero(id, x, y, overrides) {
+    const base = createCompanion(id, x, y);
+    if (!base) return null;
+
+    const speed = base.speed || 210;
+    const skillDamage = base.skill && base.skill.damage ? base.skill.damage : 42;
+    const tuned = {
+      r: FOOTBALL_TUNING.radius,
+      radius: FOOTBALL_TUNING.radius,
+      speed: clampNumber(speed * FOOTBALL_TUNING.speedScale, FOOTBALL_TUNING.speedMin, FOOTBALL_TUNING.speedMax),
+      sprint: clampNumber(speed * FOOTBALL_TUNING.sprintScale, FOOTBALL_TUNING.sprintMin, FOOTBALL_TUNING.sprintMax),
+      damage: clampNumber(skillDamage * FOOTBALL_TUNING.damageScale, FOOTBALL_TUNING.damageMin, FOOTBALL_TUNING.damageMax),
+      vx: 0,
+      vy: 0,
+      attackCd: 0,
+      hitFlash: 0,
+      down: false,
+      downTimer: 0,
+      recoverTimer: 0,
+      dead: false
+    };
+    const merged = Object.assign(base, tuned, overrides || {});
+    const alias = merged.team === "red" ? FOOTBALL_ENEMY_ALIAS[merged.heroId] : null;
+
+    if (!alias) return merged;
+
+    return Object.assign(merged, {
+      heroId: alias.heroId,
+      name: alias.name,
+      weaponType: alias.weaponType,
+      genericEnemy: true,
+      body: FOOTBALL_GENERIC_ENEMY_STYLE.body,
+      head: FOOTBALL_GENERIC_ENEMY_STYLE.head,
+      accent: FOOTBALL_GENERIC_ENEMY_STYLE.accent,
+      mounted: FOOTBALL_GENERIC_ENEMY_STYLE.mounted,
+      skill: null
+    });
+  }
+
   function pushAwayOnly(attacker, target, amount) {
     const dx = target.x - attacker.x;
     const dy = target.y - attacker.y;
@@ -464,6 +633,8 @@
     const h = opts.hero;
     const ctx = opts.ctx;
     const drawHealthBar = opts.drawHealthBar;
+    const showName = opts.showName !== false;
+    const nameColor = opts.nameColor || "#c8e8ff";
 
     ctx.save();
     ctx.translate(h.x, h.y);
@@ -526,18 +697,137 @@
     }
 
     ctx.restore();
-    ctx.fillStyle = "#c8e8ff";
-    ctx.font = "700 12px Microsoft YaHei";
-    ctx.textAlign = "center";
-    ctx.fillText(h.name || "诸葛亮", h.x, h.y - 31);
+    if (showName) {
+      ctx.fillStyle = nameColor;
+      ctx.font = "700 12px Microsoft YaHei";
+      ctx.textAlign = "center";
+      ctx.fillText(h.name || "诸葛亮", h.x, h.y - 31);
+    }
     drawHealthBar(h.x, h.y - 26, 40, h.hp, h.maxHp, "#6ab8ff");
   }
+
+  function drawEnemyGeneralHero(opts) {
+        const h = opts.hero;
+        const ctx = opts.ctx;
+        const drawHealthBar = opts.drawHealthBar;
+        const showName = opts.showName !== false;
+        const nameColor = opts.nameColor || "#ff8b8b";
+        const weaponType = h.weaponType || "saber";
+
+        ctx.save();
+        ctx.translate(h.x, h.y);
+        ctx.scale(1.18, 1.18);
+
+        ctx.strokeStyle = "rgba(0,0,0,0.32)";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(0, 2);
+        ctx.lineTo(-4, 9);
+        ctx.moveTo(0, 2);
+        ctx.lineTo(4, 9);
+        ctx.stroke();
+
+        ctx.fillStyle = h.body || FOOTBALL_GENERIC_ENEMY_STYLE.body;
+        ctx.fillRect(-4.6, -8.2, 9.2, 12.2);
+
+        ctx.fillStyle = h.accent || FOOTBALL_GENERIC_ENEMY_STYLE.accent;
+        ctx.fillRect(-6.2, -6.8, 2.6, 6);
+        ctx.fillRect(3.6, -6.8, 2.6, 6);
+
+        ctx.strokeStyle = "#2f2518";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(-2, 4);
+        ctx.lineTo(-2.5, 11);
+        ctx.moveTo(2, 4);
+        ctx.lineTo(2.5, 11);
+        ctx.stroke();
+
+        ctx.fillStyle = h.head || FOOTBALL_GENERIC_ENEMY_STYLE.head;
+        ctx.beginPath();
+        ctx.arc(0, -11.5, 4.6, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = "#2f1e16";
+        ctx.fillRect(-5, -14.8, 10, 2.8);
+
+        ctx.save();
+        ctx.rotate((h.dir || 0) + 0.06);
+        if (weaponType === "spear") {
+          ctx.strokeStyle = "#61462c";
+          ctx.lineWidth = 2.3;
+          ctx.beginPath();
+          ctx.moveTo(-2, 4);
+          ctx.lineTo(18, -20);
+          ctx.stroke();
+          ctx.strokeStyle = "#d5dce5";
+          ctx.lineWidth = 1.6;
+          ctx.beginPath();
+          ctx.moveTo(18, -20);
+          ctx.lineTo(23, -24);
+          ctx.lineTo(21, -18);
+          ctx.stroke();
+        } else if (weaponType === "hammer") {
+          ctx.strokeStyle = "#5a4026";
+          ctx.lineWidth = 2.9;
+          ctx.beginPath();
+          ctx.moveTo(-2, 3);
+          ctx.lineTo(9, -15);
+          ctx.stroke();
+          ctx.fillStyle = "#adb8c4";
+          ctx.fillRect(9, -20, 9, 8);
+          ctx.fillStyle = "#87919d";
+          ctx.fillRect(10.2, -18.8, 2.4, 5.6);
+          ctx.fillRect(14.2, -18.8, 2.4, 5.6);
+        } else if (weaponType === "halberd") {
+          ctx.strokeStyle = "#5f452b";
+          ctx.lineWidth = 2.4;
+          ctx.beginPath();
+          ctx.moveTo(-2, 4);
+          ctx.lineTo(14, -19);
+          ctx.stroke();
+          ctx.strokeStyle = "#d0d9e2";
+          ctx.lineWidth = 1.8;
+          ctx.beginPath();
+          ctx.moveTo(13.5, -19.2);
+          ctx.quadraticCurveTo(22, -24, 21, -10.5);
+          ctx.moveTo(14.5, -16.5);
+          ctx.lineTo(7.5, -20.5);
+          ctx.stroke();
+        } else {
+          ctx.strokeStyle = "#5f4327";
+          ctx.lineWidth = 2.2;
+          ctx.beginPath();
+          ctx.moveTo(-2, 4);
+          ctx.lineTo(14, -18);
+          ctx.stroke();
+        }
+        ctx.restore();
+
+        if ((h.hitFlash || 0) > 0) {
+          ctx.fillStyle = "rgba(255,220,180," + ((h.hitFlash || 0) * 0.35) + ")";
+          ctx.beginPath();
+          ctx.ellipse(0, -5, 11, 14, 0, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        ctx.restore();
+        if (showName) {
+          ctx.fillStyle = nameColor;
+          ctx.font = "700 12px Microsoft YaHei";
+          ctx.textAlign = "center";
+          ctx.fillText(h.name || "敌将", h.x, h.y - 33);
+        }
+        drawHealthBar(h.x, h.y - 28, 42, h.hp, h.maxHp, "#ffb0a0");
+      }
 
   function drawLancelotHero(opts) {
     const h = opts.hero;
     const ctx = opts.ctx;
     const drawHealthBar = opts.drawHealthBar;
     const t = performance.now() * 0.001;
+    const showName = opts.showName !== false;
+    const nameColor = opts.nameColor || "#b8d8ff";
 
     ctx.save();
     ctx.translate(h.x, h.y);
@@ -606,10 +896,12 @@
     }
 
     ctx.restore();
-    ctx.fillStyle = "#b8d8ff";
-    ctx.font = "700 12px Microsoft YaHei";
-    ctx.textAlign = "center";
-    ctx.fillText(h.name || "兰斯洛特", h.x, h.y - 33);
+    if (showName) {
+      ctx.fillStyle = nameColor;
+      ctx.font = "700 12px Microsoft YaHei";
+      ctx.textAlign = "center";
+      ctx.fillText(h.name || "兰斯洛特", h.x, h.y - 33);
+    }
     drawHealthBar(h.x, h.y - 28, 44, h.hp, h.maxHp, "#70a8ff");
   }
 
@@ -748,6 +1040,8 @@
     const ctx = opts.ctx;
     const drawHealthBar = opts.drawHealthBar;
     const getFacing = opts.getFacing;
+    const showName = opts.showName !== false;
+    const nameColor = opts.nameColor || "#e7f2ff";
     const facing = getFacing ? getFacing(h.dir || 0) : (Math.cos(h.dir || 0) >= 0 ? 1 : -1);
 
     ctx.save();
@@ -816,10 +1110,12 @@
     ctx.stroke();
     ctx.restore();
 
-    ctx.fillStyle = "#e7f2ff";
-    ctx.font = "700 12px Microsoft YaHei";
-    ctx.textAlign = "center";
-    ctx.fillText(h.name || "孙尚香", h.x, h.y - 33);
+    if (showName) {
+      ctx.fillStyle = nameColor;
+      ctx.font = "700 12px Microsoft YaHei";
+      ctx.textAlign = "center";
+      ctx.fillText(h.name || "孙尚香", h.x, h.y - 33);
+    }
     drawHealthBar(h.x, h.y - 28, 42, h.hp, h.maxHp, "#7fc7ff");
   }
 
@@ -828,6 +1124,8 @@
     const ctx = opts.ctx;
     const drawHealthBar = opts.drawHealthBar;
     const getFacing = opts.getFacing;
+    const showName = opts.showName !== false;
+    const nameColor = opts.nameColor || "#ffeaf0";
     const facing = getFacing ? getFacing(h.dir || 0) : (Math.cos(h.dir || 0) >= 0 ? 1 : -1);
 
     ctx.save();
@@ -866,10 +1164,12 @@
     ctx.fillRect(3.8, -15.8, 3.6, 1.2);
     ctx.restore();
 
-    ctx.fillStyle = "#ffeaf0";
-    ctx.font = "700 12px Microsoft YaHei";
-    ctx.textAlign = "center";
-    ctx.fillText(h.name || "大乔", h.x, h.y - 33);
+    if (showName) {
+      ctx.fillStyle = nameColor;
+      ctx.font = "700 12px Microsoft YaHei";
+      ctx.textAlign = "center";
+      ctx.fillText(h.name || "大乔", h.x, h.y - 33);
+    }
     drawHealthBar(h.x, h.y - 28, 40, h.hp, h.maxHp, "#89c2ff");
   }
 
@@ -878,12 +1178,16 @@
     const ctx = opts.ctx;
     const drawSoldier = opts.drawSoldier;
     const drawHealthBar = opts.drawHealthBar;
+    const showName = opts.showName !== false;
+    const nameColor = opts.nameColor || "#f8e7ff";
 
     drawSoldier(h, true, "#cda3e3", "#f6e9ff");
-    ctx.fillStyle = "#f8e7ff";
-    ctx.font = "700 12px Microsoft YaHei";
-    ctx.textAlign = "center";
-    ctx.fillText(h.name || "小乔", h.x, h.y - 33);
+    if (showName) {
+      ctx.fillStyle = nameColor;
+      ctx.font = "700 12px Microsoft YaHei";
+      ctx.textAlign = "center";
+      ctx.fillText(h.name || "小乔", h.x, h.y - 33);
+    }
     drawHealthBar(h.x, h.y - 28, 40, h.hp, h.maxHp, "#dfa9ff");
   }
 
@@ -892,6 +1196,8 @@
     const ctx = opts.ctx;
     const drawHealthBar = opts.drawHealthBar;
     const getFacing = opts.getFacing;
+    const showName = opts.showName !== false;
+    const nameColor = opts.nameColor || "#dce8ff";
     const facing = getFacing ? getFacing(h.dir || 0) : (Math.cos(h.dir || 0) >= 0 ? 1 : -1);
 
     ctx.save();
@@ -924,11 +1230,243 @@
     ctx.fillRect(1.2, -17.9, 1.4, 1.6);
     ctx.restore();
 
-    ctx.fillStyle = "#dce8ff";
-    ctx.font = "700 12px Microsoft YaHei";
-    ctx.textAlign = "center";
-    ctx.fillText(h.name || "伊丽莎白", h.x, h.y - 33);
+    if (showName) {
+      ctx.fillStyle = nameColor;
+      ctx.font = "700 12px Microsoft YaHei";
+      ctx.textAlign = "center";
+      ctx.fillText(h.name || "伊丽莎白", h.x, h.y - 33);
+    }
     drawHealthBar(h.x, h.y - 28, 40, h.hp, h.maxHp, "#9dc1ff");
+  }
+
+  function drawBlackwidowHero(opts) {
+    const h = opts.hero;
+    const ctx = opts.ctx;
+    const drawHealthBar = opts.drawHealthBar;
+    const showName = opts.showName !== false;
+    const nameColor = opts.nameColor || "#ffd1d8";
+
+    ctx.save();
+    ctx.translate(h.x, h.y);
+    ctx.scale(1.08, 1.08);
+    ctx.fillStyle = "#1f2434";
+    ctx.fillRect(-4.5, -8, 9, 12);
+    ctx.fillStyle = "#e2576c";
+    ctx.fillRect(-1.2, -8, 2.4, 12);
+    ctx.fillStyle = "#e8c7a6";
+    ctx.beginPath();
+    ctx.arc(0, -12, 4.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#3a1f2a";
+    ctx.fillRect(-4.7, -15.5, 9.4, 2.6);
+    if ((h.hitFlash || 0) > 0) {
+      ctx.strokeStyle = "rgba(255,145,165," + ((h.hitFlash || 0) * 0.8) + ")";
+      ctx.lineWidth = 1.8;
+      ctx.beginPath();
+      ctx.arc(0, -2, 14, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+    ctx.restore();
+
+    if (showName) {
+      ctx.fillStyle = nameColor;
+      ctx.font = "700 12px Microsoft YaHei";
+      ctx.textAlign = "center";
+      ctx.fillText(h.name || "黑寡妇", h.x, h.y - 32);
+    }
+    drawHealthBar(h.x, h.y - 27, 40, h.hp, h.maxHp, "#ff9fb1");
+  }
+
+  function drawIronmanHero(opts) {
+    const h = opts.hero;
+    const ctx = opts.ctx;
+    const drawHealthBar = opts.drawHealthBar;
+    const showName = opts.showName !== false;
+    const nameColor = opts.nameColor || "#ffd9a2";
+
+    ctx.save();
+    ctx.translate(h.x, h.y);
+    ctx.scale(1.12, 1.12);
+    ctx.fillStyle = "#9f3f2a";
+    ctx.fillRect(-5, -8, 10, 12);
+    ctx.fillStyle = "#f3c55c";
+    ctx.fillRect(-1.5, -8, 3, 12);
+    ctx.fillStyle = "#f0cfad";
+    ctx.beginPath();
+    ctx.arc(0, -12, 4.7, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#f3c55c";
+    ctx.beginPath();
+    ctx.arc(0, -2, 1.8, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    if (showName) {
+      ctx.fillStyle = nameColor;
+      ctx.font = "700 12px Microsoft YaHei";
+      ctx.textAlign = "center";
+      ctx.fillText(h.name || "钢铁侠", h.x, h.y - 33);
+    }
+    drawHealthBar(h.x, h.y - 28, 42, h.hp, h.maxHp, "#ffc76b");
+  }
+
+  function drawHomelanderHero(opts) {
+    const h = opts.hero;
+    const ctx = opts.ctx;
+    const drawHealthBar = opts.drawHealthBar;
+    const showName = opts.showName !== false;
+    const nameColor = opts.nameColor || "#d2e7ff";
+
+    ctx.save();
+    ctx.translate(h.x, h.y);
+    ctx.scale(1.12, 1.12);
+    ctx.fillStyle = "#245591";
+    ctx.fillRect(-5, -8, 10, 12);
+    ctx.fillStyle = "#f2d277";
+    ctx.fillRect(-5, -8, 1.8, 12);
+    ctx.fillRect(3.2, -8, 1.8, 12);
+    ctx.fillStyle = "#efcc9e";
+    ctx.beginPath();
+    ctx.arc(0, -12, 4.6, 0, Math.PI * 2);
+    ctx.fill();
+    if ((h.hitFlash || 0) > 0) {
+      ctx.strokeStyle = "rgba(255,90,90," + ((h.hitFlash || 0) * 0.9) + ")";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(0, -4, 15, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+    ctx.restore();
+
+    if (showName) {
+      ctx.fillStyle = nameColor;
+      ctx.font = "700 12px Microsoft YaHei";
+      ctx.textAlign = "center";
+      ctx.fillText(h.name || "祖国人", h.x, h.y - 33);
+    }
+    drawHealthBar(h.x, h.y - 28, 42, h.hp, h.maxHp, "#9ec9ff");
+  }
+
+  function drawHawkeyeHero(opts) {
+    const h = opts.hero;
+    const ctx = opts.ctx;
+    const drawHealthBar = opts.drawHealthBar;
+    const showName = opts.showName !== false;
+    const nameColor = opts.nameColor || "#c9f1ea";
+
+    ctx.save();
+    ctx.translate(h.x, h.y);
+    ctx.scale(1.08, 1.08);
+    ctx.fillStyle = "#52647b";
+    ctx.fillRect(-4.8, -8, 9.6, 12);
+    ctx.fillStyle = "#6fc7b9";
+    ctx.fillRect(-4.8, -3, 9.6, 2.2);
+    ctx.fillStyle = "#e8c89e";
+    ctx.beginPath();
+    ctx.arc(0, -12, 4.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = "#7f4f2b";
+    ctx.lineWidth = 1.4;
+    ctx.beginPath();
+    ctx.arc(8.2, -8, 6, -1.2, 1);
+    ctx.stroke();
+    ctx.restore();
+
+    if (showName) {
+      ctx.fillStyle = nameColor;
+      ctx.font = "700 12px Microsoft YaHei";
+      ctx.textAlign = "center";
+      ctx.fillText(h.name || "鹰眼", h.x, h.y - 33);
+    }
+    drawHealthBar(h.x, h.y - 28, 42, h.hp, h.maxHp, "#8fded0");
+  }
+
+  function updateBlackwidow(opts) {
+    const h = opts.hero;
+    const nearestEnemy = opts.nearestEnemy;
+    const moveToward = opts.moveToward;
+    const dt = opts.dt;
+    if (!nearestEnemy) return;
+    const ne = nearestEnemy(h, 140);
+    if (!ne || !ne.target) return;
+
+    h.dir = Math.atan2(ne.target.y - h.y, ne.target.x - h.x);
+    if (ne.d > 52) {
+      moveToward(h, ne.target.x, ne.target.y, h.speed * 1.08, dt);
+      return;
+    }
+    if (h.attackCd > 0) return;
+
+    h.attackCd = 0.62;
+    ne.target.hp -= 42;
+    if (ne.target.hitFlash !== undefined) ne.target.hitFlash = Math.max(ne.target.hitFlash || 0, 0.6);
+    if (opts.skillFx && opts.createSkillFx) opts.skillFx.push(opts.createSkillFx("widow", h.x, h.y - 6, ne.target.x, ne.target.y - 6));
+  }
+
+  function updateIronman(opts) {
+    const h = opts.hero;
+    const nearestEnemy = opts.nearestEnemy;
+    const moveToward = opts.moveToward;
+    const dt = opts.dt;
+    if (!nearestEnemy) return;
+    const ne = nearestEnemy(h, 260);
+    if (!ne || !ne.target) return;
+
+    h.dir = Math.atan2(ne.target.y - h.y, ne.target.x - h.x);
+    if (ne.d > 230) {
+      moveToward(h, ne.target.x, ne.target.y, h.speed * 0.96, dt);
+      return;
+    }
+    if (h.attackCd > 0) return;
+
+    h.attackCd = 0.86;
+    ne.target.hp -= 48;
+    if (ne.target.hitFlash !== undefined) ne.target.hitFlash = Math.max(ne.target.hitFlash || 0, 0.62);
+    if (opts.skillFx && opts.createSkillFx) opts.skillFx.push(opts.createSkillFx("pulse", h.x, h.y - 8, ne.target.x, ne.target.y - 8));
+  }
+
+  function updateHomelander(opts) {
+    const h = opts.hero;
+    const nearestEnemy = opts.nearestEnemy;
+    const moveToward = opts.moveToward;
+    const dt = opts.dt;
+    if (!nearestEnemy) return;
+    const ne = nearestEnemy(h, 240);
+    if (!ne || !ne.target) return;
+
+    h.dir = Math.atan2(ne.target.y - h.y, ne.target.x - h.x);
+    if (ne.d > 210) {
+      moveToward(h, ne.target.x, ne.target.y, h.speed, dt);
+      return;
+    }
+    if (h.attackCd > 0) return;
+
+    h.attackCd = 1.08;
+    ne.target.hp -= 54;
+    if (ne.target.hitFlash !== undefined) ne.target.hitFlash = Math.max(ne.target.hitFlash || 0, 0.7);
+    if (opts.skillFx && opts.createSkillFx) opts.skillFx.push(opts.createSkillFx("sunray", h.x, h.y - 10, ne.target.x, ne.target.y - 8));
+  }
+
+  function updateHawkeye(opts) {
+    const h = opts.hero;
+    const nearestEnemy = opts.nearestEnemy;
+    const moveToward = opts.moveToward;
+    const dt = opts.dt;
+    if (!nearestEnemy) return;
+    const ne = nearestEnemy(h, 320);
+    if (!ne || !ne.target) return;
+
+    h.dir = Math.atan2(ne.target.y - h.y, ne.target.x - h.x);
+    if (ne.d > 280) {
+      moveToward(h, ne.target.x, ne.target.y, h.speed * 0.95, dt);
+      return;
+    }
+    if (h.attackCd > 0) return;
+
+    h.attackCd = 0.66;
+    ne.target.hp -= 38;
+    if (ne.target.hitFlash !== undefined) ne.target.hitFlash = Math.max(ne.target.hitFlash || 0, 0.55);
+    if (opts.skillFx && opts.createSkillFx) opts.skillFx.push(opts.createSkillFx("arrow", h.x, h.y - 8, ne.target.x, ne.target.y - 8));
   }
 
   function updateSanada(opts) {
@@ -995,6 +1533,22 @@
       updateSanada(opts);
       return;
     }
+    if (a.heroId === "blackwidow") {
+      updateBlackwidow(opts);
+      return;
+    }
+    if (a.heroId === "ironman") {
+      updateIronman(opts);
+      return;
+    }
+    if (a.heroId === "homelander") {
+      updateHomelander(opts);
+      return;
+    }
+    if (a.heroId === "hawkeye") {
+      updateHawkeye(opts);
+      return;
+    }
 
     // Generic fallback for other companions.
     if (!opts.nearestEnemy) return;
@@ -1016,16 +1570,25 @@
     updateLancelotAlly,
     drawZhugeliangHero,
     drawLancelotHero,
+    drawEnemyGeneralHero,
     updateSunshangxiang,
     updateDaqiao,
     updateXiaoqiao,
     updateElizabeth,
     updateSanada,
+    updateBlackwidow,
+    updateIronman,
+    updateHomelander,
+    updateHawkeye,
     updateCompanion,
     drawSunshangxiang,
     drawDaqiao,
     drawXiaoqiao,
-    drawElizabeth
+    drawElizabeth,
+    drawBlackwidowHero,
+    drawIronmanHero,
+    drawHomelanderHero,
+    drawHawkeyeHero
   });
 
   window.WarHeroes = {
@@ -1048,8 +1611,10 @@
       return writeStoredFlags(readStoredFlags());
     },
     MAIN_PLAYER_DEFINITION,
+    FOOTBALL_TUNING,
     getHeroDefinition,
     createCompanion,
+    createFootballHero,
     createMainPlayer,
     detailRuntime
   };
