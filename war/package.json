@@ -1,0 +1,13 @@
+{
+  "name": "playfootball-remote-demo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Minimal 1v1 remote football demo with room code",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  }
+}
