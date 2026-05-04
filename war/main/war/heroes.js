@@ -307,8 +307,8 @@
       skill: Object.freeze({
         key: "kameWave",
         label: "冲击波",
-        damage: 58,
-        cooldown: 1,
+        damage: 44,
+        cooldown: 1.15,
         range: 280,
         splash: 46
       })
@@ -355,8 +355,8 @@
       skill: Object.freeze({
         key: "hellFlame",
         label: "地狱吐息",
-        damage: 52,
-        cooldown: 0.72,
+        damage: 40,
+        cooldown: 0.9,
         range: 190,
         splash: 34
       })
@@ -1692,11 +1692,11 @@
     }
     if (h.attackCd > 0) return;
 
-    h.attackCd = 1;
-    ne.target.hp -= 58;
+    h.attackCd = 1.15;
+    ne.target.hp -= 44;
     if (ne.target.hitFlash !== undefined) ne.target.hitFlash = Math.max(ne.target.hitFlash || 0, 0.72);
     if (opts.skillFx && opts.createSkillFx) opts.skillFx.push(opts.createSkillFx("kame", h.x, h.y - 8, ne.target.x, ne.target.y - 8));
-    if (opts.applyAreaImpact) opts.applyAreaImpact(ne.target.x, ne.target.y, 48, 18, h);
+    if (opts.applyAreaImpact) opts.applyAreaImpact(ne.target.x, ne.target.y, 48, 10, h);
   }
 
   function updateLiuxiu(opts) {
@@ -1739,11 +1739,11 @@
     }
     if (h.attackCd > 0) return;
 
-    h.attackCd = 0.72;
-    ne.target.hp -= 52;
+    h.attackCd = 0.9;
+    ne.target.hp -= 40;
     if (ne.target.hitFlash !== undefined) ne.target.hitFlash = Math.max(ne.target.hitFlash || 0, 0.62);
     if (opts.skillFx && opts.createSkillFx) opts.skillFx.push(opts.createSkillFx("fire", h.x, h.y - 8, ne.target.x, ne.target.y - 8));
-    if (opts.applyAreaImpact) opts.applyAreaImpact(ne.target.x, ne.target.y, 38, 10, h);
+    if (opts.applyAreaImpact) opts.applyAreaImpact(ne.target.x, ne.target.y, 38, 6, h);
   }
 
   function updateSanada(opts) {
