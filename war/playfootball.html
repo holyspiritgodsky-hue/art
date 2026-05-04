@@ -434,8 +434,8 @@
         const online = net.mode === "online";
 
         // 只在选阵容阶段显示模式和联机配置，比赛中自动收起减少横向占位。
-        setHidden(soloModeBtn, !inDraft || !online);
-        setHidden(onlineModeBtn, !inDraft || online);
+        setHidden(soloModeBtn, !inDraft);
+        setHidden(onlineModeBtn, !inDraft);
         setHidden(serverInputEl, !inDraft || !online);
         setHidden(connectBtn, !inDraft || !online);
         setHidden(netStatusEl, !inDraft || !online);
