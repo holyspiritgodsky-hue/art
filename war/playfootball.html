@@ -337,7 +337,7 @@
       const REVIVE_HP_RATIO = 0.55;
       const BLUE_LINEUP_KEY = "warFootballBlueLineupV1";
       const IS_MOBILE_VIEW = window.matchMedia("(pointer: coarse), (max-width: 900px)").matches;
-      const MOBILE_BASE_SCALE = 0.56;
+      const MOBILE_BASE_SCALE = 0.48;
       const MAX_SKILL_FX = IS_MOBILE_VIEW ? 18 : 34;
       const LIGHTNING_POINTS = IS_MOBILE_VIEW ? 8 : 9;
       const ENABLE_LIGHTNING_OVERLAY = !IS_MOBILE_VIEW;
@@ -952,10 +952,10 @@
         if (IS_MOBILE_VIEW) {
           const shortSide = Math.min(window.innerWidth, window.innerHeight);
           let mobileScale = MOBILE_BASE_SCALE;
-          if (shortSide <= 360) mobileScale = 0.52;
-          else if (shortSide > 460) mobileScale = 0.6;
-          if (window.innerWidth > window.innerHeight) mobileScale += 0.06;
-          state.camera.scale = clamp(mobileScale, 0.5, 0.72);
+          if (shortSide <= 360) mobileScale = 0.44;
+          else if (shortSide > 460) mobileScale = 0.52;
+          if (window.innerWidth > window.innerHeight) mobileScale += 0.04;
+          state.camera.scale = clamp(mobileScale, 0.42, 0.62);
         }
 
         canvas.width = Math.floor(window.innerWidth * dpr);
@@ -1687,7 +1687,9 @@
         const dx = b.x - p.x;
         const dy = b.y - p.y;
         const d = Math.hypot(dx, dy);
-        const ballWeight = d > 180 ? 0.32 : 0.18;
+        const ballWeight = d > 180
+          ? (IS_MOBILE_VIEW ? 0.52 : 0.32)
+          : (IS_MOBILE_VIEW ? 0.34 : 0.18);
         const focusX = p.x * (1 - ballWeight) + b.x * ballWeight;
         const focusY = p.y * (1 - ballWeight) + b.y * ballWeight;
         const tx = clamp(focusX - viewW * 0.5, minX, maxX);
