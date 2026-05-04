@@ -288,6 +288,7 @@
       const REVIVE_HP_RATIO = 0.55;
       const BLUE_LINEUP_KEY = "warFootballBlueLineupV1";
       const IS_MOBILE_VIEW = window.matchMedia("(pointer: coarse), (max-width: 900px)").matches;
+      const MOBILE_BASE_SCALE = 0.56;
       const MAX_SKILL_FX = IS_MOBILE_VIEW ? 18 : 34;
       const LIGHTNING_POINTS = IS_MOBILE_VIEW ? 8 : 9;
       const ENABLE_LIGHTNING_OVERLAY = !IS_MOBILE_VIEW;
@@ -320,7 +321,7 @@
           x: 0,
           y: 0,
           smooth: IS_MOBILE_VIEW ? 0.22 : 0.18,
-          scale: IS_MOBILE_VIEW ? 0.76 : 1
+          scale: IS_MOBILE_VIEW ? MOBILE_BASE_SCALE : 1
         }
       };
 
@@ -611,6 +612,16 @@
         const rawDpr = window.devicePixelRatio || 1;
         const dprCap = IS_MOBILE_VIEW ? 1.5 : 2;
         const dpr = Math.max(1, Math.min(rawDpr, dprCap));
+
+        if (IS_MOBILE_VIEW) {
+          const shortSide = Math.min(window.innerWidth, window.innerHeight);
+          let mobileScale = MOBILE_BASE_SCALE;
+          if (shortSide <= 360) mobileScale = 0.52;
+          else if (shortSide > 460) mobileScale = 0.6;
+          if (window.innerWidth > window.innerHeight) mobileScale += 0.06;
+          state.camera.scale = clamp(mobileScale, 0.5, 0.72);
+        }
+
         canvas.width = Math.floor(window.innerWidth * dpr);
         canvas.height = Math.floor(window.innerHeight * dpr);
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
