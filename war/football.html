@@ -256,6 +256,12 @@
     (function () {
       "use strict";
 
+      // Consolidate gameplay entry: default to playfootball page.
+      if (!/[?&]legacy=1(?:&|$)/.test(location.search)) {
+        location.replace("playfootball.html");
+        return;
+      }
+
       const canvas = document.getElementById("game");
       const ctx = canvas.getContext("2d");
       const hudEl = document.getElementById("hud");

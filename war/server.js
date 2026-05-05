@@ -7,8 +7,8 @@ const vm = require("vm");
 const { WebSocketServer } = require("ws");
 
 const PORT = Number(process.env.PORT || 8080);
-const SUBPAGE_PREFIX = "/main/war";
-const PUBLIC_DIR = path.join(__dirname, "main", "war");
+const LEGACY_PREFIX = "/main/war";
+const PUBLIC_DIR = __dirname;
 const OPEN_STATE = 1;
 const PLAYER_COUNT = 6;
 
@@ -249,11 +249,11 @@ function serveStatic(req, res) {
   reqPath = reqPath.split("?")[0];
 
   if (reqPath === "/") {
-    reqPath = SUBPAGE_PREFIX + "/playfootball.html";
+    reqPath = "/playfootball.html";
   }
 
-  if (reqPath.startsWith(SUBPAGE_PREFIX + "/")) {
-    reqPath = reqPath.slice(SUBPAGE_PREFIX.length);
+  if (reqPath.startsWith(LEGACY_PREFIX + "/")) {
+    reqPath = reqPath.slice(LEGACY_PREFIX.length);
   }
 
   if (!reqPath.startsWith("/")) {

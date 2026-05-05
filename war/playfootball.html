@@ -109,17 +109,6 @@
 
     .btn:hover { filter: brightness(1.1); }
 
-    .mini-input {
-      border: 1px solid var(--line);
-      background: rgba(26, 36, 50, 0.85);
-      color: var(--ink);
-      height: 34px;
-      padding: 0 10px;
-      border-radius: 8px;
-      font-size: 12px;
-      min-width: 210px;
-    }
-
     #netStatus {
       font-size: 12px;
       color: #ffe0a2;
@@ -147,13 +136,13 @@
 
     .draft-panel {
       width: min(980px, 100%);
-      max-height: min(86vh, 760px);
+      max-height: min(84vh, 700px);
       overflow: auto;
       border: 1px solid rgba(255, 255, 255, 0.24);
       border-radius: 14px;
       background: linear-gradient(160deg, rgba(23, 34, 50, 0.92), rgba(18, 28, 41, 0.92));
       box-shadow: 0 18px 42px rgba(0, 0, 0, 0.38);
-      padding: 14px;
+      padding: 10px;
     }
 
     .draft-head {
@@ -172,9 +161,7 @@
     }
 
     .draft-sub {
-      font-size: 12px;
-      color: rgba(231, 241, 255, 0.88);
-      margin-top: 3px;
+      display: none;
     }
 
     #draftHint {
@@ -192,19 +179,19 @@
 
     #draftList {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(136px, 1fr));
-      gap: 8px;
+      grid-template-columns: repeat(auto-fill, minmax(116px, 1fr));
+      gap: 6px;
     }
 
     .hero-pick {
-      text-align: left;
+      text-align: center;
       border: 1px solid rgba(255, 255, 255, 0.2);
-      border-radius: 10px;
-      padding: 10px;
+      border-radius: 9px;
+      padding: 8px 6px;
       background: rgba(35, 49, 68, 0.7);
       color: #eff4ff;
       cursor: pointer;
-      min-height: 92px;
+      min-height: 58px;
     }
 
     .hero-pick.on {
@@ -214,41 +201,83 @@
     }
 
     .hero-name {
-      font-size: 15px;
+      font-size: 13px;
       font-weight: 800;
-      margin-bottom: 6px;
-    }
-
-    .hero-stat {
-      font-size: 11px;
-      opacity: 0.92;
-      line-height: 1.45;
-    }
-
-    .hero-order {
-      font-size: 11px;
-      font-weight: 800;
-      color: #ffd486;
-      margin-top: 5px;
-      min-height: 14px;
+      line-height: 1.3;
+      margin-bottom: 0;
     }
 
     .draft-actions {
-      margin-top: 12px;
+      margin-top: 8px;
       display: flex;
       justify-content: flex-end;
-      gap: 8px;
+      gap: 6px;
+    }
+
+    #mobileControls {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 16;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      padding: 14px;
+      pointer-events: none;
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity 160ms ease, transform 160ms ease;
+    }
+
+    #mobileControls:not(.is-hidden) {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .stick-zone {
+      width: 118px;
+      height: 118px;
+      border-radius: 50%;
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      background: radial-gradient(circle at 35% 30%, rgba(154, 214, 255, 0.34), rgba(32, 53, 73, 0.62));
+      position: relative;
+      pointer-events: auto;
+      touch-action: none;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14), 0 8px 20px rgba(0, 0, 0, 0.28);
+    }
+
+    .stick-knob {
+      width: 54px;
+      height: 54px;
+      border-radius: 50%;
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      background: radial-gradient(circle at 30% 24%, rgba(255, 250, 224, 0.94), rgba(157, 180, 205, 0.88));
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.34);
+      pointer-events: none;
     }
 
     @media (max-width: 900px), (pointer: coarse) {
-      #hud { top: 8px; left: 8px; right: 8px; }
+      #hud { top: 8px; left: 8px; right: 8px; justify-content: center; }
       #score { font-size: 16px; }
       #clock { font-size: 14px; }
+      .card { backdrop-filter: none; }
       .btn { height: 32px; font-size: 12px; }
-      .mini-input { height: 32px; min-width: 140px; font-size: 11px; }
-      .draft-panel { padding: 12px; }
-      .draft-title { font-size: 16px; }
-      #draftList { grid-template-columns: repeat(2, minmax(120px, 1fr)); }
+      #actions { width: 100%; justify-content: center; }
+      .draft-panel { padding: 8px; max-height: 82vh; }
+      .draft-title { font-size: 15px; }
+      .draft-sub, #draftHint { font-size: 11px; }
+      #draftCount { font-size: 12px; }
+      #draftList { grid-template-columns: repeat(3, minmax(86px, 1fr)); gap: 5px; }
+      .hero-pick { min-height: 52px; padding: 7px 5px; border-radius: 8px; }
+      .hero-name { font-size: 12px; margin-bottom: 0; }
+      #mobileControls { padding: 10px 12px 12px; }
+      .stick-zone { width: 108px; height: 108px; }
+      .stick-knob { width: 50px; height: 50px; }
     }
   </style>
 </head>
@@ -260,13 +289,18 @@
     <div id="clock" class="card">03:00</div>
     <div id="actions" class="card">
       <button class="btn" id="soloModeBtn" type="button">单人</button>
-      <button class="btn" id="onlineModeBtn" type="button">联机</button>
-      <input class="mini-input" id="serverInput" placeholder="ws://host:8080" />
-      <button class="btn" id="connectBtn" type="button">连接并匹配</button>
+      <button class="btn" id="onlineModeBtn" type="button">联机模式</button>
+      <button class="btn" id="connectBtn" type="button">开始匹配</button>
       <span id="netStatus">单人模式</span>
       <a class="btn" id="backBtn" href="index.html">返回战场</a>
       <button class="btn" id="pauseBtn" type="button">暂停</button>
       <button class="btn" id="restartBtn" type="button">重开</button>
+    </div>
+  </div>
+
+  <div id="mobileControls" class="is-hidden">
+    <div class="stick-zone" id="stickZone" aria-label="移动摇杆" role="button">
+      <div class="stick-knob" id="stickKnob"></div>
     </div>
   </div>
 
@@ -276,14 +310,12 @@
         <div>
           <div class="draft-title">选我方 6 人首发</div>
           <div class="draft-sub">敌方将随机出战，阵容会自动记忆到本机</div>
-          <div id="draftHint">提示: Esc 可退出当前选阵容页</div>
+          <div id="draftHint">选择 6 名英雄后开赛</div>
         </div>
         <div id="draftCount">已选 0/6</div>
       </div>
       <div id="draftList"></div>
       <div class="draft-actions">
-        <button class="btn" id="draftExitBtn" type="button">退出</button>
-        <button class="btn" id="draftResetBtn" type="button">清空重选</button>
         <button class="btn" id="startMatchBtn" type="button" disabled>开赛</button>
       </div>
     </div>
@@ -306,17 +338,17 @@
       const draftListEl = document.getElementById("draftList");
       const draftCountEl = document.getElementById("draftCount");
       const startMatchBtn = document.getElementById("startMatchBtn");
-      const draftResetBtn = document.getElementById("draftResetBtn");
       const draftTitleEl = document.querySelector(".draft-title");
       const draftSubEl = document.querySelector(".draft-sub");
       const draftHintEl = document.getElementById("draftHint");
-      const draftExitBtn = document.getElementById("draftExitBtn");
       const soloModeBtn = document.getElementById("soloModeBtn");
       const onlineModeBtn = document.getElementById("onlineModeBtn");
-      const serverInputEl = document.getElementById("serverInput");
       const connectBtn = document.getElementById("connectBtn");
       const netStatusEl = document.getElementById("netStatus");
       const backBtn = document.getElementById("backBtn");
+      const mobileControlsEl = document.getElementById("mobileControls");
+      const stickZoneEl = document.getElementById("stickZone");
+      const stickKnobEl = document.getElementById("stickKnob");
 
       const heroStore = window.WarHeroes;
       const renderStd = window.WarSense || null;
@@ -337,11 +369,20 @@
       const REVIVE_HP_RATIO = 0.55;
       const BLUE_LINEUP_KEY = "warFootballBlueLineupV1";
       const IS_MOBILE_VIEW = window.matchMedia("(pointer: coarse), (max-width: 900px)").matches;
-      const MOBILE_BASE_SCALE = 0.48;
-      const MAX_SKILL_FX = IS_MOBILE_VIEW ? 18 : 34;
-      const LIGHTNING_POINTS = IS_MOBILE_VIEW ? 8 : 9;
+      const DEVICE_MEMORY = Number(navigator.deviceMemory || 0);
+      const CPU_THREADS = Number(navigator.hardwareConcurrency || 0);
+      const LOW_SPEC_MOBILE = IS_MOBILE_VIEW && (
+        (DEVICE_MEMORY > 0 && DEVICE_MEMORY <= 4) ||
+        (CPU_THREADS > 0 && CPU_THREADS <= 4) ||
+        Math.min(window.innerWidth, window.innerHeight) <= 390
+      );
+      const MOBILE_BASE_SCALE = LOW_SPEC_MOBILE ? 0.4 : 0.46;
+      const RENDER_SCALE = LOW_SPEC_MOBILE ? 0.86 : 1;
+      const MAX_SKILL_FX = IS_MOBILE_VIEW ? (LOW_SPEC_MOBILE ? 10 : 18) : 34;
+      const LIGHTNING_POINTS = IS_MOBILE_VIEW ? (LOW_SPEC_MOBILE ? 6 : 8) : 9;
       const ENABLE_LIGHTNING_OVERLAY = !IS_MOBILE_VIEW;
-      const MAX_CRATERS = IS_MOBILE_VIEW ? 6 : 10;
+      const MAX_CRATERS = IS_MOBILE_VIEW ? (LOW_SPEC_MOBILE ? 3 : 6) : 10;
+      const DEPLOY_WS_URL = "wss://art-football-online.onrender.com";
 
       const state = {
         blue: [],
@@ -398,6 +439,13 @@
         j: false
       };
 
+      const touchMove = {
+        active: false,
+        pointerId: null,
+        cx: 0,
+        cy: 0
+      };
+
       function clamp(v, min, max) {
         return Math.max(min, Math.min(max, v));
       }
@@ -416,6 +464,13 @@
         return wsProto + "://" + location.host;
       }
 
+      function resolveSocketURL() {
+        const fromGlobal = typeof window.WAR_WS_URL === "string" ? window.WAR_WS_URL.trim() : "";
+        if (fromGlobal) return fromGlobal;
+        if (DEPLOY_WS_URL) return DEPLOY_WS_URL;
+        return autoSocketURL();
+      }
+
       function setNetStatus(text, waiting) {
         netStatusEl.textContent = text;
         net.statusText = text;
@@ -432,38 +487,89 @@
       function refreshActionBar() {
         const inDraft = state.inDraft;
         const online = net.mode === "online";
+        const matched = online && net.connected && !!net.side;
 
         // 只在选阵容阶段显示模式和联机配置，比赛中自动收起减少横向占位。
         setHidden(soloModeBtn, !inDraft);
         setHidden(onlineModeBtn, !inDraft);
-        setHidden(serverInputEl, !inDraft || !online);
-        setHidden(connectBtn, !inDraft || !online);
+        setHidden(connectBtn, !inDraft || !online || matched);
         setHidden(netStatusEl, !inDraft || !online);
 
         setHidden(pauseBtn, inDraft);
         setHidden(restartBtn, inDraft || (online && !net.host));
 
         if (inDraft && online) {
-          connectBtn.textContent = net.connected ? "重新匹配" : "连接并匹配";
+          connectBtn.disabled = net.connected && !net.side;
+          if (!net.connected) connectBtn.textContent = "开始匹配";
+          else if (!net.side) connectBtn.textContent = "匹配中...";
+          else connectBtn.textContent = "已匹配";
         } else {
-          connectBtn.textContent = "连接并匹配";
+          connectBtn.disabled = false;
+          connectBtn.textContent = "开始匹配";
         }
 
         backBtn.textContent = inDraft ? "返回战场" : "返回战场";
+        setHidden(mobileControlsEl, !(IS_MOBILE_VIEW && !inDraft));
+      }
+
+      function applyTouchDirection(dx, dy) {
+        const len = Math.hypot(dx, dy);
+        if (len < 14) {
+          input.w = false;
+          input.a = false;
+          input.s = false;
+          input.d = false;
+          return;
+        }
+
+        const nx = dx / len;
+        const ny = dy / len;
+        input.a = nx < -0.32;
+        input.d = nx > 0.32;
+        input.w = ny < -0.32;
+        input.s = ny > 0.32;
+        state.pointerTarget = null;
+      }
+
+      function resetStickKnob() {
+        if (!stickKnobEl) return;
+        stickKnobEl.style.transform = "translate(-50%, -50%)";
+      }
+
+      function updateStickByPoint(clientX, clientY) {
+        if (!stickZoneEl || !stickKnobEl) return;
+        const rect = stickZoneEl.getBoundingClientRect();
+        const cx = rect.left + rect.width * 0.5;
+        const cy = rect.top + rect.height * 0.5;
+        const dx = clientX - cx;
+        const dy = clientY - cy;
+        const r = rect.width * 0.5 - 14;
+        const len = Math.hypot(dx, dy) || 1;
+        const k = len > r ? r / len : 1;
+        const ndx = dx * k;
+        const ndy = dy * k;
+
+        stickKnobEl.style.transform = "translate(calc(-50% + " + ndx.toFixed(1) + "px), calc(-50% + " + ndy.toFixed(1) + "px))";
+        applyTouchDirection(ndx, ndy);
+      }
+
+      function clearTouchMove() {
+        touchMove.active = false;
+        touchMove.pointerId = null;
+        input.w = false;
+        input.a = false;
+        input.s = false;
+        input.d = false;
+        resetStickKnob();
       }
 
       function updateDraftHint() {
         if (!draftHintEl) return;
         if (net.mode === "online") {
-          if (net.waitingSince > 0) {
-            const waited = Math.max(0, Math.floor((Date.now() - net.waitingSince) / 1000));
-            draftHintEl.textContent = net.statusText + " (已等待 " + waited + " 秒)  |  Esc 可退出联机";
-          } else {
-            draftHintEl.textContent = net.statusText + "  |  Esc 可退出联机";
-          }
+          draftHintEl.textContent = net.statusText;
           return;
         }
-        draftHintEl.textContent = "提示: Esc 可快速开赛并退出选阵容页";
+        draftHintEl.textContent = "选择 6 名英雄后开赛";
       }
 
       function sendNet(payload) {
@@ -487,7 +593,7 @@
           state.selectedRedIds = [];
           showDraftOverlay();
         } else {
-          setNetStatus("联机模式: 点击连接并匹配", false);
+          setNetStatus("联机模式: 点开始匹配", false);
           showDraftOverlay();
         }
         refreshActionBar();
@@ -500,13 +606,16 @@
         }
 
         if (net.socket && net.socket.readyState === WebSocket.OPEN) {
+          if (net.side) {
+            setNetStatus("已匹配，先选人并准备", false);
+            return;
+          }
           sendNet({ type: "findMatch" });
           setNetStatus("正在匹配...", true);
           return;
         }
 
-        const url = (serverInputEl.value || "").trim() || autoSocketURL();
-        serverInputEl.value = url;
+        const url = resolveSocketURL();
         net.socket = new WebSocket(url);
         setNetStatus("连接中...", true);
 
@@ -543,6 +652,9 @@
           }
 
           if (msg.type === "waiting") {
+            net.side = null;
+            net.host = false;
+            net.readySent = false;
             setNetStatus(msg.message || "等待对手...", true);
             return;
           }
@@ -555,7 +667,7 @@
             net.remoteReadyB = false;
             state.selectedBlueIds = [];
             showDraftOverlay();
-            setNetStatus("匹配成功: 你是" + (net.host ? "主机(蜀汉)" : "客机(群雄)"), false);
+            setNetStatus("已匹配，选 6 人后点准备开赛", false);
             return;
           }
 
@@ -567,14 +679,14 @@
               }
             }
             renderDraftList();
-            setNetStatus("请选择 6 人并准备", false);
+            setNetStatus("请选择 6 人", false);
             return;
           }
 
           if (msg.type === "draftUpdate") {
             net.remoteReadyA = !!msg.readyA;
             net.remoteReadyB = !!msg.readyB;
-            setNetStatus("准备状态 A:" + (net.remoteReadyA ? "Y" : "N") + " B:" + (net.remoteReadyB ? "Y" : "N"), false);
+            setNetStatus("双方准备中", false);
             return;
           }
 
@@ -608,6 +720,9 @@
           }
 
           if (msg.type === "opponentLeft") {
+            net.side = null;
+            net.host = false;
+            net.readySent = false;
             setNetStatus("对手离线，重新匹配中...", true);
             showDraftOverlay();
             return;
@@ -734,8 +849,10 @@
         draftCountEl.textContent = "已选 " + state.selectedBlueIds.length + "/" + PLAYER_COUNT;
         if (net.mode === "online") {
           startMatchBtn.disabled = state.selectedBlueIds.length !== PLAYER_COUNT || net.readySent;
+          startMatchBtn.textContent = net.readySent ? "已准备" : "准备开赛";
         } else {
           startMatchBtn.disabled = state.selectedBlueIds.length !== PLAYER_COUNT;
+          startMatchBtn.textContent = "开赛";
         }
       }
 
@@ -748,18 +865,12 @@
 
         for (let i = 0; i < heroPool.length; i += 1) {
           const id = heroPool[i];
-          const def = getHeroDef(id);
           const btn = document.createElement("button");
           btn.type = "button";
           btn.className = "hero-pick" + (selectedIndex[id] ? " on" : "");
           btn.dataset.heroId = id;
-          const speed = def && def.stats ? def.stats.speed : "-";
-          const hp = def && def.stats ? def.stats.hp : "-";
-          const range = def && def.stats ? def.stats.attackRange : "-";
           btn.innerHTML =
-            '<div class="hero-name">' + getHeroName(id) + '</div>' +
-            '<div class="hero-stat">速度 ' + speed + '<br>血量 ' + hp + '<br>攻击距 ' + range + '</div>' +
-            '<div class="hero-order">' + (selectedIndex[id] ? ("第" + selectedIndex[id] + "顺位") : "") + '</div>';
+            '<div class="hero-name">' + getHeroName(id) + '</div>';
           draftListEl.appendChild(btn);
         }
 
@@ -786,13 +897,9 @@
           draftSubEl.textContent = net.host
             ? "你将控制蜀汉联队，锁定阵容后点击准备"
             : "你将控制群雄联队，锁定阵容后点击准备";
-          startMatchBtn.textContent = "锁定并准备";
-          draftExitBtn.textContent = "退出联机";
         } else {
           draftTitleEl.textContent = "选我方 6 人首发";
           draftSubEl.textContent = "敌方将随机出战，阵容会自动记忆到本机";
-          startMatchBtn.textContent = "开赛";
-          draftExitBtn.textContent = "跳过选人并开赛";
         }
         draftOverlayEl.classList.add("show");
         hudEl.style.display = "flex";
@@ -811,7 +918,8 @@
           sendNet({ type: "setLineup", lineup: state.selectedBlueIds.slice(0, PLAYER_COUNT) });
           sendNet({ type: "ready" });
           net.readySent = true;
-          setNetStatus("已准备，等待对手...");
+          setNetStatus("已准备，等待对手准备...");
+          updateDraftHud();
           return;
         }
 
@@ -946,21 +1054,22 @@
 
       function resize() {
         const rawDpr = window.devicePixelRatio || 1;
-        const dprCap = IS_MOBILE_VIEW ? 1.5 : 2;
+        const dprCap = IS_MOBILE_VIEW ? (LOW_SPEC_MOBILE ? 1 : 1.25) : 2;
         const dpr = Math.max(1, Math.min(rawDpr, dprCap));
 
         if (IS_MOBILE_VIEW) {
           const shortSide = Math.min(window.innerWidth, window.innerHeight);
           let mobileScale = MOBILE_BASE_SCALE;
-          if (shortSide <= 360) mobileScale = 0.44;
-          else if (shortSide > 460) mobileScale = 0.52;
-          if (window.innerWidth > window.innerHeight) mobileScale += 0.04;
-          state.camera.scale = clamp(mobileScale, 0.42, 0.62);
+          if (shortSide <= 360) mobileScale -= 0.04;
+          else if (shortSide > 460) mobileScale += 0.04;
+          if (window.innerWidth > window.innerHeight) mobileScale += 0.03;
+          state.camera.scale = clamp(mobileScale, 0.34, 0.58);
         }
 
-        canvas.width = Math.floor(window.innerWidth * dpr);
-        canvas.height = Math.floor(window.innerHeight * dpr);
-        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        const pixelScale = dpr * RENDER_SCALE;
+        canvas.width = Math.floor(window.innerWidth * pixelScale);
+        canvas.height = Math.floor(window.innerHeight * pixelScale);
+        ctx.setTransform(pixelScale, 0, 0, pixelScale, 0, 0);
       }
 
       function worldToScreen(x, y) {
@@ -2197,6 +2306,36 @@
         togglePause();
       });
 
+      if (stickZoneEl) {
+        stickZoneEl.addEventListener("pointerdown", function (e) {
+          if (state.inDraft) return;
+          e.preventDefault();
+          e.stopPropagation();
+          touchMove.active = true;
+          touchMove.pointerId = e.pointerId;
+          stickZoneEl.setPointerCapture(e.pointerId);
+          updateStickByPoint(e.clientX, e.clientY);
+        });
+
+        stickZoneEl.addEventListener("pointermove", function (e) {
+          if (!touchMove.active || touchMove.pointerId !== e.pointerId) return;
+          e.preventDefault();
+          updateStickByPoint(e.clientX, e.clientY);
+        });
+
+        stickZoneEl.addEventListener("pointerup", function (e) {
+          if (touchMove.pointerId !== e.pointerId) return;
+          e.preventDefault();
+          clearTouchMove();
+        });
+
+        stickZoneEl.addEventListener("pointercancel", function (e) {
+          if (touchMove.pointerId !== e.pointerId) return;
+          e.preventDefault();
+          clearTouchMove();
+        });
+      }
+
       soloModeBtn.addEventListener("click", function () {
         setMode("solo");
       });
@@ -2222,16 +2361,6 @@
         toggleDraftHero(heroId);
       });
 
-      draftResetBtn.addEventListener("click", function () {
-        if (net.mode === "online") net.readySent = false;
-        state.selectedBlueIds = [];
-        renderDraftList();
-      });
-
-      draftExitBtn.addEventListener("click", function () {
-        exitDraft();
-      });
-
       startMatchBtn.addEventListener("click", function () {
         closeDraftAndStart();
       });
@@ -2240,7 +2369,6 @@
       state.selectedRedIds = [];
 
       resize();
-      serverInputEl.value = autoSocketURL();
       setMode("solo");
       showDraftOverlay();
       requestAnimationFrame(frameLoop);
