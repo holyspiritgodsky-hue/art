@@ -107,6 +107,12 @@
       cursor: pointer;
     }
 
+    #pauseBtn {
+      height: 28px;
+      padding: 0 9px;
+      font-size: 11px;
+    }
+
     .btn:hover { filter: brightness(1.1); }
 
     #netStatus {
@@ -262,12 +268,33 @@
     }
 
     @media (max-width: 900px), (pointer: coarse) {
-      #hud { top: 8px; left: 8px; right: 8px; justify-content: center; }
-      #score { font-size: 16px; }
-      #clock { font-size: 14px; }
+      #hud {
+        top: 8px;
+        left: 8px;
+        right: 8px;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: nowrap;
+        gap: 6px;
+      }
+      #score { font-size: 15px; min-width: 150px; padding: 6px 10px; }
+      #clock { font-size: 13px; min-width: 78px; padding: 6px 10px; }
       .card { backdrop-filter: none; }
-      .btn { height: 32px; font-size: 12px; }
-      #actions { width: 100%; justify-content: center; }
+      .btn { height: 30px; font-size: 12px; padding: 0 10px; }
+      #pauseBtn { height: 26px; padding: 0 8px; font-size: 11px; }
+      #actions {
+        position: fixed;
+        left: 50%;
+        bottom: calc(env(safe-area-inset-bottom, 0px) + 8px);
+        transform: translateX(-50%);
+        width: auto;
+        max-width: calc(100vw - 16px);
+        justify-content: center;
+        gap: 6px;
+        flex-wrap: wrap;
+        z-index: 18;
+      }
+      #actions.card { padding: 6px 8px; }
       .draft-panel { padding: 8px; max-height: 82vh; }
       .draft-title { font-size: 15px; }
       .draft-sub, #draftHint { font-size: 11px; }
@@ -275,7 +302,10 @@
       #draftList { grid-template-columns: repeat(3, minmax(86px, 1fr)); gap: 5px; }
       .hero-pick { min-height: 52px; padding: 7px 5px; border-radius: 8px; }
       .hero-name { font-size: 12px; margin-bottom: 0; }
-      #mobileControls { padding: 10px 12px 12px; }
+      #mobileControls {
+        padding: 10px 12px 12px;
+        bottom: calc(env(safe-area-inset-bottom, 0px) + 52px);
+      }
       .stick-zone { width: 108px; height: 108px; }
       .stick-knob { width: 50px; height: 50px; }
     }
@@ -287,14 +317,12 @@
   <div id="hud">
     <div id="score" class="card">蜀汉联队 0 : 0 群雄联队</div>
     <div id="clock" class="card">03:00</div>
+    <button class="btn" id="pauseBtn" type="button">暂停</button>
     <div id="actions" class="card">
       <button class="btn" id="soloModeBtn" type="button">单人</button>
-      <button class="btn" id="onlineModeBtn" type="button">联机模式</button>
+      <button class="btn" id="onlineModeBtn" type="button">联机</button>
       <button class="btn" id="connectBtn" type="button">开始匹配</button>
       <span id="netStatus">单人模式</span>
-      <a class="btn" id="backBtn" href="index.html">返回战场</a>
-      <button class="btn" id="pauseBtn" type="button">暂停</button>
-      <button class="btn" id="restartBtn" type="button">重开</button>
     </div>
   </div>
 
@@ -332,8 +360,8 @@
       const hudEl = document.getElementById("hud");
       const scoreEl = document.getElementById("score");
       const clockEl = document.getElementById("clock");
+      const actionsEl = document.getElementById("actions");
       const pauseBtn = document.getElementById("pauseBtn");
-      const restartBtn = document.getElementById("restartBtn");
       const draftOverlayEl = document.getElementById("draftOverlay");
       const draftListEl = document.getElementById("draftList");
       const draftCountEl = document.getElementById("draftCount");
@@ -345,7 +373,6 @@
       const onlineModeBtn = document.getElementById("onlineModeBtn");
       const connectBtn = document.getElementById("connectBtn");
       const netStatusEl = document.getElementById("netStatus");
-      const backBtn = document.getElementById("backBtn");
       const mobileControlsEl = document.getElementById("mobileControls");
       const stickZoneEl = document.getElementById("stickZone");
       const stickKnobEl = document.getElementById("stickKnob");
@@ -490,13 +517,13 @@
         const matched = online && net.connected && !!net.side;
 
         // 只在选阵容阶段显示模式和联机配置，比赛中自动收起减少横向占位。
+        setHidden(actionsEl, !inDraft);
         setHidden(soloModeBtn, !inDraft);
         setHidden(onlineModeBtn, !inDraft);
         setHidden(connectBtn, !inDraft || !online || matched);
         setHidden(netStatusEl, !inDraft || !online);
 
         setHidden(pauseBtn, inDraft);
-        setHidden(restartBtn, inDraft || (online && !net.host));
 
         if (inDraft && online) {
           connectBtn.disabled = net.connected && !net.side;
@@ -508,7 +535,6 @@
           connectBtn.textContent = "开始匹配";
         }
 
-        backBtn.textContent = inDraft ? "返回战场" : "返回战场";
         setHidden(mobileControlsEl, !(IS_MOBILE_VIEW && !inDraft));
       }
 
@@ -2346,11 +2372,6 @@
 
       connectBtn.addEventListener("click", function () {
         connectOnline();
-      });
-
-      restartBtn.addEventListener("click", function () {
-        if (net.mode === "online" && !net.host) return;
-        resetMatch();
       });
 
       draftListEl.addEventListener("click", function (e) {
