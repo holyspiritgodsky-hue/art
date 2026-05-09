@@ -1,0 +1,839 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>地球Online 原型</title>
+	<style>
+		:root {
+			--bg: #030712;
+			--panel: rgba(8, 18, 34, 0.66);
+			--line: rgba(148, 163, 184, 0.35);
+			--text: #e5edf8;
+			--muted: #9fb2cc;
+			--accent: #64d2ff;
+			--warn: #ffdd6b;
+			--ok: #4ade80;
+			--danger: #ff7b7b;
+		}
+
+		* { box-sizing: border-box; }
+
+		html,
+		body {
+			margin: 0;
+			width: 100%;
+			height: 100%;
+			font-family: "Segoe UI", "SF Pro Text", "Helvetica Neue", sans-serif;
+			background: radial-gradient(circle at 30% 20%, #142948 0%, #070f1f 44%, #04070f 100%);
+			color: var(--text);
+			overflow: hidden;
+		}
+
+		#app {
+			position: relative;
+			width: 100%;
+			height: 100%;
+		}
+
+		#bgVideo {
+			position: absolute;
+			inset: 0;
+			width: 100%;
+			height: 100%;
+			object-fit: cover;
+			object-position: center 50%;
+			background: transparent;
+			filter: saturate(1.02) contrast(1.03);
+		}
+
+		#sceneFallback {
+			position: absolute;
+			inset: 0;
+			display: none;
+			align-items: center;
+			justify-content: center;
+			text-align: center;
+			padding: 18px;
+			font-size: clamp(18px, 2.5vw, 34px);
+			font-weight: 600;
+			letter-spacing: 0.04em;
+			text-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+		}
+
+		#sceneFallback.classic {
+			background: radial-gradient(circle at 70% 20%, rgba(159, 212, 255, 0.35), transparent 30%), linear-gradient(130deg, #18355b 0%, #0d1f3f 38%, #071325 100%);
+		}
+
+		#sceneFallback.nightRoad {
+			background: radial-gradient(circle at 50% 65%, rgba(255, 255, 220, 0.24), transparent 36%), linear-gradient(180deg, #020308 0%, #0d1622 62%, #0a1019 100%);
+		}
+
+		#sceneFallback.winter {
+			background: linear-gradient(180deg, #6e8db2 0%, #b8cadc 42%, #6d7f98 100%);
+		}
+
+		#sceneFallback.ruins {
+			background: linear-gradient(160deg, #4b3b31 0%, #241d1b 48%, #120f10 100%);
+		}
+
+		#sceneFallback.market {
+			background: linear-gradient(140deg, #576f41 0%, #27361c 50%, #141e10 100%);
+		}
+
+		#sceneFallback.home {
+			background: radial-gradient(circle at 50% 35%, rgba(255, 236, 181, 0.28), transparent 34%), linear-gradient(160deg, #4d3f2b 0%, #272016 52%, #16120d 100%);
+		}
+
+		#sceneFallback.scooter {
+			background: linear-gradient(120deg, #3c3b3a 0%, #1f2328 50%, #111418 100%);
+		}
+
+		#menuBg {
+			position: absolute;
+			inset: 0;
+			background-image: url("img/earth.jpg");
+			background-size: contain;
+			background-position: center center;
+			background-repeat: no-repeat;
+			background-color: #02060f;
+			filter: saturate(1.05) contrast(1.03);
+			display: none;
+		}
+
+		.vignette {
+			position: absolute;
+			inset: 0;
+			background:
+				radial-gradient(circle at center, transparent 35%, rgba(0, 0, 0, 0.35) 100%),
+				linear-gradient(180deg, rgba(3, 8, 18, 0.65), transparent 26%, transparent 74%, rgba(3, 8, 18, 0.68));
+			pointer-events: none;
+		}
+
+		.layer {
+			position: absolute;
+			inset: 0;
+			pointer-events: none;
+		}
+
+		.panel {
+			background: var(--panel);
+			border: 1px solid var(--line);
+			backdrop-filter: blur(8px);
+			border-radius: 12px;
+			box-shadow: 0 16px 50px rgba(0, 0, 0, 0.35);
+		}
+
+		.brand {
+			position: absolute;
+			top: 36px;
+			left: 50%;
+			transform: translateX(-50%);
+			text-align: center;
+			letter-spacing: 0.04em;
+		}
+
+		.brand h1 {
+			margin: 0;
+			font-size: clamp(42px, 7vw, 92px);
+			line-height: 0.95;
+			text-transform: uppercase;
+			text-shadow: 0 10px 28px rgba(0, 0, 0, 0.45);
+		}
+
+		.brand .sub {
+			margin-top: 16px;
+			font-size: clamp(16px, 1.8vw, 24px);
+			color: var(--muted);
+		}
+
+		.server {
+			margin-top: 12px;
+			display: inline-flex;
+			align-items: center;
+			gap: 8px;
+			padding: 8px 14px;
+			border-radius: 8px;
+			border: 1px solid rgba(159, 178, 204, 0.38);
+			background: rgba(10, 20, 38, 0.54);
+			color: #d9ecff;
+			font-size: 15px;
+		}
+
+		.dot {
+			width: 10px;
+			height: 10px;
+			border-radius: 999px;
+			background: var(--ok);
+			box-shadow: 0 0 12px rgba(74, 222, 128, 0.9);
+		}
+
+		.menu {
+			position: absolute;
+			left: 44px;
+			bottom: 72px;
+			display: flex;
+			flex-direction: column;
+			gap: 12px;
+			pointer-events: auto;
+		}
+
+		.menu button,
+		.choice button,
+		.scene-card button,
+		.back-btn {
+			border: 1px solid rgba(154, 176, 212, 0.28);
+			color: var(--text);
+			background: rgba(8, 17, 32, 0.56);
+			padding: 10px 16px;
+			font-size: 22px;
+			border-radius: 8px;
+			text-align: left;
+			cursor: pointer;
+			transition: transform 0.18s ease, border-color 0.18s ease, background-color 0.18s ease;
+		}
+
+		.menu button:hover,
+		.choice button:hover,
+		.scene-card button:hover,
+		.back-btn:hover {
+			transform: translateY(-2px);
+			border-color: rgba(100, 210, 255, 0.8);
+			background: rgba(13, 30, 54, 0.74);
+		}
+
+		.scene-select {
+			position: absolute;
+			inset: 64px 54px 54px;
+			padding: 26px;
+			pointer-events: auto;
+			display: none;
+			flex-direction: column;
+			gap: 18px;
+		}
+
+		.scene-top {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+		}
+
+		.scene-grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+			gap: 12px;
+			overflow: auto;
+			padding-right: 4px;
+		}
+
+		.scene-card {
+			border: 1px solid rgba(144, 170, 208, 0.26);
+			border-radius: 10px;
+			overflow: hidden;
+			background: rgba(8, 16, 32, 0.7);
+			min-height: 148px;
+			display: flex;
+			flex-direction: column;
+		}
+
+		.scene-thumb {
+			flex: 1;
+			min-height: 90px;
+			background: linear-gradient(120deg, #24579e 0%, #0f2f5f 40%, #071531 100%);
+			background-size: cover;
+			background-position: center;
+		}
+
+		.scene-card button {
+			width: 100%;
+			border: none;
+			border-top: 1px solid rgba(141, 164, 198, 0.24);
+			border-radius: 0;
+			font-size: 18px;
+			padding: 10px 12px;
+		}
+
+		.hud {
+			position: absolute;
+			top: 18px;
+			left: 18px;
+			display: none;
+			flex-direction: column;
+			gap: 10px;
+			pointer-events: none;
+		}
+
+		.stats {
+			width: 220px;
+			padding: 10px 12px;
+			font-size: 14px;
+			line-height: 1.55;
+		}
+
+		.task {
+			margin-top: 8px;
+			width: fit-content;
+			max-width: min(70vw, 380px);
+			padding: 10px 12px;
+			font-size: 26px;
+			border-left: 3px solid var(--warn);
+		}
+
+		.task small {
+			display: block;
+			font-size: 14px;
+			color: var(--muted);
+			margin-bottom: 2px;
+		}
+
+		.hint {
+			position: absolute;
+			top: 50%;
+			left: 50%;
+			transform: translate(-50%, -50%);
+			display: none;
+			padding: 10px 16px;
+			font-size: 38px;
+			letter-spacing: 0.03em;
+		}
+
+		.hint kbd {
+			display: inline-block;
+			border: 1px solid rgba(238, 246, 255, 0.45);
+			padding: 2px 12px;
+			border-radius: 6px;
+			background: rgba(7, 16, 30, 0.78);
+			margin: 0 4px;
+		}
+
+		.choice {
+			position: absolute;
+			right: 22px;
+			bottom: 20px;
+			display: none;
+			flex-direction: column;
+			gap: 10px;
+			pointer-events: auto;
+			width: min(46vw, 360px);
+		}
+
+		.choice button {
+			font-size: 17px;
+		}
+
+		.status {
+			position: absolute;
+			right: 18px;
+			top: 18px;
+			display: none;
+			padding: 10px 12px;
+			font-size: 13px;
+			color: var(--muted);
+		}
+
+		.global-back {
+			position: absolute;
+			right: 18px;
+			bottom: 18px;
+			display: none;
+			z-index: 20;
+			pointer-events: auto;
+			padding: 10px 14px;
+			font-size: 14px;
+			border-radius: 10px;
+			border: 1px solid rgba(162, 187, 224, 0.45);
+			background: rgba(7, 16, 30, 0.72);
+			color: var(--text);
+			cursor: pointer;
+		}
+
+		.global-back:hover {
+			border-color: rgba(100, 210, 255, 0.85);
+			background: rgba(10, 25, 45, 0.82);
+		}
+
+		.center-msg {
+			position: absolute;
+			left: 50%;
+			bottom: 12%;
+			transform: translateX(-50%);
+			display: none;
+			width: min(90vw, 700px);
+			text-align: center;
+			font-size: clamp(18px, 2.4vw, 28px);
+			line-height: 1.35;
+			padding: 14px 18px;
+		}
+
+		.hidden {
+			display: none !important;
+		}
+
+		@media (max-width: 900px) {
+			.menu {
+				left: 16px;
+				right: 16px;
+				bottom: 16px;
+			}
+
+			.menu button {
+				font-size: 20px;
+			}
+
+			.scene-select {
+				inset: 14px;
+				padding: 14px;
+			}
+
+			.brand {
+				top: 14px;
+			}
+
+			.brand .sub {
+				margin-top: 8px;
+			}
+
+			.task {
+				font-size: 20px;
+			}
+
+			.hint {
+				width: calc(100vw - 36px);
+				text-align: center;
+				font-size: 28px;
+			}
+
+			.choice {
+				right: 12px;
+				left: 12px;
+				width: auto;
+				bottom: 12px;
+			}
+
+			.choice button {
+				font-size: 15px;
+				padding: 10px 12px;
+			}
+
+			.global-back {
+				right: 12px;
+				bottom: 12px;
+				font-size: 13px;
+				padding: 8px 10px;
+			}
+
+			.status {
+				top: 10px;
+				right: 10px;
+				left: 10px;
+				font-size: 12px;
+			}
+
+			.scene-grid {
+				grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+			}
+		}
+	</style>
+</head>
+<body>
+	<div id="app">
+		<div id="menuBg"></div>
+		<video id="bgVideo" autoplay muted playsinline loop></video>
+		<div id="sceneFallback"></div>
+		<div class="vignette"></div>
+
+		<div id="menuLayer" class="layer">
+			<div class="brand">
+				<h1>地球Online</h1>
+				<div class="sub">当前在线玩家：80亿+</div>
+				<div class="server"><span class="dot"></span><span>中国服 | 深圳一区</span></div>
+			</div>
+
+			<div class="menu">
+				<button id="btnContinue">继续</button>
+				<button id="btnAbout">关于</button>
+				<button id="btnSettings">设置</button>
+			</div>
+		</div>
+
+		<div id="sceneSelect" class="scene-select panel">
+			<div class="scene-top">
+				<h2 style="margin: 0; font-size: clamp(24px, 3vw, 34px);">大厅场景</h2>
+				<button id="btnBackMenu" class="back-btn">返回</button>
+			</div>
+			<div class="scene-grid">
+				<div class="scene-card">
+					<div class="scene-thumb" style="background-image: url('img/1.png');"></div>
+					<button data-scene="nightRoad">去吃肉（o0）</button>
+				</div>
+				<div class="scene-card">
+					<div class="scene-thumb" style="background-image: url('img/2.png');"></div>
+					<button data-scene="market">吃肉过程 1（o1）</button>
+				</div>
+				<div class="scene-card">
+					<div class="scene-thumb" style="background-image: url('img/3.png');"></div>
+					<button data-scene="home">吃肉过程 2（o2）</button>
+				</div>
+			</div>
+		</div>
+
+		<div id="hud" class="hud">
+			<div class="panel stats" id="statsBox"></div>
+			<div class="panel task" id="taskBox"><small>任务</small><span id="taskText"></span></div>
+		</div>
+
+		<div id="status" class="panel status"></div>
+		<div id="hint" class="panel hint"></div>
+
+		<div id="choice" class="choice">
+			<button id="choiceA"></button>
+			<button id="choiceB"></button>
+			<button id="choiceBack">取消并返回主页</button>
+		</div>
+
+		<button id="globalBack" class="global-back">返回主页 (Esc)</button>
+
+		<div id="centerMsg" class="panel center-msg"></div>
+	</div>
+
+	<script>
+		// 接入 img 目录内的视频：o0=去吃肉路上，o1/o2=吃肉过程。
+		const VIDEO_SOURCES = {
+			classic: "img/o0.mp4",
+			nightRoad: "img/o0.mp4",
+			scooter: "img/o0.mp4",
+			market: "img/o1.mp4",
+			home: "img/o2.mp4",
+			winter: "assets/winter.mp4",
+			ruins: "assets/ruins.mp4"
+		};
+
+		const VIDEO_VIEWPORT = {
+			classic: "center 50%",
+			nightRoad: "center 50%",
+			scooter: "center 50%",
+			market: "center 50%",
+			home: "center 50%"
+		};
+
+		const VIDEO_FIT = {
+			classic: "contain",
+			nightRoad: "contain",
+			scooter: "contain",
+			market: "contain",
+			home: "contain"
+		};
+
+		const MUSIC_SOURCES = {
+			classic: "img/L1.wav",
+			nightRoad: "img/L1.wav",
+			scooter: "img/L1.wav",
+			market: "img/L2.wav",
+			home: "img/L3.wav"
+		};
+
+		const GAME = {
+			hp: 100,
+			tempC: 36.5,
+			humidity: 59,
+			hunger: 37,
+			level: 20,
+			mission: "回家",
+			canRide: false,
+			branchOpen: false,
+			scene: "menu",
+			state: "menu"
+		};
+
+		const FALLBACK_IMAGES = {
+			nightRoad: "img/night-road.svg",
+			market: "img/market.svg",
+			home: "img/home.svg",
+			classic: "img/earth.jpg"
+		};
+
+		const video = document.getElementById("bgVideo");
+		const menuBg = document.getElementById("menuBg");
+		const sceneFallback = document.getElementById("sceneFallback");
+		const menuLayer = document.getElementById("menuLayer");
+		const sceneSelect = document.getElementById("sceneSelect");
+		const hud = document.getElementById("hud");
+		const status = document.getElementById("status");
+		const hint = document.getElementById("hint");
+		const centerMsg = document.getElementById("centerMsg");
+		const choice = document.getElementById("choice");
+		const choiceA = document.getElementById("choiceA");
+		const choiceB = document.getElementById("choiceB");
+		const choiceBack = document.getElementById("choiceBack");
+		const globalBack = document.getElementById("globalBack");
+		const taskText = document.getElementById("taskText");
+		const statsBox = document.getElementById("statsBox");
+		const bgm = new Audio();
+		let currentMusicSrc = "";
+
+		bgm.preload = "auto";
+		bgm.loop = true;
+		bgm.volume = 0.55;
+
+		function updateGlobalBackVisibility() {
+			const shouldShow = (GAME.state !== "menu" || sceneSelect.style.display === "flex") && !GAME.branchOpen;
+			setVisible(globalBack, shouldShow, "block");
+		}
+
+		function setVisible(el, visible, display = "block") {
+			el.style.display = visible ? display : "none";
+		}
+
+		function updateHud() {
+			taskText.textContent = GAME.mission;
+			statsBox.innerHTML = [
+				"<strong>LV " + GAME.level + "</strong>",
+				"HP: " + GAME.hp,
+				"体温: " + GAME.tempC.toFixed(1) + " C",
+				"湿度: " + GAME.humidity + "%",
+				"饥饿度: " + GAME.hunger + "%"
+			].join("<br>");
+		}
+
+		function showCenter(text, ms = 1800) {
+			centerMsg.textContent = text;
+			setVisible(centerMsg, true, "block");
+			window.setTimeout(() => setVisible(centerMsg, false), ms);
+		}
+
+		function showSceneFallback(sceneName, reason = "") {
+			sceneFallback.className = "";
+			sceneFallback.id = "sceneFallback";
+			sceneFallback.classList.add(sceneName);
+			const imagePath = FALLBACK_IMAGES[sceneName];
+			if (imagePath) {
+				sceneFallback.style.backgroundImage = "linear-gradient(rgba(3, 9, 18, 0.35), rgba(3, 9, 18, 0.65)), url('" + imagePath + "')";
+				sceneFallback.style.backgroundSize = "cover";
+				sceneFallback.style.backgroundPosition = "center";
+			} else {
+				sceneFallback.style.backgroundImage = "";
+			}
+			sceneFallback.innerHTML = "<div>" +
+				"<div style=\"font-size:1.1em;margin-bottom:8px;\">" + sceneName + " 占位画面</div>" +
+				"<div style=\"font-size:0.55em;font-weight:400;color:#d2dff1;\">未检测到本地视频，放入 img 文件后将自动替换。</div>" +
+				(reason ? "<div style=\"font-size:0.5em;margin-top:8px;color:#9fb2cc;\">" + reason + "</div>" : "") +
+				"</div>";
+			setVisible(sceneFallback, true, "flex");
+		}
+
+		function stopMusic() {
+			bgm.pause();
+			bgm.removeAttribute("src");
+			bgm.load();
+			currentMusicSrc = "";
+		}
+
+		function loadMusic(sceneName) {
+			const src = MUSIC_SOURCES[sceneName];
+			if (!src) {
+				stopMusic();
+				return;
+			}
+
+			if (currentMusicSrc !== src) {
+				bgm.src = src;
+				currentMusicSrc = src;
+				bgm.load();
+			}
+
+			bgm.play().catch(() => {
+				// 音频自动播放可能被浏览器策略拦截。
+			});
+		}
+
+		function loadScene(sceneName, options = {}) {
+			const src = VIDEO_SOURCES[sceneName];
+			if (!src) {
+				setVisible(video, false);
+				stopMusic();
+				showSceneFallback(sceneName, "缺少视频映射");
+				showCenter("缺少视频资源: " + sceneName, 2300);
+				return;
+			}
+			const { loop = false, muted = true } = options;
+			GAME.scene = sceneName;
+			setVisible(video, true, "block");
+			setVisible(sceneFallback, false);
+			loadMusic(sceneName);
+			video.style.objectFit = VIDEO_FIT[sceneName] || "cover";
+			video.style.objectPosition = VIDEO_VIEWPORT[sceneName] || "center 50%";
+			video.src = src;
+			video.loop = loop;
+			video.muted = muted;
+			video.play().catch(() => {
+				showCenter("浏览器阻止自动播放，请点击任意按钮继续。", 2600);
+			});
+		}
+
+		function enterMenu() {
+			GAME.state = "menu";
+			GAME.branchOpen = false;
+			GAME.canRide = false;
+			stopMusic();
+			video.pause();
+			video.removeAttribute("src");
+			video.load();
+			setVisible(video, false);
+			setVisible(sceneFallback, false);
+			setVisible(menuBg, true, "block");
+			setVisible(menuLayer, true, "block");
+			setVisible(sceneSelect, false);
+			setVisible(hud, false);
+			setVisible(status, false);
+			setVisible(hint, false);
+			setVisible(choice, false);
+			updateGlobalBackVisibility();
+		}
+
+		function enterPlay(sceneName) {
+			GAME.state = "play";
+			GAME.branchOpen = false;
+			GAME.canRide = false;
+			if (sceneName === "nightRoad") {
+				GAME.mission = "去吃肉的路上";
+			} else if (sceneName === "market") {
+				GAME.mission = "吃肉进行中（阶段一）";
+			} else if (sceneName === "home") {
+				GAME.mission = "吃肉进行中（阶段二）";
+			} else {
+				GAME.mission = "探索地图";
+			}
+			updateHud();
+
+			setVisible(menuLayer, false);
+			setVisible(sceneSelect, false);
+			setVisible(hud, true, "flex");
+			setVisible(status, false);
+			setVisible(menuBg, false);
+			updateGlobalBackVisibility();
+
+			const shouldLoop = sceneName === "market" || sceneName === "home";
+			loadScene(sceneName, { loop: shouldLoop, muted: true });
+			if (sceneName === "nightRoad" || sceneName === "market" || sceneName === "home") {
+				openBranch();
+			}
+		}
+
+		function openBranch() {
+			if (GAME.branchOpen) {
+				return;
+			}
+			GAME.branchOpen = true;
+			setVisible(choice, true, "flex");
+			choiceA.textContent = "A: 播放 o1（吃肉过程1）";
+			choiceB.textContent = "B: 播放 o2（吃肉过程2）";
+			choiceBack.textContent = "返回主页";
+			updateGlobalBackVisibility();
+		}
+
+		function closeBranch() {
+			GAME.branchOpen = false;
+			setVisible(choice, false);
+			setVisible(hint, false);
+			updateGlobalBackVisibility();
+		}
+
+		function handleTimeline() {
+			if (GAME.state !== "play") {
+				return;
+			}
+
+			const t = video.currentTime;
+
+			if (GAME.scene === "nightRoad") {
+				if (t > 11) {
+					openBranch();
+				}
+			}
+
+			if (video.ended && !video.loop) {
+				if (GAME.scene === "scooter") {
+					enterMenu();
+					showCenter("本轮结束，点击继续再来一次。", 2200);
+				}
+			}
+		}
+
+		document.getElementById("btnContinue").addEventListener("click", () => {
+			setVisible(sceneSelect, true, "flex");
+			updateGlobalBackVisibility();
+		});
+
+		document.getElementById("btnAbout").addEventListener("click", () => {
+			showCenter("原型说明：游戏外壳 + 现实视频交互。", 2400);
+		});
+
+		document.getElementById("btnSettings").addEventListener("click", () => {
+			showCenter("设置占位：语言、界面缩放、字幕开关。", 2400);
+		});
+
+		document.getElementById("btnBackMenu").addEventListener("click", () => {
+			setVisible(sceneSelect, false);
+			updateGlobalBackVisibility();
+		});
+
+		document.querySelectorAll("[data-scene]").forEach((button) => {
+			button.addEventListener("click", () => {
+				const scene = button.getAttribute("data-scene");
+				enterPlay(scene);
+			});
+		});
+
+		choiceA.addEventListener("click", () => {
+			openBranch();
+			GAME.mission = "吃肉进行中（阶段一）";
+			GAME.hunger = Math.max(0, GAME.hunger - 12);
+			updateHud();
+			loadScene("market", { loop: true, muted: true });
+			showCenter("切换到吃肉过程 o1", 1200);
+		});
+
+		choiceB.addEventListener("click", () => {
+			openBranch();
+			GAME.mission = "吃肉进行中（阶段二）";
+			GAME.tempC = 36.2;
+			updateHud();
+			loadScene("home", { loop: true, muted: true });
+			showCenter("切换到吃肉过程 o2", 1200);
+		});
+
+		choiceBack.addEventListener("click", () => {
+			enterMenu();
+		});
+
+		globalBack.addEventListener("click", () => {
+			enterMenu();
+		});
+
+			document.addEventListener("keydown", (event) => {
+			if (GAME.branchOpen && (event.key === "1" || event.key === "2")) {
+				if (event.key === "1") {
+					choiceA.click();
+				} else {
+					choiceB.click();
+				}
+				return;
+			}
+
+			if (event.key === "Escape" && GAME.state === "play") {
+				enterMenu();
+			}
+		});
+
+		video.addEventListener("timeupdate", handleTimeline);
+		video.addEventListener("error", () => {
+			setVisible(video, false);
+			showSceneFallback(GAME.scene, "视频加载失败");
+			showCenter("视频加载失败，请将视频放入 img 文件夹。", 2600);
+		});
+
+		updateHud();
+		enterMenu();
+	</script>
+</body>
+</html>
