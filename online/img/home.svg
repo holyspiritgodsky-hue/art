@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#5c4935"/>
+      <stop offset="100%" stop-color="#1f1912"/>
+    </linearGradient>
+  </defs>
+  <rect width="1280" height="720" fill="url(#g)"/>
+  <polygon points="640,170 380,360 900,360" fill="#9c7b53"/>
+  <rect x="430" y="360" width="420" height="260" fill="#7d5f3f"/>
+  <rect x="600" y="430" width="90" height="190" fill="#3b2d1f"/>
+  <text x="640" y="108" fill="#fff2dd" font-size="56" text-anchor="middle" font-family="Segoe UI, Arial">回家占位图</text>
+  <text x="640" y="166" fill="#dbc5a4" font-size="28" text-anchor="middle" font-family="Segoe UI, Arial">home placeholder</text>
+</svg>
