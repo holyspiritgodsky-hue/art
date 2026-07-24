@@ -43,7 +43,7 @@
 	<div id="root" class="relative"></div>
 
 	<script type="text/babel">
-		const stockDatabase = {
+		const fallbackDatabase = {
 			'300308': {
 				code: '300308',
 				name: '中际旭创',
@@ -86,13 +86,8 @@
 			},
 		};
 
-		const aliases = Object.values(stockDatabase).reduce((map, stock) => {
-			map[stock.code] = stock;
-			map[stock.name.toLowerCase()] = stock;
-			return map;
-		}, {});
-
 		const defaultPrompt = '量化高频资金在连续拉高后有回撤兑现迹象，明日更适合做低吸辨真伪，避免追高接一致性。';
+		const fallbackPrompt = '暂无实时量化结论，先用静态样本演示。若要读取最新结果，请先运行 Python 脚本生成 data.json，并用本地静态服务打开页面。';
 
 		function scoreTone(score) {
 			if (score >= 70) {
@@ -122,12 +117,52 @@
 			};
 		}
 
-		function resolveStock(query, fallbackCode) {
+		function normalizeStockData(payload) {
+			if (!payload || !Array.isArray(payload.stocks)) {
+				return null;
+			}
+
+			const records = payload.stocks
+				.filter((item) => item && item.code)
+				.map((item) => {
+					const purityScore = Math.round(item.metrics?.business_purity_score ?? 0);
+					const turnoverScore = Math.round(item.metrics?.turnover_heat_score ?? 0);
+					const financingScore = Math.round(item.metrics?.financing_pressure_score ?? 0);
+
+					return {
+						code: item.code,
+						name: item.name || item.code,
+						score: Math.round(item.trap_score ?? 0),
+						marginDate: item.margin_date || '-',
+						metrics: item.metrics || {},
+						dims: [
+							{ label: 'AI / 主营纯度', value: purityScore },
+							{ label: '换手热度', value: turnoverScore },
+							{ label: '两融压力', value: financingScore },
+						],
+					};
+				});
+
+			return {
+				generatedAt: payload.generated_at || '',
+				stocks: records,
+			};
+		}
+
+		function buildAliasMap(stockList) {
+			return stockList.reduce((map, stock) => {
+				map[stock.code] = stock;
+				map[stock.name.toLowerCase()] = stock;
+				return map;
+			}, {});
+		}
+
+		function resolveStock(query, fallbackCode, aliases) {
 			const normalized = query.trim().toLowerCase();
 			if (!normalized) {
-				return stockDatabase[fallbackCode];
+				return aliases[fallbackCode];
 			}
-			return aliases[normalized] || stockDatabase[fallbackCode];
+			return aliases[normalized] || aliases[fallbackCode];
 		}
 
 		function Gauge({ score }) {
@@ -211,6 +246,25 @@
 							<DimensionBar key={dimension.label} dimension={dimension} score={dimension.value} />
 						))}
 					</div>
+
+					<div className="mt-5 grid gap-3 text-sm text-slate-300 sm:grid-cols-2">
+						<div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+							<div className="text-xs uppercase tracking-[0.25em] text-slate-500">融资余额</div>
+							<div className="mt-2 text-base text-white">{stock.metrics.margin_balance ?? '-'}</div>
+						</div>
+						<div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+							<div className="text-xs uppercase tracking-[0.25em] text-slate-500">融资买入额</div>
+							<div className="mt-2 text-base text-white">{stock.metrics.margin_buy ?? '-'}</div>
+						</div>
+						<div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+							<div className="text-xs uppercase tracking-[0.25em] text-slate-500">换手率</div>
+							<div className="mt-2 text-base text-white">{stock.metrics.turnover_rate ?? '-'}</div>
+						</div>
+						<div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+							<div className="text-xs uppercase tracking-[0.25em] text-slate-500">两融日期</div>
+							<div className="mt-2 text-base text-white">{stock.marginDate}</div>
+						</div>
+					</div>
 				</div>
 			);
 		}
@@ -227,13 +281,55 @@
 		}
 
 		function App() {
+			const fallbackRecords = React.useMemo(() => Object.values(fallbackDatabase), []);
+			const [stockSource, setStockSource] = React.useState({
+				generatedAt: '',
+				stocks: fallbackRecords,
+			});
+			const [leftInput, setLeftInput] = React.useState('300308');
+			const [rightInput, setRightInput] = React.useState('002230');
 			const [leftQuery, setLeftQuery] = React.useState('300308');
 			const [rightQuery, setRightQuery] = React.useState('002230');
+			const [loadState, setLoadState] = React.useState('idle');
+			const [loadMessage, setLoadMessage] = React.useState(fallbackPrompt);
 
-			const leftStock = resolveStock(leftQuery, '300308');
-			const rightStock = resolveStock(rightQuery, '002230');
-			const gaugeScore = 68;
+			React.useEffect(() => {
+				async function loadData() {
+					try {
+						setLoadState('loading');
+						const response = await fetch('./data.json', { cache: 'no-store' });
+						if (!response.ok) {
+							throw new Error(`HTTP ${response.status}`);
+						}
+
+						const payload = await response.json();
+						const normalized = normalizeStockData(payload);
+						if (!normalized || normalized.stocks.length === 0) {
+							throw new Error('data.json 中没有可用股票数据');
+						}
+
+						setStockSource(normalized);
+						setLoadState('ready');
+						setLoadMessage(`已加载 data.json，共 ${normalized.stocks.length} 只股票。`);
+					} catch (error) {
+						setLoadState('fallback');
+						setLoadMessage('未读取到 data.json，当前展示静态样本。若双击打开 HTML，浏览器通常不会允许读取本地 JSON，请改用本地静态服务访问。');
+					}
+				}
+
+				loadData();
+			}, [fallbackRecords]);
+
+			const aliases = React.useMemo(() => buildAliasMap(stockSource.stocks), [stockSource]);
+			const leftStock = resolveStock(leftQuery, '300308', aliases);
+			const rightStock = resolveStock(rightQuery, '002230', aliases);
+			const gaugeScore = Math.max(leftStock.score, rightStock.score);
 			const gaugeTone = scoreTone(gaugeScore);
+
+			function applyQueries() {
+				setLeftQuery(leftInput);
+				setRightQuery(rightInput);
+			}
 
 			return (
 				<main className="mx-auto flex min-h-screen w-full max-w-7xl flex-col px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
@@ -261,7 +357,7 @@
 											量化高危区，先看承接，再谈进攻。
 										</div>
 										<p className="mt-4 text-lg leading-8 text-slate-300">
-											{defaultPrompt}
+											{loadState === 'ready' ? defaultPrompt : fallbackPrompt}
 										</p>
 									</div>
 
@@ -322,8 +418,26 @@
 						</div>
 
 						<div className="mt-8 grid gap-5 lg:grid-cols-2">
-							<SearchField label="左侧标的" value={leftQuery} onChange={setLeftQuery} />
-							<SearchField label="右侧标的" value={rightQuery} onChange={setRightQuery} />
+							<SearchField label="左侧标的" value={leftInput} onChange={setLeftInput} />
+							<SearchField label="右侧标的" value={rightInput} onChange={setRightInput} />
+						</div>
+
+						<div className="mt-6 flex flex-col gap-4 rounded-[28px] border border-white/10 bg-white/5 p-5 sm:flex-row sm:items-center sm:justify-between">
+							<div>
+								<div className={`text-sm ${loadState === 'ready' ? 'text-emerald-200' : loadState === 'loading' ? 'text-amber-200' : 'text-slate-300'}`}>
+									{loadMessage}
+								</div>
+								<div className="mt-2 text-xs uppercase tracking-[0.3em] text-slate-500">
+									{stockSource.generatedAt ? `数据生成时间 ${stockSource.generatedAt}` : '未检测到实时数据文件'}
+								</div>
+							</div>
+							<button
+								type="button"
+								onClick={applyQueries}
+								className="inline-flex items-center justify-center rounded-2xl border border-cyanGlow/25 bg-cyanGlow/15 px-6 py-3 font-display text-lg font-bold tracking-[0.12em] text-cyanGlow transition duration-300 hover:border-cyanGlow/45 hover:bg-cyanGlow/20"
+							>
+								查询 / PK
+							</button>
 						</div>
 
 						<div className="mt-8 grid gap-6 lg:grid-cols-2">
