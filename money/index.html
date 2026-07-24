@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>AI量化预警网站</title>
+	<script src="https://cdn.tailwindcss.com"></script>
+	<script>
+		tailwind.config = {
+			theme: {
+				extend: {
+					fontFamily: {
+						display: ['Bahnschrift', 'Segoe UI', 'sans-serif'],
+						body: ['Segoe UI Variable', 'Microsoft YaHei UI', 'sans-serif'],
+					},
+					boxShadow: {
+						neon: '0 0 0 1px rgba(255,255,255,0.05), 0 22px 80px rgba(0, 0, 0, 0.48)',
+						glow: '0 0 32px rgba(250, 204, 21, 0.14)',
+					},
+					colors: {
+						ink: '#050816',
+						panel: '#0b1120',
+						panelSoft: '#111a31',
+						cyanGlow: '#59f3ff',
+						redGlow: '#ff5d7d',
+						amberGlow: '#ffcb57',
+						limeGlow: '#53f0a2',
+					},
+					backgroundImage: {
+						grid: 'linear-gradient(rgba(120,154,255,0.09) 1px, transparent 1px), linear-gradient(90deg, rgba(120,154,255,0.09) 1px, transparent 1px)',
+					},
+				},
+			},
+		};
+	</script>
+	<script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+	<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+	<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body class="min-h-screen overflow-x-hidden bg-ink text-slate-100 antialiased">
+	<div class="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(89,243,255,0.16),_transparent_28%),radial-gradient(circle_at_82%_18%,_rgba(255,93,125,0.14),_transparent_24%),radial-gradient(circle_at_50%_120%,_rgba(255,203,87,0.12),_transparent_35%)]"></div>
+	<div class="pointer-events-none fixed inset-0 bg-grid bg-[length:36px_36px] opacity-30"></div>
+	<div id="root" class="relative"></div>
+
+	<script type="text/babel">
+		const stockDatabase = {
+			'300308': {
+				code: '300308',
+				name: '中际旭创',
+				score: 25,
+				dims: [
+					{ label: 'AI / 主营纯度', value: 31 },
+					{ label: '筹码集中度', value: 22 },
+					{ label: '杠杆虚胖度', value: 19 },
+				],
+			},
+			'002230': {
+				code: '002230',
+				name: '科大讯飞',
+				score: 72,
+				dims: [
+					{ label: 'AI / 主营纯度', value: 75 },
+					{ label: '筹码集中度', value: 68 },
+					{ label: '杠杆虚胖度', value: 73 },
+				],
+			},
+			'688256': {
+				code: '688256',
+				name: '寒武纪',
+				score: 81,
+				dims: [
+					{ label: 'AI / 主营纯度', value: 84 },
+					{ label: '筹码集中度', value: 79 },
+					{ label: '杠杆虚胖度', value: 76 },
+				],
+			},
+			'002415': {
+				code: '002415',
+				name: '海康威视',
+				score: 39,
+				dims: [
+					{ label: 'AI / 主营纯度', value: 44 },
+					{ label: '筹码集中度', value: 35 },
+					{ label: '杠杆虚胖度', value: 29 },
+				],
+			},
+		};
+
+		const aliases = Object.values(stockDatabase).reduce((map, stock) => {
+			map[stock.code] = stock;
+			map[stock.name.toLowerCase()] = stock;
+			return map;
+		}, {});
+
+		const defaultPrompt = '量化高频资金在连续拉高后有回撤兑现迹象，明日更适合做低吸辨真伪，避免追高接一致性。';
+
+		function scoreTone(score) {
+			if (score >= 70) {
+				return {
+					text: '高危',
+					ring: '#ff5d7d',
+					glow: 'shadow-[0_0_45px_rgba(255,93,125,0.25)]',
+					chip: 'bg-red-500/15 text-red-200 border-red-400/30',
+					bar: 'from-red-400 to-pink-500',
+				};
+			}
+			if (score >= 45) {
+				return {
+					text: '警惕',
+					ring: '#ffcb57',
+					glow: 'shadow-[0_0_45px_rgba(255,203,87,0.2)]',
+					chip: 'bg-amber-400/15 text-amber-100 border-amber-300/30',
+					bar: 'from-amber-300 to-orange-400',
+				};
+			}
+			return {
+				text: '安全',
+				ring: '#53f0a2',
+				glow: 'shadow-[0_0_45px_rgba(83,240,162,0.18)]',
+				chip: 'bg-emerald-400/15 text-emerald-100 border-emerald-300/30',
+				bar: 'from-emerald-300 to-teal-400',
+			};
+		}
+
+		function resolveStock(query, fallbackCode) {
+			const normalized = query.trim().toLowerCase();
+			if (!normalized) {
+				return stockDatabase[fallbackCode];
+			}
+			return aliases[normalized] || stockDatabase[fallbackCode];
+		}
+
+		function Gauge({ score }) {
+			const tone = scoreTone(score);
+			const angle = score * 3.6;
+
+			return (
+				<div className="relative flex h-[320px] w-[320px] items-center justify-center sm:h-[360px] sm:w-[360px]">
+					<div
+						className={`absolute inset-0 rounded-full border border-white/10 bg-slate-950/40 backdrop-blur-xl ${tone.glow}`}
+						style={{
+							background: `conic-gradient(${tone.ring} 0deg ${angle}deg, rgba(255,255,255,0.06) ${angle}deg 360deg)`,
+						}}
+					/>
+					<div className="absolute inset-[18px] rounded-full border border-white/10 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.14),_rgba(4,8,20,0.92)_60%)]"></div>
+					<div className="absolute inset-[58px] rounded-full border border-white/10 bg-ink/95 shadow-[inset_0_0_40px_rgba(89,243,255,0.08)]"></div>
+					<div className="relative z-10 flex flex-col items-center text-center">
+						
+						<div className="font-display text-6xl font-extrabold sm:text-7xl">{score}</div>
+						<div className={`mt-3 rounded-full border px-4 py-1 text-sm tracking-[0.25em] ${tone.chip}`}>{tone.text}</div>
+						<div className="mt-5 text-xs uppercase tracking-[0.35em] text-slate-400">明日量化陷阱指数</div>
+					</div>
+				</div>
+			);
+		}
+
+		function SearchField({ label, value, onChange }) {
+			return (
+				<label className="block">
+					<div className="mb-3 text-xs uppercase tracking-[0.35em] text-slate-400">{label}</div>
+					<div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-4 shadow-neon backdrop-blur-md transition duration-300 focus-within:border-cyanGlow/40 focus-within:bg-white/10">
+						<span className="text-lg text-cyanGlow">⌕</span>
+						<input
+							value={value}
+							onChange={(event) => onChange(event.target.value)}
+							className="w-full bg-transparent text-lg text-white outline-none placeholder:text-slate-500"
+							placeholder="输入代码 / 名称，例如 300308 或 科大讯飞"
+						/>
+					</div>
+				</label>
+			);
+		}
+
+		function DimensionBar({ dimension, score }) {
+			const tone = scoreTone(score);
+			return (
+				<div>
+					<div className="mb-2 flex items-center justify-between text-sm">
+						<span className="text-slate-300">{dimension.label}</span>
+						<span className="font-display text-base text-white">{dimension.value}</span>
+					</div>
+					<div className="h-3 overflow-hidden rounded-full bg-white/8">
+						<div
+							className={`h-full rounded-full bg-gradient-to-r ${tone.bar}`}
+							style={{ width: `${dimension.value}%` }}
+						/>
+					</div>
+				</div>
+			);
+		}
+
+		function StockCard({ title, stock }) {
+			const tone = scoreTone(stock.score);
+
+			return (
+				<div className="group rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] p-6 shadow-neon backdrop-blur-xl transition duration-500 hover:-translate-y-1 hover:border-white/20">
+					<div className="mb-6 flex items-start justify-between gap-4">
+						<div>
+							<div className="text-xs uppercase tracking-[0.35em] text-slate-500">{title}</div>
+							<div className="mt-3 font-display text-3xl font-bold tracking-[0.08em]">{stock.name}</div>
+							<div className="mt-1 text-slate-400">{stock.code}</div>
+						</div>
+						<div className={`rounded-2xl border px-4 py-3 text-right ${tone.chip}`}>
+							<div className="text-xs uppercase tracking-[0.3em]">综合陷阱分</div>
+							<div className="mt-1 font-display text-3xl font-extrabold">{stock.score}</div>
+						</div>
+					</div>
+
+					<div className="space-y-5">
+						{stock.dims.map((dimension) => (
+							<DimensionBar key={dimension.label} dimension={dimension} score={dimension.value} />
+						))}
+					</div>
+				</div>
+			);
+		}
+
+		function buildConclusion(leftStock, rightStock) {
+			const delta = rightStock.score - leftStock.score;
+			if (Math.abs(delta) <= 8) {
+				return `两只标的陷阱分接近，${leftStock.name}与${rightStock.name}都不适合情绪化追高，优先等分歧确认。`;
+			}
+			if (delta > 0) {
+				return `${leftStock.name}当前量化陷阱压力明显低于${rightStock.name}，若必须二选一，优先观察左侧，右侧更像高位一致性诱多。`;
+			}
+			return `${rightStock.name}当前量化陷阱压力明显低于${leftStock.name}，右侧更适合留作观察仓，左侧需警惕高波动回撤。`;
+		}
+
+		function App() {
+			const [leftQuery, setLeftQuery] = React.useState('300308');
+			const [rightQuery, setRightQuery] = React.useState('002230');
+
+			const leftStock = resolveStock(leftQuery, '300308');
+			const rightStock = resolveStock(rightQuery, '002230');
+			const gaugeScore = 68;
+			const gaugeTone = scoreTone(gaugeScore);
+
+			return (
+				<main className="mx-auto flex min-h-screen w-full max-w-7xl flex-col px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+					<section className="grid min-h-[52vh] grid-cols-1 gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+						<div className="rounded-[32px] border border-white/10 bg-[linear-gradient(135deg,rgba(10,17,35,0.92),rgba(8,12,24,0.82))] p-6 shadow-neon backdrop-blur-xl sm:p-8 lg:p-10">
+							<div className="flex flex-wrap items-center justify-between gap-4">
+								<div>
+						
+									<h1 className="mt-3 max-w-2xl font-display text-3xl font-extrabold leading-tight text-white sm:text-4xl lg:text-5xl">
+										AI量化预警网站
+									</h1>
+									<p className="mt-4 max-w-2xl text-base text-slate-300 sm:text-lg">
+										识别明日 AI 方向中容易出现的一致性追涨、筹码拥挤与两融透支风险，帮助你在开盘前先避坑。
+									</p>
+								</div>
+								
+							</div>
+
+							<div className="mt-10 flex flex-col items-center gap-10 xl:flex-row xl:justify-between">
+								<Gauge score={gaugeScore} />
+								<div className="w-full max-w-xl space-y-5">
+									<div className="rounded-[28px] border border-white/10 bg-white/5 p-6 shadow-neon">
+										<div className="text-xs uppercase tracking-[0.35em] text-slate-400">明日操作提示词</div>
+										<div className="mt-4 text-2xl font-semibold leading-relaxed text-white sm:text-3xl">
+											量化高危区，先看承接，再谈进攻。
+										</div>
+										<p className="mt-4 text-lg leading-8 text-slate-300">
+											{defaultPrompt}
+										</p>
+									</div>
+
+									<div className="grid gap-4 sm:grid-cols-3">
+										<div className="rounded-2xl border border-cyanGlow/15 bg-cyanGlow/10 p-4">
+											<div className="text-xs uppercase tracking-[0.28em] text-cyanGlow/75">高频异动</div>
+											<div className="mt-2 font-display text-3xl text-white">14</div>
+											<div className="mt-1 text-slate-300">疑似假突破样本</div>
+										</div>
+										<div className="rounded-2xl border border-amber-300/15 bg-amber-300/10 p-4">
+											<div className="text-xs uppercase tracking-[0.28em] text-amber-200/80">筹码拥挤</div>
+											<div className="mt-2 font-display text-3xl text-white">67%</div>
+											<div className="mt-1 text-slate-300">热点集中在前排</div>
+										</div>
+										<div className="rounded-2xl border border-red-400/15 bg-red-400/10 p-4">
+											<div className="text-xs uppercase tracking-[0.28em] text-red-200/80">两融升温</div>
+											<div className="mt-2 font-display text-3xl text-white">+21%</div>
+											<div className="mt-1 text-slate-300">杠杆风险放大</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+
+						<div className="rounded-[32px] border border-white/10 bg-[linear-gradient(180deg,rgba(16,24,44,0.88),rgba(6,10,24,0.92))] p-6 shadow-neon sm:p-8">
+							<div className="text-xs uppercase tracking-[0.45em] text-slate-400">明日风险预警</div>
+							<div className="mt-4 space-y-4">
+								<div className="rounded-2xl border border-white/10 bg-white/5 p-5">
+									<div className="text-sm text-slate-400">风格漂移预警</div>
+									<div className="mt-2 text-2xl font-semibold text-white">算力硬件优于纯题材映射</div>
+								</div>
+								<div className="rounded-2xl border border-white/10 bg-white/5 p-5">
+									<div className="text-sm text-slate-400">量化踩踏窗口</div>
+									<div className="mt-2 text-2xl font-semibold text-white">10:05 - 10:40 易放大冲高回落</div>
+								</div>
+								<div className="rounded-2xl border border-white/10 bg-white/5 p-5">
+									<div className="text-sm text-slate-400">执行纪律</div>
+									<div className="mt-2 text-2xl font-semibold text-white">避免追涨，优先确认量价背离</div>
+								</div>
+							</div>
+
+							<div className="mt-6 rounded-[28px] border border-cyanGlow/15 bg-[linear-gradient(180deg,rgba(89,243,255,0.09),rgba(89,243,255,0.02))] p-6">
+								<div className="text-xs uppercase tracking-[0.35em] text-cyanGlow/75">战略建议</div>
+								<p className="mt-4 text-lg leading-8 text-slate-200">
+									当板块一致性预期过满时，陷阱往往不是来自逻辑错误，而是来自交易位置错误。先审视筹码，再决定出手。
+								</p>
+							</div>
+						</div>
+					</section>
+
+					<section className="mt-6 rounded-[32px] border border-white/10 bg-[linear-gradient(180deg,rgba(8,12,25,0.95),rgba(9,13,29,0.88))] p-6 shadow-neon backdrop-blur-xl sm:p-8 lg:p-10">
+						<div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+							<div>
+								<div className="text-xs uppercase tracking-[0.45em] text-cyanGlow/70">Stock PK</div>
+								<h2 className="mt-3 font-display text-3xl font-bold text-white sm:text-4xl">个股量化陷阱查询 和 PK擂台</h2>
+							</div>
+							<div className="text-base text-slate-400">支持输入代码或名称，对比两只 AI 热门股的风险结构。</div>
+						</div>
+
+						<div className="mt-8 grid gap-5 lg:grid-cols-2">
+							<SearchField label="左侧标的" value={leftQuery} onChange={setLeftQuery} />
+							<SearchField label="右侧标的" value={rightQuery} onChange={setRightQuery} />
+						</div>
+
+						<div className="mt-8 grid gap-6 lg:grid-cols-2">
+							<StockCard title="候选 A" stock={leftStock} />
+							<StockCard title="候选 B" stock={rightStock} />
+						</div>
+
+						<div className="mt-8 rounded-[28px] border border-white/10 bg-[linear-gradient(90deg,rgba(89,243,255,0.08),rgba(255,93,125,0.08))] px-6 py-5 text-lg leading-8 text-slate-100 sm:text-xl">
+							<span className="mr-3 inline-flex rounded-full border border-white/10 bg-white/10 px-3 py-1 text-xs uppercase tracking-[0.35em] text-cyanGlow/75">PK 结论</span>
+							{buildConclusion(leftStock, rightStock)}
+						</div>
+					</section>
+				</main>
+			);
+		}
+
+		ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+	</script>
+</body>
+</html>
