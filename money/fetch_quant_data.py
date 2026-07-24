@@ -125,6 +125,17 @@ def write_payload_atomic(payload: dict[str, Any], output_path: Path, backup_dir:
     LOGGER.info("Wrote %s", output_path)
 
 
+def load_existing_payload(output_path: Path) -> dict[str, Any]:
+    if not output_path.exists():
+        return {}
+
+    try:
+        return json.loads(output_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        LOGGER.warning("Failed to read existing payload from %s: %s", output_path, exc)
+        return {}
+
+
 def detect_market(code: str) -> str:
     if code.startswith(("600", "601", "603", "605", "688", "689", "900")):
         return "sse"
@@ -242,6 +253,80 @@ def compute_trap_score(
     return round(clamp(score), 2)
 
 
+def build_daily_warning(stocks: list[dict[str, Any]], generated_at: str) -> dict[str, Any]:
+    sorted_stocks = sorted(stocks, key=lambda item: item["trap_score"], reverse=True)
+    top_stock = sorted_stocks[0]
+    avg_score = sum(item["trap_score"] for item in stocks) / len(stocks)
+    high_risk_count = sum(1 for item in stocks if item["trap_score"] >= 70)
+
+    gauge_score = round(top_stock["trap_score"])
+    if gauge_score >= 70:
+        title = "量化高危区，先看承接，再谈进攻。"
+        style_warning = "高纯度科技核心股拥挤度偏高，冲高回落风险更大。"
+        discipline = "避免追涨，优先确认量价背离后的承接质量。"
+    elif gauge_score >= 45:
+        title = "量化分歧区，先看换手再定方向。"
+        style_warning = "前排龙头与跟风标的分化增大，追高容错率下降。"
+        discipline = "轻仓试错，优先保留强趋势与成交结构更干净的样本。"
+    else:
+        title = "量化偏稳区，可优先观察低吸确认。"
+        style_warning = "整体拥挤度不高，但仍需警惕放量假突破。"
+        discipline = "分批验证，不做无量上冲时的追价动作。"
+
+    return {
+        "date": generated_at[:10],
+        "title": title,
+        "gauge_score": gauge_score,
+        "prompt": (
+            f"当前高风险样本集中在 {top_stock['name']} 等标的，"
+            f"样本平均陷阱分约 {avg_score:.1f}，优先防范一致性追高后的回撤兑现。"
+        ),
+        "signals": [
+            {
+                "label": "高频异动",
+                "value": str(high_risk_count),
+                "note": "陷阱分大于等于 70 的样本数",
+            },
+            {
+                "label": "筹码拥挤",
+                "value": f"{round(min(100, avg_score))}%",
+                "note": "核心样本平均陷阱分映射",
+            },
+            {
+                "label": "两融升温",
+                "value": f"{round(top_stock['metrics']['financing_pressure_score'])}%",
+                "note": f"{top_stock['name']} 的融资压力得分",
+            },
+        ],
+        "warnings": [
+            {
+                "label": "风格漂移预警",
+                "value": style_warning,
+            },
+            {
+                "label": "量化踩踏窗口",
+                "value": "10:05 - 10:40 易放大冲高回落",
+            },
+            {
+                "label": "执行纪律",
+                "value": discipline,
+            },
+        ],
+        "strategy": "当板块一致性预期过满时，陷阱往往不是来自逻辑错误，而是来自交易位置错误。先审视筹码，再决定出手。",
+        "review": {
+            "status": "待复盘",
+            "note": "次日收盘后可补充验证结论，观察预警是否兑现。",
+        },
+    }
+
+
+def merge_warning_history(existing_payload: dict[str, Any], daily_warning: dict[str, Any]) -> list[dict[str, Any]]:
+    existing_history = existing_payload.get("warning_history", [])
+    filtered_history = [item for item in existing_history if item.get("date") != daily_warning["date"]]
+    filtered_history.append(daily_warning)
+    return sorted(filtered_history, key=lambda item: item.get("date", ""), reverse=True)
+
+
 def build_stock_payload(
     code: str,
     spot_row: pd.Series | None,
@@ -285,6 +370,7 @@ def export_data(codes: list[str], output_path: Path, backup_dir: Path) -> dict[s
         raise ValueError("No valid stock codes remain after STOCK_WHITELIST filtering")
 
     LOGGER.info("Start export for %s requested codes, %s whitelisted codes", len(codes), len(filtered_codes))
+    existing_payload = load_existing_payload(output_path)
     spot_frame = load_spot_data()
     spot_map = {row["code"]: row for _, row in spot_frame.iterrows()}
 
@@ -317,8 +403,12 @@ def export_data(codes: list[str], output_path: Path, backup_dir: Path) -> dict[s
     if not result_stocks:
         raise RuntimeError("No stock data was exported successfully")
 
+    generated_at = datetime.now().isoformat(timespec="seconds")
+    daily_warning = build_daily_warning(result_stocks, generated_at)
+    warning_history = merge_warning_history(existing_payload, daily_warning)
+
     payload = {
-        "generated_at": datetime.now().isoformat(timespec="seconds"),
+        "generated_at": generated_at,
         "whitelist_size": len(STOCK_WHITELIST),
         "requested_codes": [str(code).zfill(6) for code in codes],
         "processed_codes": filtered_codes,
@@ -329,6 +419,8 @@ def export_data(codes: list[str], output_path: Path, backup_dir: Path) -> dict[s
             "financing_pressure_rule": "min(100, 融资买入额 / 融资余额 * 1000)",
             "turnover_heat_rule": "min(100, 换手率 * 8)",
         },
+        "daily_warning": daily_warning,
+        "warning_history": warning_history,
         "stocks": result_stocks,
     }
 
