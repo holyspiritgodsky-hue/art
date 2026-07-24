@@ -1,0 +1,97 @@
+﻿{
+    "generated_at": "2026-07-24T23:44:11",
+    "whitelist_size": 100,
+    "requested_codes": [
+        "300476",
+        "002384",
+        "300308",
+        "002230",
+        "688256"
+    ],
+    "processed_codes": [
+        "300476",
+        "002384",
+        "300308",
+        "002230",
+        "688256"
+    ],
+    "formula": {
+        "business_purity_weight": 0.35,
+        "financing_pressure_weight": 0.45,
+        "turnover_heat_weight": 0.2,
+        "financing_pressure_rule": "min(100, 融资买入额 / 融资余额 * 1000)",
+        "turnover_heat_rule": "min(100, 换手率 * 8)"
+    },
+    "stocks": [
+        {
+            "code": "300476",
+            "name": "胜宏科技",
+            "margin_date": "20260723",
+            "metrics": {
+                "business_purity_score": 82,
+                "margin_balance": 18540416715,
+                "margin_buy": 750728961,
+                "turnover_rate": 2.45,
+                "financing_pressure_score": 40,
+                "turnover_heat_score": 20
+            },
+            "trap_score": 50.7
+        },
+        {
+            "code": "002384",
+            "name": "东山精密",
+            "margin_date": "20260723",
+            "metrics": {
+                "business_purity_score": 68,
+                "margin_balance": 13268040918,
+                "margin_buy": 2081161129,
+                "turnover_rate": 5.25,
+                "financing_pressure_score": 100,
+                "turnover_heat_score": 42
+            },
+            "trap_score": 77.2
+        },
+        {
+            "code": "300308",
+            "name": "中际旭创",
+            "margin_date": "20260723",
+            "metrics": {
+                "business_purity_score": 88,
+                "margin_balance": 40832503923,
+                "margin_buy": 4646084298,
+                "turnover_rate": 1.95,
+                "financing_pressure_score": 100,
+                "turnover_heat_score": 16
+            },
+            "trap_score": 79
+        },
+        {
+            "code": "002230",
+            "name": "科大讯飞",
+            "margin_date": "20260723",
+            "metrics": {
+                "business_purity_score": 75,
+                "margin_balance": 5524597528,
+                "margin_buy": 120252876,
+                "turnover_rate": 1.78,
+                "financing_pressure_score": 22,
+                "turnover_heat_score": 14
+            },
+            "trap_score": 38.95
+        },
+        {
+            "code": "688256",
+            "name": "寒武纪",
+            "margin_date": "20260723",
+            "metrics": {
+                "business_purity_score": 84,
+                "margin_balance": 18949882291,
+                "margin_buy": 1136278516,
+                "turnover_rate": 1.37,
+                "financing_pressure_score": 60,
+                "turnover_heat_score": 11
+            },
+            "trap_score": 58.6
+        }
+    ]
+}
