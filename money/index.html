@@ -88,6 +88,26 @@
 
 		const defaultPrompt = '量化高频资金在连续拉高后有回撤兑现迹象，明日更适合做低吸辨真伪，避免追高接一致性。';
 		const fallbackPrompt = '暂无实时量化结论，先用静态样本演示。若要读取最新结果，请先运行 Python 脚本生成 data.json，并用本地静态服务打开页面。';
+		const fallbackWarningHistory = [
+			{
+				date: '2026-07-24',
+				title: '量化高危区，先看承接，再谈进攻。',
+				gauge_score: 68,
+				prompt: defaultPrompt,
+				signals: [
+					{ label: '高频异动', value: '14', note: '疑似假突破样本' },
+					{ label: '筹码拥挤', value: '67%', note: '热点集中在前排' },
+					{ label: '两融升温', value: '+21%', note: '杠杆风险放大' },
+				],
+				warnings: [
+					{ label: '风格漂移预警', value: '算力硬件优于纯题材映射' },
+					{ label: '量化踩踏窗口', value: '10:05 - 10:40 易放大冲高回落' },
+					{ label: '执行纪律', value: '避免追涨，优先确认量价背离' },
+				],
+				strategy: '当板块一致性预期过满时，陷阱往往不是来自逻辑错误，而是来自交易位置错误。先审视筹码，再决定出手。',
+				review: { status: '待复盘', note: '次日收盘后可补充结果，观察预警是否兑现。' },
+			},
+		];
 
 		function scoreTone(score) {
 			if (score >= 70) {
@@ -145,8 +165,45 @@
 
 			return {
 				generatedAt: payload.generated_at || '',
+				dailyWarning: normalizeWarningEntry(payload.daily_warning),
+				warningHistory: normalizeWarningHistory(payload.warning_history, payload.daily_warning),
 				stocks: records,
 			};
+		}
+
+		function normalizeWarningEntry(entry) {
+			if (!entry) {
+				return null;
+			}
+
+			return {
+				date: entry.date || '',
+				title: entry.title || '暂无预警标题',
+				gauge_score: Math.round(entry.gauge_score ?? 0),
+				prompt: entry.prompt || fallbackPrompt,
+				signals: Array.isArray(entry.signals) ? entry.signals : [],
+				warnings: Array.isArray(entry.warnings) ? entry.warnings : [],
+				strategy: entry.strategy || '',
+				review: entry.review || { status: '待复盘', note: '' },
+			};
+		}
+
+		function normalizeWarningHistory(history, dailyWarning) {
+			const records = Array.isArray(history) ? history.map(normalizeWarningEntry).filter(Boolean) : [];
+			if (records.length > 0) {
+				return records;
+			}
+			if (dailyWarning) {
+				return [normalizeWarningEntry(dailyWarning)];
+			}
+			return fallbackWarningHistory.map(normalizeWarningEntry);
+		}
+
+		function formatWarningDate(value) {
+			if (!value) {
+				return '未命名日期';
+			}
+			return value.replace(/-/g, '.');
 		}
 
 		function ensureStockShape(stock) {
@@ -300,8 +357,11 @@
 			);
 			const [stockSource, setStockSource] = React.useState({
 				generatedAt: '',
+				dailyWarning: fallbackWarningHistory[0],
+				warningHistory: fallbackWarningHistory,
 				stocks: fallbackRecords,
 			});
+			const [selectedWarningDate, setSelectedWarningDate] = React.useState(fallbackWarningHistory[0].date);
 			const [leftInput, setLeftInput] = React.useState('300308');
 			const [rightInput, setRightInput] = React.useState('002230');
 			const [leftQuery, setLeftQuery] = React.useState('300308');
@@ -325,6 +385,7 @@
 						}
 
 						setStockSource(normalized);
+						setSelectedWarningDate(normalized.warningHistory[0]?.date || normalized.dailyWarning?.date || '');
 						setLoadState('ready');
 						setLoadMessage(`已加载 data.json，共 ${normalized.stocks.length} 只股票。`);
 					} catch (error) {
@@ -337,10 +398,14 @@
 			}, [fallbackRecords]);
 
 			const aliases = React.useMemo(() => buildAliasMap(stockSource.stocks), [stockSource]);
+			const currentWarning = React.useMemo(() => {
+				return stockSource.warningHistory.find((entry) => entry.date === selectedWarningDate)
+					|| stockSource.dailyWarning
+					|| fallbackWarningHistory[0];
+			}, [selectedWarningDate, stockSource]);
 			const leftStock = resolveStock(leftQuery, '300308', aliases);
 			const rightStock = resolveStock(rightQuery, '002230', aliases);
-			const gaugeScore = Math.max(leftStock.score, rightStock.score);
-			const gaugeTone = scoreTone(gaugeScore);
+			const gaugeScore = currentWarning?.gauge_score ?? Math.max(leftStock.score, rightStock.score);
 
 			function applyQueries() {
 				setLeftQuery(leftInput);
@@ -370,29 +435,46 @@
 									<div className="rounded-[28px] border border-white/10 bg-white/5 p-6 shadow-neon">
 										<div className="text-xs uppercase tracking-[0.35em] text-slate-400">明日操作提示词</div>
 										<div className="mt-4 text-2xl font-semibold leading-relaxed text-white sm:text-3xl">
-											量化高危区，先看承接，再谈进攻。
+											{currentWarning.title}
 										</div>
 										<p className="mt-4 text-lg leading-8 text-slate-300">
-											{loadState === 'ready' ? defaultPrompt : fallbackPrompt}
+											{currentWarning.prompt}
 										</p>
+										<div className="mt-5 flex flex-wrap items-center gap-3">
+											<div className="rounded-full border border-white/10 bg-white/5 px-3 py-2 text-xs uppercase tracking-[0.28em] text-slate-300">
+												预警日期 {formatWarningDate(currentWarning.date)}
+											</div>
+											<select
+												value={selectedWarningDate}
+												onChange={(event) => setSelectedWarningDate(event.target.value)}
+												className="rounded-full border border-white/10 bg-panel px-4 py-2 text-sm text-slate-100 outline-none"
+											>
+												{stockSource.warningHistory.map((entry) => (
+													<option key={entry.date} value={entry.date}>
+														{formatWarningDate(entry.date)}
+													</option>
+												))}
+											</select>
+										</div>
 									</div>
 
 									<div className="grid gap-4 sm:grid-cols-3">
-										<div className="rounded-2xl border border-cyanGlow/15 bg-cyanGlow/10 p-4">
-											<div className="text-xs uppercase tracking-[0.28em] text-cyanGlow/75">高频异动</div>
-											<div className="mt-2 font-display text-3xl text-white">14</div>
-											<div className="mt-1 text-slate-300">疑似假突破样本</div>
-										</div>
-										<div className="rounded-2xl border border-amber-300/15 bg-amber-300/10 p-4">
-											<div className="text-xs uppercase tracking-[0.28em] text-amber-200/80">筹码拥挤</div>
-											<div className="mt-2 font-display text-3xl text-white">67%</div>
-											<div className="mt-1 text-slate-300">热点集中在前排</div>
-										</div>
-										<div className="rounded-2xl border border-red-400/15 bg-red-400/10 p-4">
-											<div className="text-xs uppercase tracking-[0.28em] text-red-200/80">两融升温</div>
-											<div className="mt-2 font-display text-3xl text-white">+21%</div>
-											<div className="mt-1 text-slate-300">杠杆风险放大</div>
-										</div>
+										{currentWarning.signals.map((signal, index) => {
+											const cardClass = [
+												'rounded-2xl border p-4',
+												index === 0 ? 'border-cyanGlow/15 bg-cyanGlow/10' : '',
+												index === 1 ? 'border-amber-300/15 bg-amber-300/10' : '',
+												index === 2 ? 'border-red-400/15 bg-red-400/10' : '',
+											].join(' ');
+
+											return (
+												<div key={signal.label} className={cardClass}>
+													<div className="text-xs uppercase tracking-[0.28em] text-slate-200/80">{signal.label}</div>
+													<div className="mt-2 font-display text-3xl text-white">{signal.value}</div>
+													<div className="mt-1 text-slate-300">{signal.note}</div>
+												</div>
+											);
+										})}
 									</div>
 								</div>
 							</div>
@@ -401,25 +483,24 @@
 						<div className="rounded-[32px] border border-white/10 bg-[linear-gradient(180deg,rgba(16,24,44,0.88),rgba(6,10,24,0.92))] p-6 shadow-neon sm:p-8">
 							<div className="text-xs uppercase tracking-[0.45em] text-slate-400">明日风险预警</div>
 							<div className="mt-4 space-y-4">
-								<div className="rounded-2xl border border-white/10 bg-white/5 p-5">
-									<div className="text-sm text-slate-400">风格漂移预警</div>
-									<div className="mt-2 text-2xl font-semibold text-white">算力硬件优于纯题材映射</div>
-								</div>
-								<div className="rounded-2xl border border-white/10 bg-white/5 p-5">
-									<div className="text-sm text-slate-400">量化踩踏窗口</div>
-									<div className="mt-2 text-2xl font-semibold text-white">10:05 - 10:40 易放大冲高回落</div>
-								</div>
-								<div className="rounded-2xl border border-white/10 bg-white/5 p-5">
-									<div className="text-sm text-slate-400">执行纪律</div>
-									<div className="mt-2 text-2xl font-semibold text-white">避免追涨，优先确认量价背离</div>
-								</div>
+								{currentWarning.warnings.map((warning) => (
+									<div key={warning.label} className="rounded-2xl border border-white/10 bg-white/5 p-5">
+										<div className="text-sm text-slate-400">{warning.label}</div>
+										<div className="mt-2 text-2xl font-semibold text-white">{warning.value}</div>
+									</div>
+								))}
 							</div>
 
 							<div className="mt-6 rounded-[28px] border border-cyanGlow/15 bg-[linear-gradient(180deg,rgba(89,243,255,0.09),rgba(89,243,255,0.02))] p-6">
 								<div className="text-xs uppercase tracking-[0.35em] text-cyanGlow/75">战略建议</div>
 								<p className="mt-4 text-lg leading-8 text-slate-200">
-									当板块一致性预期过满时，陷阱往往不是来自逻辑错误，而是来自交易位置错误。先审视筹码，再决定出手。
+									{currentWarning.strategy}
 								</p>
+								<div className="mt-4 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-300">
+									<span className="text-slate-500">复盘状态：</span>
+									{currentWarning.review?.status || '待复盘'}
+									<span className="ml-3 text-slate-400">{currentWarning.review?.note || ''}</span>
+								</div>
 							</div>
 						</div>
 					</section>
