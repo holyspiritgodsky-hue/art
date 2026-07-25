@@ -2,6 +2,11 @@ name: Update Money Data
 
 on:
   workflow_dispatch:
+  push:
+    paths:
+      - .github/workflows/update-money-data.yml
+      - money/fetch_quant_data.py
+      - money/requirements.txt
   schedule:
     - cron: '0 11 * * 1-5'
     - cron: '0 15 * * 6'
