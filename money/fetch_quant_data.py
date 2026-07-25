@@ -1,11 +1,11 @@
-"""Lightweight quant trap data fetcher based on AkShare.
+"""Lightweight quant trap data fetcher based on Eastmoney public APIs.
 
 Usage:
     python fetch_quant_data.py --codes 300476 002384
 
 The script fetches the latest available margin financing data and current
-turnover rate, combines them with preset business purity scores, and writes
-the result to data.json for frontend consumption.
+turnover rate from Eastmoney public APIs, combines them with preset business
+purity scores, and writes the result to data.json for frontend consumption.
 """
 
 from __future__ import annotations
@@ -13,16 +13,17 @@ from __future__ import annotations
 import argparse
 import json
 import logging
+import os
 import shutil
 import sys
 import time
 from dataclasses import dataclass
 from datetime import datetime, timedelta
+from urllib.error import HTTPError, URLError
+from urllib.parse import urlencode
+from urllib.request import Request, urlopen
 from pathlib import Path
 from typing import Any
-
-import akshare as ak
-import pandas as pd
 
 
 DEFAULT_CODES = ["300476", "002384"]
@@ -67,6 +68,17 @@ logging.basicConfig(
     format="%(asctime)s [%(levelname)s] %(message)s",
 )
 LOGGER = logging.getLogger(__name__)
+
+EASTMONEY_HEADERS = {
+    "User-Agent": (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+        "(KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36"
+    ),
+    "Referer": "https://data.eastmoney.com/",
+}
+
+SPOT_API_URL = "https://82.push2.eastmoney.com/api/qt/clist/get"
+MARGIN_API_URL = "https://datacenter-web.eastmoney.com/api/data/v1/get"
 
 
 def parse_args() -> argparse.Namespace:
@@ -136,14 +148,6 @@ def load_existing_payload(output_path: Path) -> dict[str, Any]:
         return {}
 
 
-def detect_market(code: str) -> str:
-    if code.startswith(("600", "601", "603", "605", "688", "689", "900")):
-        return "sse"
-    if code.startswith(("000", "001", "002", "003", "200", "300", "301")):
-        return "szse"
-    raise ValueError(f"Unsupported stock code market mapping: {code}")
-
-
 def clamp(value: float, lower: float = 0.0, upper: float = 100.0) -> float:
     return max(lower, min(upper, value))
 
@@ -152,77 +156,105 @@ def safe_float(value: Any) -> float | None:
     if value is None or value == "-":
         return None
     try:
-        if pd.isna(value):
-            return None
-    except TypeError:
-        pass
-    try:
         return float(value)
     except (TypeError, ValueError):
         return None
 
 
-def normalize_margin_frame(frame: pd.DataFrame, market: str) -> pd.DataFrame:
-    renamed = frame.rename(
-        columns={
-            "标的证券代码": "code",
-            "证券代码": "code",
-            "股票代码": "code",
-            "融资余额": "margin_balance",
-            "融资买入额": "margin_buy",
-            "融资买入金额": "margin_buy",
-            "证券简称": "name",
-            "股票简称": "name",
+def fetch_json(url: str, params: dict[str, Any]) -> dict[str, Any]:
+    query = urlencode(params)
+    request = Request(f"{url}?{query}", headers=EASTMONEY_HEADERS)
+
+    try:
+        with urlopen(request, timeout=30) as response:
+            payload = json.loads(response.read().decode("utf-8"))
+    except (HTTPError, URLError, TimeoutError, json.JSONDecodeError) as exc:
+        raise RuntimeError(f"Request failed for {url}: {exc}") from exc
+
+    if not payload.get("success", False):
+        raise RuntimeError(payload.get("message") or f"Eastmoney API returned unsuccessful payload for {url}")
+
+    return payload
+
+
+def load_spot_data() -> dict[str, dict[str, Any]]:
+    payload = fetch_json(
+        SPOT_API_URL,
+        {
+            "pn": 1,
+            "pz": 6000,
+            "po": 1,
+            "np": 1,
+            "ut": "bd1d9ddb04089700cf9c27f6f7426281",
+            "fltt": 2,
+            "invt": 2,
+            "fid": "f3",
+            "fs": "m:0+t:6,m:0+t:80,m:1+t:2,m:1+t:23",
+            "fields": "f12,f14,f8",
+        },
+    )
+
+    records = payload.get("data", {}).get("diff") or []
+    if not records:
+        raise RuntimeError("Spot quote API returned no records")
+
+    return {
+        str(item.get("f12", "")).zfill(6): {
+            "code": str(item.get("f12", "")).zfill(6),
+            "name": str(item.get("f14", "")).strip(),
+            "turnover_rate": safe_float(item.get("f8")),
         }
-    ).copy()
-
-    if "code" not in renamed.columns:
-        raise ValueError(f"Margin data columns missing stock code field for market={market}")
-
-    renamed["code"] = renamed["code"].astype(str).str.zfill(6)
-    if "margin_balance" not in renamed.columns or "margin_buy" not in renamed.columns:
-        raise ValueError(f"Margin data columns missing financing fields for market={market}")
-    if "name" not in renamed.columns:
-        renamed["name"] = ""
-
-    return renamed[["code", "name", "margin_balance", "margin_buy"]]
+        for item in records
+        if item.get("f12")
+    }
 
 
-def load_latest_margin_data(market: str, lookback_days: int = 10) -> tuple[pd.DataFrame, str]:
-    fetcher = ak.stock_margin_detail_sse if market == "sse" else ak.stock_margin_detail_szse
+def build_margin_filter(codes: list[str]) -> str:
+    quoted_codes = ",".join(f'"{code}"' for code in codes)
+    return f"(SCODE in ({quoted_codes}))"
 
-    for delta in range(lookback_days):
-        trade_date = (datetime.now() - timedelta(days=delta)).strftime("%Y%m%d")
-        try:
-            frame = fetcher(date=trade_date)
-        except Exception:
+
+def normalize_trade_date(value: str) -> str:
+    if not value:
+        return ""
+    return value[:10].replace("-", "")
+
+
+def load_latest_margin_data(codes: list[str]) -> dict[str, dict[str, Any]]:
+    payload = fetch_json(
+        MARGIN_API_URL,
+        {
+            "reportName": "RPTA_WEB_RZRQ_GGMX",
+            "columns": "ALL",
+            "filter": build_margin_filter(codes),
+            "pageNumber": 1,
+            "pageSize": max(500, len(codes) * 10),
+            "sortColumns": "DATE,SCODE",
+            "sortTypes": "-1,1",
+            "source": "WEB",
+            "client": "WEB",
+        },
+    )
+
+    records = payload.get("result", {}).get("data") or []
+    if not records:
+        raise RuntimeError("Margin detail API returned no records")
+
+    latest_by_code: dict[str, dict[str, Any]] = {}
+    for item in records:
+        code = str(item.get("SCODE", "")).zfill(6)
+        if not code or code in latest_by_code:
             continue
 
-        if frame is None or frame.empty:
-            continue
-
-        normalized = normalize_margin_frame(frame, market)
-        if not normalized.empty:
-            return normalized, trade_date
-
-    raise RuntimeError(f"No margin data found for market={market} in the last {lookback_days} days")
-
-
-def load_spot_data() -> pd.DataFrame:
-    frame = ak.stock_zh_a_spot_em().rename(
-        columns={
-            "代码": "code",
-            "名称": "name",
-            "换手率": "turnover_rate",
+        latest_by_code[code] = {
+            "code": code,
+            "name": str(item.get("SECNAME", "")).strip(),
+            "margin_balance": safe_float(item.get("RZYE")),
+            "margin_buy": safe_float(item.get("RZMRE")),
+            "margin_date": normalize_trade_date(str(item.get("DATE", ""))),
         }
-    ).copy()
-    required_columns = {"code", "name", "turnover_rate"}
-    missing = required_columns - set(frame.columns)
-    if missing:
-        raise ValueError(f"Spot quote data missing required columns: {sorted(missing)}")
 
-    frame["code"] = frame["code"].astype(str).str.zfill(6)
-    return frame[["code", "name", "turnover_rate"]]
+    return latest_by_code
 
 
 def compute_financing_pressure_score(margin_balance: float | None, margin_buy: float | None) -> float:
@@ -329,19 +361,19 @@ def merge_warning_history(existing_payload: dict[str, Any], daily_warning: dict[
 
 def build_stock_payload(
     code: str,
-    spot_row: pd.Series | None,
-    margin_row: pd.Series | None,
-    margin_date: str,
+    spot_row: dict[str, Any] | None,
+    margin_row: dict[str, Any] | None,
 ) -> dict[str, Any]:
     name = ""
     if spot_row is not None:
-        name = str(spot_row.get("name", ""))
+        name = str(spot_row.get("name", "")).strip()
     if not name and margin_row is not None:
-        name = str(margin_row.get("name", ""))
+        name = str(margin_row.get("name", "")).strip()
 
     turnover_rate = safe_float(None if spot_row is None else spot_row.get("turnover_rate"))
     margin_balance = safe_float(None if margin_row is None else margin_row.get("margin_balance"))
     margin_buy = safe_float(None if margin_row is None else margin_row.get("margin_buy"))
+    margin_date = "" if margin_row is None else str(margin_row.get("margin_date", ""))
 
     business_purity = BUSINESS_PURITY_SCORES.get(code, 50)
     financing_pressure = compute_financing_pressure_score(margin_balance, margin_buy)
@@ -371,33 +403,25 @@ def export_data(codes: list[str], output_path: Path, backup_dir: Path) -> dict[s
 
     LOGGER.info("Start export for %s requested codes, %s whitelisted codes", len(codes), len(filtered_codes))
     existing_payload = load_existing_payload(output_path)
-    spot_frame = load_spot_data()
-    spot_map = {row["code"]: row for _, row in spot_frame.iterrows()}
-
-    margin_cache: dict[str, pd.DataFrame] = {}
-    margin_dates: dict[str, str] = {}
+    spot_map = load_spot_data()
+    margin_map = load_latest_margin_data(filtered_codes)
+    failed_codes: list[dict[str, str]] = []
 
     result_stocks: list[dict[str, Any]] = []
     for normalized_code in filtered_codes:
-        time.sleep(0.15)
+        time.sleep(0.02)
         try:
-            market = detect_market(normalized_code)
-
-            if market not in margin_cache:
-                margin_frame, margin_date = load_latest_margin_data(market)
-                margin_cache[market] = margin_frame
-                margin_dates[market] = margin_date
-
-            margin_frame = margin_cache[market]
-            stock_margin_rows = margin_frame.loc[margin_frame["code"] == normalized_code]
-            margin_row = None if stock_margin_rows.empty else stock_margin_rows.iloc[0]
             spot_row = spot_map.get(normalized_code)
-            result_stocks.append(
-                build_stock_payload(normalized_code, spot_row, margin_row, margin_dates[market])
-            )
+            margin_row = margin_map.get(normalized_code)
+
+            if spot_row is None and margin_row is None:
+                raise RuntimeError("No spot or margin data returned for this code")
+
+            result_stocks.append(build_stock_payload(normalized_code, spot_row, margin_row))
             LOGGER.info("Processed %s", normalized_code)
         except Exception as exc:
             LOGGER.warning("Skip %s: %s", normalized_code, exc)
+            failed_codes.append({"code": normalized_code, "reason": str(exc)})
             continue
 
     if not result_stocks:
@@ -409,9 +433,13 @@ def export_data(codes: list[str], output_path: Path, backup_dir: Path) -> dict[s
 
     payload = {
         "generated_at": generated_at,
+        "run_source": os.environ.get("RUN_SOURCE", "manual"),
         "whitelist_size": len(STOCK_WHITELIST),
+        "requested_count": len(codes),
         "requested_codes": [str(code).zfill(6) for code in codes],
-        "processed_codes": filtered_codes,
+        "processed_count": len(result_stocks),
+        "processed_codes": [item["code"] for item in result_stocks],
+        "failed_codes": failed_codes,
         "formula": {
             "business_purity_weight": WEIGHTS.business_purity,
             "financing_pressure_weight": WEIGHTS.financing_pressure,
