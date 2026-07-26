@@ -3,7 +3,7 @@
 <head>
 	<meta charset="UTF-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-	<title>AI量化预警网站</title>
+	<title>量化陷阱预警系统</title>
 	<script src="https://cdn.tailwindcss.com"></script>
 	<script>
 		tailwind.config = {
@@ -91,6 +91,60 @@
 		const fallbackPrompt = '暂无实时量化结论，先用静态样本演示。若要读取最新结果，请先运行 Python 脚本生成 data.json，并用本地静态服务打开页面。';
 		const fallbackWarningHistory = [
 			{
+				date: '2026-07-27',
+				title: '量化高危区，先看承接，再谈进攻。',
+				gauge_score: 82,
+				prompt: '当前高风险样本集中在 全志科技 等标的，样本平均陷阱分约 52.4，优先防范一致性追高后的回撤兑现。',
+				signals: [
+					{ label: '高频异动', value: '18', note: '陷阱分大于等于 70 的样本数' },
+					{ label: '筹码拥挤', value: '52%', note: '核心样本平均陷阱分映射' },
+					{ label: '两融升温', value: '100%', note: '全志科技 的融资压力得分' },
+				],
+				warnings: [
+					{ label: '风格漂移预警', value: '高纯度科技核心股拥挤度偏高，冲高回落风险更大。' },
+					{ label: '量化踩踏窗口', value: '10:05 - 10:40 易放大冲高回落' },
+					{ label: '执行纪律', value: '避免追涨，优先确认量价背离后的承接质量。' },
+				],
+				strategy: '当板块一致性预期过满时，陷阱往往不是来自逻辑错误，而是来自交易位置错误。先审视筹码，再决定出手。',
+				review: { status: '待复盘', note: '次日收盘后补充验证，观察高位一致性是否继续透支。' },
+			},
+			{
+				date: '2026-07-26',
+				title: '量化高危区，先看承接，再谈进攻。',
+				gauge_score: 82,
+				prompt: '当前高风险样本集中在 通富微电 等标的，样本平均陷阱分约 47.3，优先防范一致性追高后的回撤兑现。',
+				signals: [
+					{ label: '高频异动', value: '3', note: '陷阱分大于等于 70 的样本数' },
+					{ label: '筹码拥挤', value: '47%', note: '核心样本平均陷阱分映射' },
+					{ label: '两融升温', value: '100%', note: '通富微电 的融资压力得分' },
+				],
+				warnings: [
+					{ label: '风格漂移预警', value: '高纯度科技核心股拥挤度偏高，冲高回落风险更大。' },
+					{ label: '量化踩踏窗口', value: '10:05 - 10:40 易放大冲高回落' },
+					{ label: '执行纪律', value: '避免追涨，优先确认量价背离后的承接质量。' },
+				],
+				strategy: '分歧转一致后的首个加速日，通常不是舒服买点。等量能回落后再判断是否真的有承接。',
+				review: { status: '避坑成功', note: '次日高开冲高后回落，追涨资金承压，预警兑现。' },
+			},
+			{
+				date: '2026-07-25',
+				title: '热点前排拥挤，谨防一致性兑现。',
+				gauge_score: 76,
+				prompt: '高位趋势股的量化拥挤度继续上升，明日更适合看分歧后的真实承接，不适合盲目接加速。',
+				signals: [
+					{ label: '高频异动', value: '11', note: '冲高回落样本明显增加' },
+					{ label: '筹码拥挤', value: '61%', note: '前排辨识度集中' },
+					{ label: '两融升温', value: '+18%', note: '杠杆资金继续抬升' },
+				],
+				warnings: [
+					{ label: '风格漂移预警', value: '辨识度抱团延续，但补涨弹性在减弱。' },
+					{ label: '量化踩踏窗口', value: '09:55 - 10:25 易出现缩量假突破' },
+					{ label: '执行纪律', value: '宁可错过加速，也不要在一致性顶点追价。' },
+				],
+				strategy: '一致性越强，次日给你的容错通常越低。把精力留给回踩确认，而不是情绪最满的瞬间。',
+				review: { status: '避坑成功', note: '高位股次日多数冲高震荡，追高性价比偏低，预判有效。' },
+			},
+			{
 				date: '2026-07-24',
 				title: '量化高危区，先看承接，再谈进攻。',
 				gauge_score: 68,
@@ -106,7 +160,61 @@
 					{ label: '执行纪律', value: '避免追涨，优先确认量价背离' },
 				],
 				strategy: '当板块一致性预期过满时，陷阱往往不是来自逻辑错误，而是来自交易位置错误。先审视筹码，再决定出手。',
-				review: { status: '待复盘', note: '次日收盘后可补充结果，观察预警是否兑现。' },
+				review: { status: '避坑成功', note: '次日板块承接不足，强追的收益风险比明显偏低。' },
+			},
+			{
+				date: '2026-07-23',
+				title: '高低切换加快，后排更易成为量化出口。',
+				gauge_score: 63,
+				prompt: '热点内部高低切换速度提升，明日优先观察核心股能否稳住，后排跟风不要恋战。',
+				signals: [
+					{ label: '高频异动', value: '9', note: '尾盘回落个股增多' },
+					{ label: '筹码拥挤', value: '54%', note: '核心抱团尚未松动' },
+					{ label: '两融升温', value: '+9%', note: '杠杆资金温和升温' },
+				],
+				warnings: [
+					{ label: '风格漂移预警', value: '前排核心与后排补涨分化扩大。' },
+					{ label: '量化踩踏窗口', value: '13:20 - 13:50 易出现午后兑现' },
+					{ label: '执行纪律', value: '后排冲高不留恋，优先盯住前排承接。' },
+				],
+				strategy: '当市场从普涨转向精选，后排往往先失去流动性。先控制仓位，再谈博弈切换。',
+				review: { status: '避坑成功', note: '后排标的次日明显掉队，回避跟风方向效果较好。' },
+			},
+			{
+				date: '2026-07-22',
+				title: '板块分歧扩大，追高容错率下降。',
+				gauge_score: 58,
+				prompt: '主线分歧开始扩大，强势股虽然还在，但次日博弈难度上升，先避开缩量加速。',
+				signals: [
+					{ label: '高频异动', value: '7', note: '缩量拉升样本抬头' },
+					{ label: '筹码拥挤', value: '49%', note: '抱团强度仍在' },
+					{ label: '两融升温', value: '+6%', note: '杠杆资金边际增加' },
+				],
+				warnings: [
+					{ label: '风格漂移预警', value: '前排还能扛，后排已开始掉队。' },
+					{ label: '量化踩踏窗口', value: '10:15 - 10:35 易出现冲高回封失败' },
+					{ label: '执行纪律', value: '先看量能确认，不做无量硬顶。' },
+				],
+				strategy: '量化资金最喜欢在缩量一致时做反身兑现。看到强，不等于适合买。',
+				review: { status: '观察中', note: '次日分化有限，部分强势股仍有延续，信号偏中性。' },
+			},
+			{
+				date: '2026-07-21',
+				title: '风险温和抬升，先盯核心再看扩散。',
+				gauge_score: 51,
+				prompt: '量化陷阱分进入抬升区间，但整体仍未失控，明日适合围绕核心承接而非追逐扩散。',
+				signals: [
+					{ label: '高频异动', value: '5', note: '炸板样本仍可控' },
+					{ label: '筹码拥挤', value: '43%', note: '拥挤度开始回升' },
+					{ label: '两融升温', value: '+4%', note: '杠杆情绪温和回暖' },
+				],
+				warnings: [
+					{ label: '风格漂移预警', value: '扩散阶段轮动较快，辨识度不足的标的更易掉队。' },
+					{ label: '量化踩踏窗口', value: '14:10 - 14:40 易出现尾盘抢跑' },
+					{ label: '执行纪律', value: '轻仓试错，重点观察核心股回踩承接。' },
+				],
+				strategy: '温和升温阶段最怕看到信号就满仓，仓位管理比方向判断更重要。',
+				review: { status: '避坑成功', note: '扩散题材延续性较弱，聚焦核心而非追后排的判断有效。' },
 			},
 		];
 
@@ -205,6 +313,12 @@
 				return '未命名日期';
 			}
 			return value.replace(/-/g, '.');
+		}
+
+		function isReviewSuccessful(review) {
+			const status = String(review?.status || '').trim();
+			const note = String(review?.note || '').trim();
+			return /(避坑成功|成功|兑现|命中)/.test(`${status} ${note}`);
 		}
 
 		function formatAmount(value) {
@@ -482,6 +596,7 @@
 			const leftStock = leftLiveMatch || resolveStock(leftSubmittedQuery, fallbackLeftCode, stockSource.stocks, aliases);
 			const rightStock = rightLiveMatch || resolveStock(rightSubmittedQuery, fallbackRightCode, stockSource.stocks, aliases);
 			const gaugeScore = currentWarning?.gauge_score ?? Math.max(leftStock.score, rightStock.score);
+			const reviewSuccess = isReviewSuccessful(currentWarning?.review);
 
 			function applyQueries() {
 				setLeftSubmittedQuery(leftInput);
@@ -496,10 +611,10 @@
 								<div>
 						
 									<h1 className="mt-3 max-w-2xl font-display text-3xl font-extrabold leading-tight text-white sm:text-4xl lg:text-5xl">
-										AI量化预警网站
+										量化陷阱预警系统
 									</h1>
 									<p className="mt-4 max-w-2xl text-base text-slate-300 sm:text-lg">
-										识别明日 AI 方向中容易出现的一致性追涨、筹码拥挤与两融透支风险，帮助你在开盘前先避坑。
+										管住手、避开坑，不做量化资金的高位接盘侠
 									</p>
 								</div>
 								
@@ -520,17 +635,6 @@
 											<div className="rounded-full border border-white/10 bg-white/5 px-3 py-2 text-xs uppercase tracking-[0.28em] text-slate-300">
 												预警日期 {formatWarningDate(currentWarning.date)}
 											</div>
-											<select
-												value={selectedWarningDate}
-												onChange={(event) => setSelectedWarningDate(event.target.value)}
-												className="rounded-full border border-white/10 bg-panel px-4 py-2 text-sm text-slate-100 outline-none"
-											>
-												{stockSource.warningHistory.map((entry) => (
-													<option key={entry.date} value={entry.date}>
-														{formatWarningDate(entry.date)}
-													</option>
-												))}
-											</select>
 										</div>
 									</div>
 
@@ -566,16 +670,41 @@
 									</div>
 								))}
 							</div>
-
-							<div className="mt-6 rounded-[28px] border border-cyanGlow/15 bg-[linear-gradient(180deg,rgba(89,243,255,0.09),rgba(89,243,255,0.02))] p-6">
-								<div className="text-xs uppercase tracking-[0.35em] text-cyanGlow/75">战略建议</div>
-								<p className="mt-4 text-lg leading-8 text-slate-200">
-									{currentWarning.strategy}
-								</p>
-								<div className="mt-4 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-300">
-									<span className="text-slate-500">复盘状态：</span>
-									{currentWarning.review?.status || '待复盘'}
-									<span className="ml-3 text-slate-400">{currentWarning.review?.note || ''}</span>
+							<div className="mt-5 rounded-2xl border border-white/10 bg-white/5 p-5">
+								<div className="flex flex-wrap items-center justify-between gap-3">
+									<div>
+										<div className="text-xs uppercase tracking-[0.3em] text-slate-400">回溯历史</div>
+										<div className="mt-2 text-sm text-slate-300"></div>
+									</div>
+									<select
+										value={selectedWarningDate}
+										onChange={(event) => setSelectedWarningDate(event.target.value)}
+										className="rounded-full border border-white/10 bg-panel px-4 py-2 text-sm text-slate-100 outline-none"
+									>
+										{stockSource.warningHistory.map((entry) => (
+											<option key={entry.date} value={entry.date}>
+												{formatWarningDate(entry.date)}
+											</option>
+										))}
+									</select>
+								</div>
+								<div className="mt-4 rounded-2xl border border-white/10 bg-slate-950/30 p-4">
+									<div className="flex flex-wrap items-center gap-3">
+										<div className="text-xs uppercase tracking-[0.28em] text-slate-500">复盘结果</div>
+										{!reviewSuccess ? (
+											<div className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-sm text-slate-200">
+												{currentWarning.review?.status || '待复盘'}
+											</div>
+										) : null}
+										{reviewSuccess ? (
+											<div className="rounded-full border border-emerald-300/30 bg-emerald-400/15 px-3 py-1 text-sm font-semibold text-emerald-100">
+												🟢 避坑成功
+											</div>
+										) : null}
+									</div>
+									<p className="mt-3 text-sm leading-7 text-slate-300">
+										{currentWarning.review?.note || '该日期暂无复盘说明。'}
+									</p>
 								</div>
 							</div>
 						</div>
