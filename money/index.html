@@ -315,6 +315,23 @@
 			return value.replace(/-/g, '.');
 		}
 
+		function formatWarningUpdatedAt(value, fallbackDate) {
+			if (!value) {
+				if (fallbackDate) {
+					return `预警更新时间 ${fallbackDate}`;
+				}
+				return '预警更新时间 -';
+			}
+
+			const normalized = String(value).trim();
+			const isoMatch = normalized.match(/^(\d{4}-\d{2}-\d{2})[T\s](\d{2}:\d{2})/);
+			if (isoMatch) {
+				return `预警更新时间 ${isoMatch[1]} ${isoMatch[2]}`;
+			}
+
+			return `预警更新时间 ${normalized}`;
+		}
+
 		function formatMarginDate(value) {
 			if (!value || value === '-') {
 				return '-';
@@ -643,6 +660,11 @@
 								<Gauge score={gaugeScore} />
 								<div className="w-full max-w-xl space-y-5">
 									<div className="rounded-[28px] border border-white/10 bg-white/5 p-6 shadow-neon">
+										<div className="mb-5 flex flex-wrap items-center gap-3">
+											<div className="rounded-full border border-white/10 bg-white/5 px-3 py-2 text-xs uppercase tracking-[0.28em] text-slate-300">
+												{formatWarningUpdatedAt(stockSource.generatedAt, currentWarning.date)}
+											</div>
+										</div>
 										<div className="text-xs uppercase tracking-[0.35em] text-slate-400">明日操作提示词</div>
 										<div className="mt-4 text-2xl font-semibold leading-relaxed text-white sm:text-3xl">
 											{currentWarning.title}
@@ -650,11 +672,6 @@
 										<p className="mt-4 text-lg leading-8 text-slate-300">
 											{currentWarning.prompt}
 										</p>
-										<div className="mt-5 flex flex-wrap items-center gap-3">
-											<div className="rounded-full border border-white/10 bg-white/5 px-3 py-2 text-xs uppercase tracking-[0.28em] text-slate-300">
-												预警日期 {formatWarningDate(currentWarning.date)}
-											</div>
-										</div>
 									</div>
 
 									<div className="grid gap-4 sm:grid-cols-3">
