@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-07-27T02:05:01",
+  "generated_at": "2026-07-27T05:04:40",
   "run_source": "manual",
-  "whitelist_size": 100,
-  "requested_count": 100,
+  "whitelist_size": 113,
+  "requested_count": 113,
   "requested_codes": [
     "300476",
     "002384",
@@ -103,9 +103,22 @@
     "600703",
     "601138",
     "601360",
-    "603000"
+    "603000",
+    "300054",
+    "002192",
+    "002466",
+    "002837",
+    "601869",
+    "002938",
+    "000878",
+    "002155",
+    "600378",
+    "300418",
+    "002218",
+    "300617",
+    "300738"
   ],
-  "processed_count": 100,
+  "processed_count": 113,
   "processed_codes": [
     "300476",
     "002384",
@@ -206,7 +219,20 @@
     "600703",
     "601138",
     "601360",
-    "603000"
+    "603000",
+    "300054",
+    "002192",
+    "002466",
+    "002837",
+    "601869",
+    "002938",
+    "000878",
+    "002155",
+    "600378",
+    "300418",
+    "002218",
+    "300617",
+    "300738"
   ],
   "failed_codes": [],
   "formula": {
@@ -227,16 +253,16 @@
     "date": "2026-07-27",
     "title": "量化高危区，先看承接，再谈进攻。",
     "gauge_score": 82,
-    "prompt": "当前高风险样本集中在 全志科技 等标的，样本平均陷阱分约 52.4，优先防范一致性追高后的回撤兑现。",
+    "prompt": "当前高风险样本集中在 全志科技 等标的，样本平均陷阱分约 53.1，优先防范一致性追高后的回撤兑现。",
     "signals": [
       {
         "label": "高频异动",
-        "value": "18",
+        "value": "23",
         "note": "陷阱分大于等于 70 的样本数"
       },
       {
         "label": "筹码拥挤",
-        "value": "52%",
+        "value": "53%",
         "note": "核心样本平均陷阱分映射"
       },
       {
@@ -270,16 +296,16 @@
       "date": "2026-07-27",
       "title": "量化高危区，先看承接，再谈进攻。",
       "gauge_score": 82,
-      "prompt": "当前高风险样本集中在 全志科技 等标的，样本平均陷阱分约 52.4，优先防范一致性追高后的回撤兑现。",
+      "prompt": "当前高风险样本集中在 全志科技 等标的，样本平均陷阱分约 53.1，优先防范一致性追高后的回撤兑现。",
       "signals": [
         {
           "label": "高频异动",
-          "value": "18",
+          "value": "23",
           "note": "陷阱分大于等于 70 的样本数"
         },
         {
           "label": "筹码拥挤",
-          "value": "52%",
+          "value": "53%",
           "note": "核心样本平均陷阱分映射"
         },
         {
@@ -305,7 +331,7 @@
       "strategy": "当板块一致性预期过满时，陷阱往往不是来自逻辑错误，而是来自交易位置错误。先审视筹码，再决定出手。",
       "review": {
         "status": "待复盘",
-        "note": "次日收盘后补充验证，观察高位一致性是否继续透支。"
+        "note": "次日收盘后可补充验证结论，观察预警是否兑现。"
       }
     },
     {
@@ -1961,6 +1987,188 @@
         "turnover_heat_score": 9.04
       },
       "trap_score": 26.96
+    },
+    {
+      "code": "300054",
+      "name": "鼎龙股份",
+      "margin_date": "20260723",
+      "metrics": {
+        "business_purity_score": 50,
+        "margin_balance": 2003896319.0,
+        "margin_buy": 203163392.0,
+        "turnover_rate": 4.9,
+        "financing_pressure_score": 100.0,
+        "turnover_heat_score": 39.2
+      },
+      "trap_score": 70.34
+    },
+    {
+      "code": "002192",
+      "name": "融捷股份",
+      "margin_date": "20260723",
+      "metrics": {
+        "business_purity_score": 50,
+        "margin_balance": 1359738233.0,
+        "margin_buy": 179602037.0,
+        "turnover_rate": 7.35,
+        "financing_pressure_score": 100.0,
+        "turnover_heat_score": 58.8
+      },
+      "trap_score": 74.26
+    },
+    {
+      "code": "002466",
+      "name": "天齐锂业",
+      "margin_date": "20260723",
+      "metrics": {
+        "business_purity_score": 50,
+        "margin_balance": 3480675624.0,
+        "margin_buy": 322839180.0,
+        "turnover_rate": 3.73,
+        "financing_pressure_score": 92.75,
+        "turnover_heat_score": 29.84
+      },
+      "trap_score": 65.21
+    },
+    {
+      "code": "002837",
+      "name": "英维克",
+      "margin_date": "20260723",
+      "metrics": {
+        "business_purity_score": 50,
+        "margin_balance": 3802334272.0,
+        "margin_buy": 136886282.0,
+        "turnover_rate": 2.26,
+        "financing_pressure_score": 36.0,
+        "turnover_heat_score": 18.08
+      },
+      "trap_score": 37.32
+    },
+    {
+      "code": "601869",
+      "name": "长飞光纤",
+      "margin_date": "20260724",
+      "metrics": {
+        "business_purity_score": 50,
+        "margin_balance": 2591249648.0,
+        "margin_buy": 251482307.0,
+        "turnover_rate": 3.52,
+        "financing_pressure_score": 97.05,
+        "turnover_heat_score": 28.16
+      },
+      "trap_score": 66.8
+    },
+    {
+      "code": "002938",
+      "name": "鹏鼎控股",
+      "margin_date": "20260723",
+      "metrics": {
+        "business_purity_score": 50,
+        "margin_balance": 1409605883.0,
+        "margin_buy": 123526725.0,
+        "turnover_rate": 1.02,
+        "financing_pressure_score": 87.63,
+        "turnover_heat_score": 8.16
+      },
+      "trap_score": 58.57
+    },
+    {
+      "code": "000878",
+      "name": "云南铜业",
+      "margin_date": "20260723",
+      "metrics": {
+        "business_purity_score": 50,
+        "margin_balance": 1942310771.0,
+        "margin_buy": 66440804.0,
+        "turnover_rate": 2.16,
+        "financing_pressure_score": 34.21,
+        "turnover_heat_score": 17.28
+      },
+      "trap_score": 36.35
+    },
+    {
+      "code": "002155",
+      "name": "湖南黄金",
+      "margin_date": "20260723",
+      "metrics": {
+        "business_purity_score": 50,
+        "margin_balance": 2137632969.0,
+        "margin_buy": 143836968.0,
+        "turnover_rate": 2.84,
+        "financing_pressure_score": 67.29,
+        "turnover_heat_score": 22.72
+      },
+      "trap_score": 52.32
+    },
+    {
+      "code": "600378",
+      "name": "昊华科技",
+      "margin_date": "20260724",
+      "metrics": {
+        "business_purity_score": 50,
+        "margin_balance": 1144873665.0,
+        "margin_buy": 240330499.0,
+        "turnover_rate": 4.98,
+        "financing_pressure_score": 100.0,
+        "turnover_heat_score": 39.84
+      },
+      "trap_score": 70.47
+    },
+    {
+      "code": "300418",
+      "name": "昆仑万维",
+      "margin_date": "20260723",
+      "metrics": {
+        "business_purity_score": 50,
+        "margin_balance": 3643523222.0,
+        "margin_buy": 235463984.0,
+        "turnover_rate": 5.09,
+        "financing_pressure_score": 64.63,
+        "turnover_heat_score": 40.72
+      },
+      "trap_score": 54.73
+    },
+    {
+      "code": "002218",
+      "name": "拓日新能",
+      "margin_date": "20260723",
+      "metrics": {
+        "business_purity_score": 50,
+        "margin_balance": 112409821.0,
+        "margin_buy": 17086000.0,
+        "turnover_rate": 17.96,
+        "financing_pressure_score": 100.0,
+        "turnover_heat_score": 100.0
+      },
+      "trap_score": 82.5
+    },
+    {
+      "code": "300617",
+      "name": "安靠智电",
+      "margin_date": "20260723",
+      "metrics": {
+        "business_purity_score": 50,
+        "margin_balance": null,
+        "margin_buy": null,
+        "turnover_rate": 3.66,
+        "financing_pressure_score": 0.0,
+        "turnover_heat_score": 29.28
+      },
+      "trap_score": 23.36
+    },
+    {
+      "code": "300738",
+      "name": "奥飞数据",
+      "margin_date": "20260723",
+      "metrics": {
+        "business_purity_score": 50,
+        "margin_balance": 1386953978.0,
+        "margin_buy": 195024409.0,
+        "turnover_rate": 7.54,
+        "financing_pressure_score": 100.0,
+        "turnover_heat_score": 60.32
+      },
+      "trap_score": 74.56
     }
   ]
 }
