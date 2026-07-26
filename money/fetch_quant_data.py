@@ -521,11 +521,34 @@ def main() -> None:
     args = parse_args()
     output_path = Path(args.output)
     backup_dir = Path(args.backup_dir)
+    existing_payload = load_existing_payload(output_path)
+    max_attempts = 3
 
-    try:
-        payload = export_data(args.codes, output_path, backup_dir)
-    except Exception as exc:
-        LOGGER.error("Export failed: %s", exc)
+    payload: dict[str, Any] | None = None
+    for attempt in range(1, max_attempts + 1):
+        try:
+            payload = export_data(args.codes, output_path, backup_dir)
+            break
+        except Exception as exc:
+            LOGGER.warning("Export attempt %s/%s failed: %s", attempt, max_attempts, exc)
+            if attempt < max_attempts:
+                time.sleep(attempt)
+                continue
+
+            if existing_payload.get("stocks"):
+                write_browser_payload_script(existing_payload, output_path)
+                LOGGER.warning(
+                    "Refresh failed after %s attempts. Keeping existing payload with %s stocks.",
+                    max_attempts,
+                    len(existing_payload.get("stocks", [])),
+                )
+                return
+
+            LOGGER.error("Export failed: %s", exc)
+            sys.exit(1)
+
+    if payload is None:
+        LOGGER.error("Export failed without producing a payload")
         sys.exit(1)
 
     LOGGER.info("Exported %s stocks to %s", len(payload["stocks"]), output_path)
