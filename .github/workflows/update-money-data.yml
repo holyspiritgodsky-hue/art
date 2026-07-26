@@ -2,11 +2,6 @@ name: Update Money Data
 
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - .github/workflows/update-money-data.yml
-      - money/fetch_quant_data.py
-      - money/requirements.txt
   schedule:
     - cron: '0 11 * * 1-5'
     - cron: '0 15 * * 6'
@@ -35,17 +30,15 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Update data.json
-        env:
-          RUN_SOURCE: github-actions
+      - name: Update data files
         run: |
-          python fetch_quant_data.py --codes 300476 002384 300308 002230 688256 603019 603160 603986 603501 603893 688111 688041 688012 688008 688169 688072 688099 688027 688608 688018 688036 688047 688126 688037 688213 688120 688981 603296 300033 300496 300502 300223 300383 300458 300474 300454 300212 300251 300229 300624 300442 300803 300364 300394 300570 300782 300548 300604 300118 300373 301236 301269 301312 301308 301095 301171 301165 300059 002371 002475 002463 002555 002236 002241 600050 002859 002920 002456 002156 002261 002273 002281 002415 002916 002517 002049 002138 002185 000063 000977 000938 000988 000034 000066 000725 000100 600584 600570 600845 600536 600588 600602 600171 600498 600183 600460 600703 601138 601360 603000
+          python fetch_quant_data.py
 
       - name: Commit and push if changed
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data.json backups/
+          git add data.json data.js backups/
           if git diff --cached --quiet; then
             echo "No changes to commit"
             exit 0
