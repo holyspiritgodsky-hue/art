@@ -36,6 +36,7 @@
 	<script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
 	<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
 	<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+	<script src="./data.js"></script>
 </head>
 <body class="min-h-screen overflow-x-hidden bg-ink text-slate-100 antialiased">
 	<div class="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(89,243,255,0.16),_transparent_28%),radial-gradient(circle_at_82%_18%,_rgba(255,93,125,0.14),_transparent_24%),radial-gradient(circle_at_50%_120%,_rgba(255,203,87,0.12),_transparent_35%)]"></div>
@@ -206,7 +207,39 @@
 			return value.replace(/-/g, '.');
 		}
 
+		function formatAmount(value) {
+			if (value === null || value === undefined || value === '') {
+				return '-';
+			}
+
+			const numericValue = Number(String(value).replace(/,/g, ''));
+			if (!Number.isFinite(numericValue)) {
+				return value;
+			}
+
+			const absValue = Math.abs(numericValue);
+			if (absValue >= 100000000) {
+				return `${(numericValue / 100000000).toFixed(2)}亿`;
+			}
+			if (absValue >= 10000) {
+				return `${(numericValue / 10000).toFixed(2)}万`;
+			}
+
+			return numericValue.toLocaleString('zh-CN');
+		}
+
 		function ensureStockShape(stock) {
+			if (!stock) {
+				return {
+					code: '',
+					name: '-',
+					score: 0,
+					marginDate: '-',
+					metrics: {},
+					dims: [],
+				};
+			}
+
 			return {
 				code: stock.code || '',
 				name: stock.name || stock.code || '-',
@@ -219,18 +252,37 @@
 
 		function buildAliasMap(stockList) {
 			return stockList.reduce((map, stock) => {
-				map[stock.code] = stock;
-				map[stock.name.toLowerCase()] = stock;
+				const code = String(stock.code || '').trim();
+				const name = String(stock.name || '').trim().toLowerCase();
+				if (code) {
+					map[code] = stock;
+				}
+				if (name) {
+					map[name] = stock;
+				}
 				return map;
 			}, {});
 		}
 
-		function resolveStock(query, fallbackCode, aliases) {
+		function findStockMatch(query, stockList, aliases) {
 			const normalized = query.trim().toLowerCase();
 			if (!normalized) {
-				return aliases[fallbackCode];
+				return null;
 			}
-			return aliases[normalized] || aliases[fallbackCode];
+
+			if (aliases[normalized]) {
+				return aliases[normalized];
+			}
+
+			return stockList.find((stock) => {
+				const code = String(stock.code || '').toLowerCase();
+				const name = String(stock.name || '').toLowerCase();
+				return code.startsWith(normalized) || name.includes(normalized);
+			}) || null;
+		}
+
+		function resolveStock(query, fallbackCode, stockList, aliases) {
+			return findStockMatch(query, stockList, aliases) || aliases[fallbackCode];
 		}
 
 		function Gauge({ score }) {
@@ -257,7 +309,7 @@
 			);
 		}
 
-		function SearchField({ label, value, onChange }) {
+		function SearchField({ label, value, onChange, onSubmit }) {
 			return (
 				<label className="block">
 					<div className="mb-3 text-xs uppercase tracking-[0.35em] text-slate-400">{label}</div>
@@ -266,6 +318,12 @@
 						<input
 							value={value}
 							onChange={(event) => onChange(event.target.value)}
+							onKeyDown={(event) => {
+								if (event.key === 'Enter') {
+									event.preventDefault();
+									onSubmit();
+								}
+							}}
 							className="w-full bg-transparent text-lg text-white outline-none placeholder:text-slate-500"
 							placeholder="输入代码 / 名称，例如 300308 或 科大讯飞"
 						/>
@@ -320,11 +378,11 @@
 					<div className="mt-5 grid gap-3 text-sm text-slate-300 sm:grid-cols-2">
 						<div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
 							<div className="text-xs uppercase tracking-[0.25em] text-slate-500">融资余额</div>
-							<div className="mt-2 text-base text-white">{metrics.margin_balance ?? '-'}</div>
+							<div className="mt-2 text-base text-white">{formatAmount(metrics.margin_balance)}</div>
 						</div>
 						<div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
 							<div className="text-xs uppercase tracking-[0.25em] text-slate-500">融资买入额</div>
-							<div className="mt-2 text-base text-white">{metrics.margin_buy ?? '-'}</div>
+							<div className="mt-2 text-base text-white">{formatAmount(metrics.margin_buy)}</div>
 						</div>
 						<div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
 							<div className="text-xs uppercase tracking-[0.25em] text-slate-500">换手率</div>
@@ -364,8 +422,8 @@
 			const [selectedWarningDate, setSelectedWarningDate] = React.useState(fallbackWarningHistory[0].date);
 			const [leftInput, setLeftInput] = React.useState('300308');
 			const [rightInput, setRightInput] = React.useState('002230');
-			const [leftQuery, setLeftQuery] = React.useState('300308');
-			const [rightQuery, setRightQuery] = React.useState('002230');
+			const [leftSubmittedQuery, setLeftSubmittedQuery] = React.useState('300308');
+			const [rightSubmittedQuery, setRightSubmittedQuery] = React.useState('002230');
 			const [loadState, setLoadState] = React.useState('idle');
 			const [loadMessage, setLoadMessage] = React.useState(fallbackPrompt);
 
@@ -373,12 +431,15 @@
 				async function loadData() {
 					try {
 						setLoadState('loading');
-						const response = await fetch('/money/data.json', { cache: 'no-store' });
-						if (!response.ok) {
-							throw new Error(`HTTP ${response.status}`);
-						}
+						let payload = globalThis.__QUANT_DATA__;
+						if (!payload) {
+							const response = await fetch('./data.json', { cache: 'no-store' });
+							if (!response.ok) {
+								throw new Error(`HTTP ${response.status}`);
+							}
 
-						const payload = await response.json();
+							payload = await response.json();
+						}
 						const normalized = normalizeStockData(payload);
 						if (!normalized || normalized.stocks.length === 0) {
 							throw new Error('data.json 中没有可用股票数据');
@@ -386,11 +447,22 @@
 
 						setStockSource(normalized);
 						setSelectedWarningDate(normalized.warningHistory[0]?.date || normalized.dailyWarning?.date || '');
+						if (normalized.stocks[0]?.code) {
+							setLeftInput(normalized.stocks[0].code);
+							setLeftSubmittedQuery(normalized.stocks[0].code);
+						}
+						if (normalized.stocks[1]?.code) {
+							setRightInput(normalized.stocks[1].code);
+							setRightSubmittedQuery(normalized.stocks[1].code);
+						} else if (normalized.stocks[0]?.code) {
+							setRightInput(normalized.stocks[0].code);
+							setRightSubmittedQuery(normalized.stocks[0].code);
+						}
 						setLoadState('ready');
-						setLoadMessage(`已加载 data.json，共 ${normalized.stocks.length} 只股票。`);
+						setLoadMessage(`已加载实时数据，共 ${normalized.stocks.length} 只股票。`);
 					} catch (error) {
 						setLoadState('fallback');
-						setLoadMessage('未读取到 data.json，当前展示静态样本。若双击打开 HTML，浏览器通常不会允许读取本地 JSON，请改用本地静态服务访问。');
+						setLoadMessage('未读取到实时数据，当前展示静态样本。请先运行 Python 脚本生成 data.json 和 data.js。');
 					}
 				}
 
@@ -403,13 +475,17 @@
 					|| stockSource.dailyWarning
 					|| fallbackWarningHistory[0];
 			}, [selectedWarningDate, stockSource]);
-			const leftStock = resolveStock(leftQuery, '300308', aliases);
-			const rightStock = resolveStock(rightQuery, '002230', aliases);
+			const fallbackLeftCode = stockSource.stocks[0]?.code || '300308';
+			const fallbackRightCode = stockSource.stocks[1]?.code || stockSource.stocks[0]?.code || '002230';
+			const leftLiveMatch = findStockMatch(leftInput, stockSource.stocks, aliases);
+			const rightLiveMatch = findStockMatch(rightInput, stockSource.stocks, aliases);
+			const leftStock = leftLiveMatch || resolveStock(leftSubmittedQuery, fallbackLeftCode, stockSource.stocks, aliases);
+			const rightStock = rightLiveMatch || resolveStock(rightSubmittedQuery, fallbackRightCode, stockSource.stocks, aliases);
 			const gaugeScore = currentWarning?.gauge_score ?? Math.max(leftStock.score, rightStock.score);
 
 			function applyQueries() {
-				setLeftQuery(leftInput);
-				setRightQuery(rightInput);
+				setLeftSubmittedQuery(leftInput);
+				setRightSubmittedQuery(rightInput);
 			}
 
 			return (
@@ -514,12 +590,19 @@
 							<div className="text-base text-slate-400">支持输入代码或名称，对比两只 AI 热门股的风险结构。</div>
 						</div>
 
-						<div className="mt-8 grid gap-5 lg:grid-cols-2">
-							<SearchField label="左侧标的" value={leftInput} onChange={setLeftInput} />
-							<SearchField label="右侧标的" value={rightInput} onChange={setRightInput} />
+						<div className="mt-8 grid gap-5 lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] lg:items-end">
+							<SearchField label="左侧标的" value={leftInput} onChange={setLeftInput} onSubmit={applyQueries} />
+							<button
+								type="button"
+								onClick={applyQueries}
+								className="inline-flex min-h-[60px] items-center justify-center self-end rounded-2xl border border-cyanGlow/25 bg-cyanGlow/15 px-6 py-3 font-display text-lg font-bold tracking-[0.12em] text-cyanGlow transition duration-300 hover:border-cyanGlow/45 hover:bg-cyanGlow/20"
+							>
+								查询 / PK
+							</button>
+							<SearchField label="右侧标的" value={rightInput} onChange={setRightInput} onSubmit={applyQueries} />
 						</div>
 
-						<div className="mt-6 flex flex-col gap-4 rounded-[28px] border border-white/10 bg-white/5 p-5 sm:flex-row sm:items-center sm:justify-between">
+						<div className="mt-6 rounded-[28px] border border-white/10 bg-white/5 p-5">
 							<div>
 								<div className={`text-sm ${loadState === 'ready' ? 'text-emerald-200' : loadState === 'loading' ? 'text-amber-200' : 'text-slate-300'}`}>
 									{loadMessage}
@@ -528,13 +611,6 @@
 									{stockSource.generatedAt ? `数据生成时间 ${stockSource.generatedAt}` : '未检测到实时数据文件'}
 								</div>
 							</div>
-							<button
-								type="button"
-								onClick={applyQueries}
-								className="inline-flex items-center justify-center rounded-2xl border border-cyanGlow/25 bg-cyanGlow/15 px-6 py-3 font-display text-lg font-bold tracking-[0.12em] text-cyanGlow transition duration-300 hover:border-cyanGlow/45 hover:bg-cyanGlow/20"
-							>
-								查询 / PK
-							</button>
 						</div>
 
 						<div className="mt-8 grid gap-6 lg:grid-cols-2">
