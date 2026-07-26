@@ -26,7 +26,6 @@ import akshare as ak
 import pandas as pd
 
 
-DEFAULT_CODES = ["300476", "002384"]
 DEFAULT_OUTPUT = Path(__file__).with_name("data.json")
 DEFAULT_BACKUP_DIR = Path(__file__).with_name("backups")
 
@@ -45,6 +44,7 @@ STOCK_WHITELIST = [
 
 STOCK_WHITELIST = list(dict.fromkeys(STOCK_WHITELIST))[:100]
 STOCK_WHITELIST_SET = set(STOCK_WHITELIST)
+DEFAULT_CODES = STOCK_WHITELIST.copy()
 
 # 业务纯度分数: 0-100, 数值越高代表业务概念越纯，越容易形成一致性拥挤。
 BUSINESS_PURITY_SCORES = {
@@ -68,6 +68,12 @@ logging.basicConfig(
     format="%(asctime)s [%(levelname)s] %(message)s",
 )
 LOGGER = logging.getLogger(__name__)
+
+
+def configure_network_environment() -> None:
+    # Bypass implicit system proxies unless the caller explicitly configured one.
+    os.environ.setdefault("NO_PROXY", "*")
+    os.environ.setdefault("no_proxy", "*")
 
 
 def parse_args() -> argparse.Namespace:
@@ -116,6 +122,17 @@ def backup_existing_output(output_path: Path, backup_dir: Path) -> Path | None:
     return backup_path
 
 
+def browser_data_script_path(output_path: Path) -> Path:
+    return output_path.with_name(f"{output_path.stem}.js")
+
+
+def write_browser_payload_script(payload: dict[str, Any], output_path: Path) -> None:
+    script_path = browser_data_script_path(output_path)
+    script_body = "window.__QUANT_DATA__ = " + json.dumps(payload, ensure_ascii=False, indent=2) + ";\n"
+    script_path.write_text(script_body, encoding="utf-8")
+    LOGGER.info("Wrote %s", script_path)
+
+
 def write_payload_atomic(payload: dict[str, Any], output_path: Path, backup_dir: Path) -> None:
     output_path.parent.mkdir(parents=True, exist_ok=True)
     backup_existing_output(output_path, backup_dir)
@@ -124,6 +141,7 @@ def write_payload_atomic(payload: dict[str, Any], output_path: Path, backup_dir:
     temp_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
     temp_path.replace(output_path)
     LOGGER.info("Wrote %s", output_path)
+    write_browser_payload_script(payload, output_path)
 
 
 def load_existing_payload(output_path: Path) -> dict[str, Any]:
@@ -131,7 +149,7 @@ def load_existing_payload(output_path: Path) -> dict[str, Any]:
         return {}
 
     try:
-        return json.loads(output_path.read_text(encoding="utf-8"))
+        return json.loads(output_path.read_text(encoding="utf-8-sig"))
     except (OSError, json.JSONDecodeError) as exc:
         LOGGER.warning("Failed to read existing payload from %s: %s", output_path, exc)
         return {}
@@ -209,8 +227,28 @@ def load_latest_margin_data(market: str, lookback_days: int = 10) -> tuple[pd.Da
     raise RuntimeError(f"No margin data found for market={market} in the last {lookback_days} days")
 
 
-def load_spot_data() -> pd.DataFrame:
-    frame = ak.stock_zh_a_spot_em().copy()
+def load_spot_data() -> tuple[pd.DataFrame, str]:
+    try:
+        frame = ak.stock_zh_a_spot_em().copy()
+        source = "eastmoney:stock_zh_a_spot_em"
+    except Exception as exc:
+        LOGGER.warning("Fallback to Tencent spot data after Eastmoney failure: %s", exc)
+        frame = ak.stock_zh_a_spot_tx().copy()
+        frame = frame.rename(columns={"code": "code", "name": "name", "hsl": "turnover_rate"}).copy()
+        required_columns = {"code", "name", "turnover_rate"}
+        missing = required_columns - set(frame.columns)
+        if missing:
+            raise ValueError(f"Tencent spot quote data missing required columns: {sorted(missing)}")
+
+        frame["code"] = frame["code"].astype(str).str.extract(r"(\d{6})", expand=False).fillna("")
+        frame["turnover_rate"] = (
+            frame["turnover_rate"]
+            .astype(str)
+            .str.replace("%", "", regex=False)
+            .str.strip()
+            .replace({"": None, "-": None, "None": None, "nan": None})
+        )
+        return frame[["code", "name", "turnover_rate"]], "tencent:stock_zh_a_spot_tx"
 
     turnover_column = None
     for candidate in frame.columns:
@@ -236,7 +274,7 @@ def load_spot_data() -> pd.DataFrame:
     if missing:
         raise ValueError(f"Spot quote data missing required columns: {sorted(missing)}")
 
-    frame["code"] = frame["code"].astype(str).str.zfill(6)
+    frame["code"] = frame["code"].astype(str).str.extract(r"(\d{6})", expand=False).fillna("")
     frame["turnover_rate"] = (
         frame["turnover_rate"]
         .astype(str)
@@ -251,7 +289,7 @@ def load_spot_data() -> pd.DataFrame:
             missing_ratio * 100,
             list(frame.columns),
         )
-    return frame[["code", "name", "turnover_rate"]]
+    return frame[["code", "name", "turnover_rate"]], source
 
 
 def compute_financing_pressure_score(margin_balance: float | None, margin_buy: float | None) -> float:
@@ -400,7 +438,7 @@ def export_data(codes: list[str], output_path: Path, backup_dir: Path) -> dict[s
 
     LOGGER.info("Start export for %s requested codes, %s whitelisted codes", len(codes), len(filtered_codes))
     existing_payload = load_existing_payload(output_path)
-    spot_frame = load_spot_data()
+    spot_frame, spot_source = load_spot_data()
     spot_total_count = len(spot_frame)
     spot_turnover_missing_count = int(spot_frame["turnover_rate"].isna().sum())
     spot_turnover_available_count = spot_total_count - spot_turnover_missing_count
@@ -458,7 +496,7 @@ def export_data(codes: list[str], output_path: Path, backup_dir: Path) -> dict[s
             "turnover_heat_rule": "min(100, 换手率 * 8)",
         },
         "spot_data_health": {
-            "source": "eastmoney:stock_zh_a_spot_em",
+            "source": spot_source,
             "total_rows": spot_total_count,
             "turnover_rate_available_rows": spot_turnover_available_count,
             "turnover_rate_missing_rows": spot_turnover_missing_count,
@@ -477,6 +515,7 @@ def export_data(codes: list[str], output_path: Path, backup_dir: Path) -> dict[s
 
 
 def main() -> None:
+    configure_network_environment()
     args = parse_args()
     output_path = Path(args.output)
     backup_dir = Path(args.backup_dir)
