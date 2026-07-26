@@ -353,8 +353,7 @@
 
 		function isReviewSuccessful(review) {
 			const status = String(review?.status || '').trim();
-			const note = String(review?.note || '').trim();
-			return /(避坑成功|成功|兑现|命中)/.test(`${status} ${note}`);
+			return /^(避坑成功|成功|预警兑现|命中)$/.test(status);
 		}
 
 		function formatAmount(value) {
