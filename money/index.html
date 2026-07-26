@@ -315,6 +315,25 @@
 			return value.replace(/-/g, '.');
 		}
 
+		function formatMarginDate(value) {
+			if (!value || value === '-') {
+				return '-';
+			}
+
+			const normalized = String(value).trim();
+			const compactMatch = normalized.match(/^(\d{4})(\d{2})(\d{2})$/);
+			if (compactMatch) {
+				return `${Number(compactMatch[2])}月${Number(compactMatch[3])}日`;
+			}
+
+			const dashedMatch = normalized.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+			if (dashedMatch) {
+				return `${Number(dashedMatch[2])}月${Number(dashedMatch[3])}日`;
+			}
+
+			return normalized;
+		}
+
 		function isReviewSuccessful(review) {
 			const status = String(review?.status || '').trim();
 			const note = String(review?.note || '').trim();
@@ -504,7 +523,7 @@
 						</div>
 						<div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
 							<div className="text-xs uppercase tracking-[0.25em] text-slate-500">两融日期</div>
-							<div className="mt-2 text-base text-white">{safeStock.marginDate}</div>
+							<div className="mt-2 text-base text-white">{formatMarginDate(safeStock.marginDate)}</div>
 						</div>
 					</div>
 				</div>
