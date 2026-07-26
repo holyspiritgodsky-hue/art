@@ -157,9 +157,9 @@
 						marginDate: item.margin_date || '-',
 						metrics: item.metrics || {},
 						dims: [
-							{ label: 'AI / 主营纯度', value: purityScore },
-							{ label: '换手热度', value: turnoverScore },
-							{ label: '两融压力', value: financingScore },
+							{ label: '板块主营相关度', value: purityScore },
+							{ label: '高频诱多 / 砸盘频率', value: turnoverScore },
+							{ label: '两融杠杆压力', value: financingScore },
 						],
 					};
 				});
@@ -400,12 +400,12 @@
 		function buildConclusion(leftStock, rightStock) {
 			const delta = rightStock.score - leftStock.score;
 			if (Math.abs(delta) <= 8) {
-				return `两只标的陷阱分接近，${leftStock.name}与${rightStock.name}都不适合情绪化追高，优先等分歧确认。`;
+				return `${leftStock.name}和${rightStock.name}看下来都不算便宜，现在去追都容易挨套，先等它们回落一点再看。`;
 			}
 			if (delta > 0) {
-				return `${leftStock.name}当前量化陷阱压力明显低于${rightStock.name}，若必须二选一，优先观察左侧，右侧更像高位一致性诱多。`;
+				return `${leftStock.name}这边相对安全一点，但也不要梭哈；${rightStock.name}现在更容易冲高回落，尽量别追。`;
 			}
-			return `${rightStock.name}当前量化陷阱压力明显低于${leftStock.name}，右侧更适合留作观察仓，左侧需警惕高波动回撤。`;
+			return `${rightStock.name}这边相对安全一点，但也不要梭哈；${leftStock.name}现在更容易冲高回落，尽量别追。`;
 		}
 
 		function App() {
