@@ -21,6 +21,7 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any
+from zoneinfo import ZoneInfo
 
 import akshare as ak
 import pandas as pd
@@ -28,6 +29,7 @@ import pandas as pd
 
 DEFAULT_OUTPUT = Path(__file__).with_name("data.json")
 DEFAULT_BACKUP_DIR = Path(__file__).with_name("backups")
+BEIJING_TIME_ZONE = ZoneInfo("Asia/Shanghai")
 
 STOCK_WHITELIST = [
     "300476", "002384", "300308", "002230", "688256", "603019", "603160", "603986", "603501", "603893",
@@ -477,7 +479,7 @@ def export_data(codes: list[str], output_path: Path, backup_dir: Path) -> dict[s
     if not result_stocks:
         raise RuntimeError("No stock data was exported successfully")
 
-    generated_at = datetime.now().isoformat(timespec="seconds")
+    generated_at = datetime.now(BEIJING_TIME_ZONE).isoformat(timespec="seconds")
     daily_warning = build_daily_warning(result_stocks, generated_at)
     warning_history = merge_warning_history(existing_payload, daily_warning)
 
