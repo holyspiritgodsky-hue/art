@@ -1,5 +1,15 @@
 {
-  "generated_at": "2026-07-28T00:02:36+08:00",
+  "generated_at": "2026-07-28T01:58:02+08:00",
+  "data_freshness": {
+    "warning_target_date": "2026-07-28",
+    "spot_snapshot_at": "2026-07-28T01:58:02+08:00",
+    "margin_data_as_of": "20260724",
+    "margin_data_dates_by_market": {
+      "szse": "20260724",
+      "sse": "20260724"
+    },
+    "market_phase": "pre_open"
+  },
   "run_source": "manual",
   "whitelist_size": 117,
   "requested_count": 117,
@@ -247,8 +257,9 @@
     "business_purity_weight": 0.35,
     "financing_pressure_weight": 0.45,
     "turnover_heat_weight": 0.2,
-    "financing_pressure_rule": "min(100, 融资买入额 / 融资余额 * 1000)",
-    "turnover_heat_rule": "min(100, 换手率 * 8)"
+    "financing_pressure_rule": "????????? / ???????????????????",
+    "turnover_heat_rule": "min(100, ??? * 8)",
+    "gauge_score_rule": "???????? * 0.55 + ????? * 0.25 + ??????? * 100 * 0.20"
   },
   "spot_data_health": {
     "source": "tencent:stock_zh_a_spot_tx",
@@ -258,23 +269,41 @@
     "turnover_rate_missing_ratio": 0.0
   },
   "daily_warning": {
-    "date": "2026-07-27",
+    "date": "2026-07-28",
     "title": "量化高危区，先看承接，再谈进攻。",
-    "gauge_score": 82,
-    "prompt": "当前高风险样本集中在 全志科技 等标的，样本平均陷阱分约 49.6，优先防范一致性追高后的回撤兑现。",
+    "gauge_score": 72,
+    "summary": {
+      "sample_size": 117,
+      "avg_trap_score": 49.64,
+      "high_risk_count": 20,
+      "high_risk_ratio": 0.1709,
+      "watch_count": 38,
+      "watch_ratio": 0.3248,
+      "top_cohort_size": 11,
+      "top_cohort_avg_trap_score": 78.44,
+      "concentration_spread": 28.8,
+      "gauge_score": 72,
+      "window_risk": "high",
+      "window_value": "10:05 - 10:40 是明天最容易冲高回落的时段",
+      "window_basis": "高风险票数量多，前排平均分也偏高。",
+      "top_stock_code": "300458",
+      "top_stock_name": "全志科技",
+      "top_financing_pressure_score": 100.0
+    },
+    "prompt": "当前高风险样本集中在 全志科技 等标的，前排样本平均陷阱分约 78.4，高风险票 20 只，优先防范一致性追高后的回撤兑现。",
     "signals": [
       {
-        "label": "高频异动",
+        "label": "高风险个股数量",
         "value": "20",
         "note": "陷阱分大于等于 70 的样本数"
       },
       {
-        "label": "筹码拥挤",
-        "value": "50%",
-        "note": "核心样本平均陷阱分映射"
+        "label": "整体追高热度",
+        "value": "78%",
+        "note": "前 11 只高分样本的平均陷阱分"
       },
       {
-        "label": "两融升温",
+        "label": "杠杆资金压力",
         "value": "100%",
         "note": "全志科技 的融资压力得分"
       }
@@ -286,7 +315,7 @@
       },
       {
         "label": "量化踩踏窗口",
-        "value": "10:05 - 10:40 易放大冲高回落"
+        "value": "10:05 - 10:40 是明天最容易冲高回落的时段"
       },
       {
         "label": "执行纪律",
@@ -296,10 +325,70 @@
     "strategy": "当板块一致性预期过满时，陷阱往往不是来自逻辑错误，而是来自交易位置错误。先审视筹码，再决定出手。",
     "review": {
       "status": "待复盘",
-      "note": "次日收盘后可补充验证结论，观察预警是否兑现。"
+      "note": ""
     }
   },
   "warning_history": [
+    {
+      "date": "2026-07-28",
+      "title": "量化高危区，先看承接，再谈进攻。",
+      "gauge_score": 72,
+      "summary": {
+        "sample_size": 117,
+        "avg_trap_score": 49.64,
+        "high_risk_count": 20,
+        "high_risk_ratio": 0.1709,
+        "watch_count": 38,
+        "watch_ratio": 0.3248,
+        "top_cohort_size": 11,
+        "top_cohort_avg_trap_score": 78.44,
+        "concentration_spread": 28.8,
+        "gauge_score": 72,
+        "window_risk": "high",
+        "window_value": "10:05 - 10:40 是明天最容易冲高回落的时段",
+        "window_basis": "高风险票数量多，前排平均分也偏高。",
+        "top_stock_code": "300458",
+        "top_stock_name": "全志科技",
+        "top_financing_pressure_score": 100.0
+      },
+      "prompt": "当前高风险样本集中在 全志科技 等标的，前排样本平均陷阱分约 78.4，高风险票 20 只，优先防范一致性追高后的回撤兑现。",
+      "signals": [
+        {
+          "label": "高风险个股数量",
+          "value": "20",
+          "note": "陷阱分大于等于 70 的样本数"
+        },
+        {
+          "label": "整体追高热度",
+          "value": "78%",
+          "note": "前 11 只高分样本的平均陷阱分"
+        },
+        {
+          "label": "杠杆资金压力",
+          "value": "100%",
+          "note": "全志科技 的融资压力得分"
+        }
+      ],
+      "warnings": [
+        {
+          "label": "风格漂移预警",
+          "value": "高纯度科技核心股拥挤度偏高，冲高回落风险更大。"
+        },
+        {
+          "label": "量化踩踏窗口",
+          "value": "10:05 - 10:40 是明天最容易冲高回落的时段"
+        },
+        {
+          "label": "执行纪律",
+          "value": "避免追涨，优先确认量价背离后的承接质量。"
+        }
+      ],
+      "strategy": "当板块一致性预期过满时，陷阱往往不是来自逻辑错误，而是来自交易位置错误。先审视筹码，再决定出手。",
+      "review": {
+        "status": "待复盘",
+        "note": ""
+      }
+    },
     {
       "date": "2026-07-27",
       "title": "量化高危区，先看承接，再谈进攻。",
@@ -338,8 +427,8 @@
       ],
       "strategy": "当板块一致性预期过满时，陷阱往往不是来自逻辑错误，而是来自交易位置错误。先审视筹码，再决定出手。",
       "review": {
-        "status": "待复盘",
-        "note": "次日收盘后可补充验证结论，观察预警是否兑现。"
+        "status": "避坑成功",
+        "note": "次日全市场高风险特征延续，样本平均陷阱分 49.6，高风险样本 20 只，继续控制追高是有效的。"
       }
     },
     {
