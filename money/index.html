@@ -44,6 +44,8 @@
 	<div id="root" class="relative"></div>
 
 	<script type="text/babel">
+		const SHANGHAI_TIME_ZONE = 'Asia/Shanghai';
+
 		const fallbackDatabase = {
 			'300308': {
 				code: '300308',
@@ -315,6 +317,52 @@
 			return value.replace(/-/g, '.');
 		}
 
+		function formatInTimeZone(date, includeSeconds) {
+			const formatter = new Intl.DateTimeFormat('sv-SE', {
+				timeZone: SHANGHAI_TIME_ZONE,
+				year: 'numeric',
+				month: '2-digit',
+				day: '2-digit',
+				hour: '2-digit',
+				minute: '2-digit',
+				...(includeSeconds ? { second: '2-digit' } : {}),
+				hour12: false,
+			});
+
+			return formatter.format(date).replace(' ', ' ');
+		}
+
+		function parseTimestampAsBeijing(value) {
+			if (!value) {
+				return null;
+			}
+
+			const normalized = String(value).trim();
+			if (!normalized) {
+				return null;
+			}
+
+			const explicitTimezoneMatch = /(?:Z|[+-]\d{2}:?\d{2})$/i.test(normalized);
+			const naiveIsoMatch = normalized.match(/^(\d{4}-\d{2}-\d{2})[T\s](\d{2}:\d{2})(?::(\d{2}))?$/);
+
+			if (naiveIsoMatch && !explicitTimezoneMatch) {
+				return {
+					date: new Date(`${naiveIsoMatch[1]}T${naiveIsoMatch[2]}${naiveIsoMatch[3] ? `:${naiveIsoMatch[3]}` : ''}Z`),
+					includeSeconds: Boolean(naiveIsoMatch[3]),
+				};
+			}
+
+			const parsed = new Date(normalized);
+			if (Number.isNaN(parsed.getTime())) {
+				return null;
+			}
+
+			return {
+				date: parsed,
+				includeSeconds: /:\d{2}(?:$|Z|[+-]\d{2}:?\d{2}$)/.test(normalized),
+			};
+		}
+
 		function formatWarningUpdatedAt(value, fallbackDate) {
 			if (!value) {
 				if (fallbackDate) {
@@ -323,13 +371,25 @@
 				return '预警更新时间 -';
 			}
 
-			const normalized = String(value).trim();
-			const isoMatch = normalized.match(/^(\d{4}-\d{2}-\d{2})[T\s](\d{2}:\d{2})/);
-			if (isoMatch) {
-				return `预警更新时间 ${isoMatch[1]} ${isoMatch[2]}`;
+			const parsed = parseTimestampAsBeijing(value);
+			if (parsed) {
+				return `预警更新时间 ${formatInTimeZone(parsed.date, false)} 北京时间`;
 			}
 
-			return `预警更新时间 ${normalized}`;
+			return `预警更新时间 ${String(value).trim()}`;
+		}
+
+		function formatGeneratedAt(value) {
+			if (!value) {
+				return '未检测到实时数据文件';
+			}
+
+			const parsed = parseTimestampAsBeijing(value);
+			if (parsed) {
+				return `数据生成时间 ${formatInTimeZone(parsed.date, parsed.includeSeconds)} 北京时间`;
+			}
+
+			return `数据生成时间 ${String(value).trim()}`;
 		}
 
 		function formatMarginDate(value) {
@@ -772,7 +832,7 @@
 									{loadMessage}
 								</div>
 								<div className="mt-2 text-xs uppercase tracking-[0.3em] text-slate-500">
-									{stockSource.generatedAt ? `数据生成时间 ${stockSource.generatedAt}` : '未检测到实时数据文件'}
+									{formatGeneratedAt(stockSource.generatedAt)}
 								</div>
 							</div>
 						</div>
