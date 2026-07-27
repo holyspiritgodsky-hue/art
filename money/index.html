@@ -91,6 +91,20 @@
 
 		const defaultPrompt = '量化高频资金在连续拉高后有回撤兑现迹象，明日更适合做低吸辨真伪，避免追高接一致性。';
 		const fallbackPrompt = '暂无实时量化结论，先用静态样本演示。若要读取最新结果，请先运行 Python 脚本生成 data.json，并用本地静态服务打开页面。';
+		const metricGlossary = [
+			{
+				label: '高风险个股数量',
+				description: '看今天样本里有多少只票已经挤到高风险区。数量越多，越说明追高环境差。',
+			},
+			{
+				label: '整体追高热度',
+				description: '不是看单只票多强，而是看一批热门票整体有多拥挤。热度越高，越容易一致性兑现。',
+			},
+			{
+				label: '杠杆资金压力',
+				description: '融资买入冲得越猛，次日越容易出现先冲后砸。这个指标主要用来识别高位加杠杆。',
+			},
+		];
 		const fallbackWarningHistory = [
 			{
 				date: '2026-07-27',
@@ -282,6 +296,38 @@
 			};
 		}
 
+		function normalizeSignals(signals) {
+			if (!Array.isArray(signals)) {
+				return [];
+			}
+
+			const labelMap = {
+				'高频异动': '高风险个股数量',
+				'筹码拥挤': '整体追高热度',
+				'两融升温': '杠杆资金压力',
+			};
+
+			return signals.map((signal) => ({
+				...signal,
+				label: labelMap[signal?.label] || signal?.label || '未命名信号',
+			}));
+		}
+
+		function normalizeWarningSummary(summary) {
+			if (!summary || typeof summary !== 'object') {
+				return {};
+			}
+
+			return {
+				...summary,
+				avg_trap_score: Number(summary.avg_trap_score ?? 0),
+				high_risk_count: Number(summary.high_risk_count ?? 0),
+				top_cohort_size: Number(summary.top_cohort_size ?? 0),
+				top_cohort_avg_trap_score: Number(summary.top_cohort_avg_trap_score ?? 0),
+				window_basis: summary.window_basis || '',
+			};
+		}
+
 		function normalizeWarningEntry(entry) {
 			if (!entry) {
 				return null;
@@ -292,7 +338,8 @@
 				title: entry.title || '暂无预警标题',
 				gauge_score: Math.round(entry.gauge_score ?? 0),
 				prompt: entry.prompt || fallbackPrompt,
-				signals: Array.isArray(entry.signals) ? entry.signals : [],
+				summary: normalizeWarningSummary(entry.summary),
+				signals: normalizeSignals(entry.signals),
 				warnings: Array.isArray(entry.warnings) ? entry.warnings : [],
 				strategy: entry.strategy || '',
 				review: entry.review || { status: '待复盘', note: '' },
@@ -313,6 +360,10 @@
 		function formatWarningDate(value) {
 			if (!value) {
 				return '未命名日期';
+			}
+			const match = String(value).trim().match(/^(\d{4})-(\d{2})-(\d{2})$/);
+			if (match) {
+				return `${match[2]}.${match[3]}`;
 			}
 			return value.replace(/-/g, '.');
 		}
@@ -413,7 +464,12 @@
 
 		function isReviewSuccessful(review) {
 			const status = String(review?.status || '').trim();
-			return /^(避坑成功|成功|预警兑现|命中)$/.test(status);
+			return /^(避坑成功|成功|预警兑现|命中|方向对了)$/.test(status);
+		}
+
+		function isReviewFailure(review) {
+			const status = String(review?.status || '').trim();
+			return /^(预警失效|失效|判断错误|方向错了)$/.test(status);
 		}
 
 		function formatAmount(value) {
@@ -598,7 +654,7 @@
 							<div className="mt-2 text-base text-white">{metrics.turnover_rate ?? '-'}</div>
 						</div>
 						<div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
-							<div className="text-xs uppercase tracking-[0.25em] text-slate-500">两融日期</div>
+							<div className="text-xs uppercase tracking-[0.25em] text-slate-500">两融披露日</div>
 							<div className="mt-2 text-base text-white">{formatMarginDate(safeStock.marginDate)}</div>
 						</div>
 					</div>
@@ -615,6 +671,51 @@
 				return `${leftStock.name}这边相对安全一点，但也不要梭哈；${rightStock.name}现在更容易冲高回落，尽量别追。`;
 			}
 			return `${rightStock.name}这边相对安全一点，但也不要梭哈；${leftStock.name}现在更容易冲高回落，尽量别追。`;
+		}
+
+		function reviewTone(review) {
+			if (isReviewSuccessful(review)) {
+				return {
+					label: '这次判断对了',
+					className: 'border-emerald-300/30 bg-emerald-400/15 text-emerald-100',
+				};
+			}
+			if (isReviewFailure(review)) {
+				return {
+					label: '这次判断错了',
+					className: 'border-red-300/30 bg-red-400/15 text-red-100',
+				};
+			}
+			return {
+				label: review?.status || '待复盘',
+				className: 'border-white/10 bg-white/5 text-slate-200',
+			};
+		}
+
+		function windowReviewTone(windowReview) {
+			const status = String(windowReview?.status || '').trim();
+			if (status === '时段命中') {
+				return {
+					label: '时段命中',
+					className: 'border-cyanGlow/30 bg-cyanGlow/15 text-cyanGlow',
+				};
+			}
+			if (status === '时段未命中') {
+				return {
+					label: '时段未命中',
+					className: 'border-amber-300/30 bg-amber-400/15 text-amber-100',
+				};
+			}
+			if (status === '时段待补') {
+				return {
+					label: '时段待补',
+					className: 'border-slate-300/20 bg-white/5 text-slate-200',
+				};
+			}
+			return {
+				label: status || '时段未验证',
+				className: 'border-white/10 bg-white/5 text-slate-200',
+			};
 		}
 
 		function App() {
@@ -692,6 +793,12 @@
 			const rightStock = rightLiveMatch || resolveStock(rightSubmittedQuery, fallbackRightCode, stockSource.stocks, aliases);
 			const gaugeScore = currentWarning?.gauge_score ?? Math.max(leftStock.score, rightStock.score);
 			const reviewSuccess = isReviewSuccessful(currentWarning?.review);
+			const reviewFailure = isReviewFailure(currentWarning?.review);
+			const reviewBadge = reviewTone(currentWarning?.review);
+			const windowReviewBadge = windowReviewTone(currentWarning?.review?.window_review);
+			const topCohortAverage = currentWarning?.summary?.top_cohort_avg_trap_score;
+			const topCohortSize = currentWarning?.summary?.top_cohort_size;
+			const windowBasis = currentWarning?.summary?.window_basis;
 
 			function applyQueries() {
 				setLeftSubmittedQuery(leftInput);
@@ -709,7 +816,7 @@
 										量化陷阱预警系统
 									</h1>
 									<p className="mt-4 max-w-2xl text-base text-slate-300 sm:text-lg">
-										管住手、避开坑，不做量化资金的高位接盘侠
+										直接给判断，也保留复盘。判断错了，就在历史里明确写错。
 									</p>
 								</div>
 								
@@ -724,7 +831,7 @@
 												{formatWarningUpdatedAt(stockSource.generatedAt, currentWarning.date)}
 											</div>
 										</div>
-										<div className="text-xs uppercase tracking-[0.35em] text-slate-400">明日操作提示词</div>
+										<div className="text-xs uppercase tracking-[0.35em] text-slate-400">{formatWarningDate(currentWarning.date)} 操作提示词</div>
 										<div className="mt-4 text-2xl font-semibold leading-relaxed text-white sm:text-3xl">
 											{currentWarning.title}
 										</div>
@@ -756,7 +863,7 @@
 						</div>
 
 						<div className="rounded-[32px] border border-white/10 bg-[linear-gradient(180deg,rgba(16,24,44,0.88),rgba(6,10,24,0.92))] p-6 shadow-neon sm:p-8">
-							<div className="text-xs uppercase tracking-[0.45em] text-slate-400">明日风险预警</div>
+							<div className="text-xs uppercase tracking-[0.45em] text-slate-400">明日风险结论</div>
 							<div className="mt-4 space-y-4">
 								{currentWarning.warnings.map((warning) => (
 									<div key={warning.label} className="rounded-2xl border border-white/10 bg-white/5 p-5">
@@ -765,11 +872,41 @@
 									</div>
 								))}
 							</div>
+							<details className="group mt-5 max-w-md rounded-2xl border border-cyanGlow/20 bg-cyanGlow/10 px-4 py-3 text-sm text-slate-200 transition duration-300 open:border-cyanGlow/40">
+								<summary className="flex cursor-pointer list-none items-center justify-between gap-3 select-none font-semibold text-white">
+									<span>理论依据</span>
+									<div className="flex items-center gap-2 text-xs font-normal uppercase tracking-[0.22em] text-cyanGlow/75">
+										<span>展开</span>
+										<span className="text-lg leading-none transition duration-300 group-open:rotate-180">⌄</span>
+									</div>
+								</summary>
+								<p className="mt-3 leading-7 text-slate-300">
+									这不是模棱两可的提醒，而是基于样本拥挤度、杠杆压力和换手热度给出的明日判断。后面会按结果复盘，对错分开记。
+								</p>
+								{topCohortAverage > 0 ? (
+									<p className="mt-3 leading-7 text-slate-300">
+										这一版重点看前 {topCohortSize || '-'} 只高分样本的平均陷阱分，目前是 {topCohortAverage.toFixed(1)} 分。
+									</p>
+								) : null}
+								{windowBasis ? (
+									<p className="mt-3 leading-7 text-slate-300">
+										时段判断依据：{windowBasis}
+									</p>
+								) : null}
+								<div className="mt-3 space-y-3 leading-7">
+									{metricGlossary.map((item) => (
+										<div key={item.label}>
+											<span className="font-semibold text-white">{item.label}：</span>
+											{item.description}
+										</div>
+									))}
+								</div>
+							</details>
 							<div className="mt-5 rounded-2xl border border-white/10 bg-white/5 p-5">
 								<div className="flex flex-wrap items-center justify-between gap-3">
 									<div>
 										<div className="text-xs uppercase tracking-[0.3em] text-slate-400">回溯历史</div>
-										<div className="mt-2 text-sm text-slate-300"></div>
+										
 									</div>
 									<select
 										value={selectedWarningDate}
@@ -786,17 +923,20 @@
 								<div className="mt-4 rounded-2xl border border-white/10 bg-slate-950/30 p-4">
 									<div className="flex flex-wrap items-center gap-3">
 										<div className="text-xs uppercase tracking-[0.28em] text-slate-500">复盘结果</div>
-										{!reviewSuccess ? (
-											<div className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-sm text-slate-200">
-												{currentWarning.review?.status || '待复盘'}
-											</div>
-										) : null}
-										{reviewSuccess ? (
-											<div className="rounded-full border border-emerald-300/30 bg-emerald-400/15 px-3 py-1 text-sm font-semibold text-emerald-100">
-												🟢 避坑成功
+										<div className={`rounded-full border px-3 py-1 text-sm font-semibold ${reviewBadge.className}`}>
+											{reviewBadge.label}
+										</div>
+										{currentWarning?.review?.window_review ? (
+											<div className={`rounded-full border px-3 py-1 text-sm font-semibold ${windowReviewBadge.className}`}>
+												{windowReviewBadge.label}
 											</div>
 										) : null}
 									</div>
+									{currentWarning?.review?.window_review?.note ? (
+										<p className="mt-3 text-sm leading-7 text-slate-400">
+											{currentWarning.review.window_review.note}
+										</p>
+									) : null}
 									<p className="mt-3 text-sm leading-7 text-slate-300">
 										{currentWarning.review?.note || '该日期暂无复盘说明。'}
 									</p>
@@ -812,6 +952,7 @@
 								<h2 className="mt-3 font-display text-3xl font-bold text-white sm:text-4xl">个股量化陷阱查询 和 PK擂台</h2>
 							</div>
 							<div className="text-base text-slate-400">支持输入代码或名称，对比两只 AI 热门股的风险结构。</div>
+							<div className="text-sm text-slate-500">分数高，不代表一定跌；代表你此时追进去，更容易买在拥挤位置。</div>
 						</div>
 
 						<div className="mt-8 grid gap-5 lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] lg:items-end">
