@@ -171,6 +171,31 @@ def clamp(value: float, lower: float = 0.0, upper: float = 100.0) -> float:
     return max(lower, min(upper, value))
 
 
+def next_weekday(value: datetime) -> datetime:
+    next_value = value + timedelta(days=1)
+    while next_value.weekday() >= 5:
+        next_value += timedelta(days=1)
+    return next_value
+
+
+def infer_warning_target_date(stocks: list[dict[str, Any]], generated_at: datetime) -> str:
+    margin_dates: list[datetime] = []
+    for stock in stocks:
+        margin_date = str(stock.get("margin_date", "")).strip()
+        if not margin_date:
+            continue
+
+        for fmt in ("%Y%m%d", "%Y-%m-%d"):
+            try:
+                margin_dates.append(datetime.strptime(margin_date, fmt))
+                break
+            except ValueError:
+                continue
+
+    reference_date = max(margin_dates, default=generated_at.replace(hour=0, minute=0, second=0, microsecond=0))
+    return next_weekday(reference_date).strftime("%Y-%m-%d")
+
+
 def safe_float(value: Any) -> float | None:
     if value is None or value == "-":
         return None
@@ -324,7 +349,7 @@ def compute_trap_score(
     return round(clamp(score), 2)
 
 
-def build_daily_warning(stocks: list[dict[str, Any]], generated_at: str) -> dict[str, Any]:
+def build_daily_warning(stocks: list[dict[str, Any]], generated_at: str, warning_date: str) -> dict[str, Any]:
     sorted_stocks = sorted(stocks, key=lambda item: item["trap_score"], reverse=True)
     top_stock = sorted_stocks[0]
     avg_score = sum(item["trap_score"] for item in stocks) / len(stocks)
@@ -345,7 +370,7 @@ def build_daily_warning(stocks: list[dict[str, Any]], generated_at: str) -> dict
         discipline = "分批验证，不做无量上冲时的追价动作。"
 
     return {
-        "date": generated_at[:10],
+        "date": warning_date,
         "title": title,
         "gauge_score": gauge_score,
         "prompt": (
@@ -479,8 +504,10 @@ def export_data(codes: list[str], output_path: Path, backup_dir: Path) -> dict[s
     if not result_stocks:
         raise RuntimeError("No stock data was exported successfully")
 
-    generated_at = datetime.now(BEIJING_TIME_ZONE).isoformat(timespec="seconds")
-    daily_warning = build_daily_warning(result_stocks, generated_at)
+    generated_at_dt = datetime.now(BEIJING_TIME_ZONE)
+    generated_at = generated_at_dt.isoformat(timespec="seconds")
+    warning_date = infer_warning_target_date(result_stocks, generated_at_dt)
+    daily_warning = build_daily_warning(result_stocks, generated_at, warning_date)
     warning_history = merge_warning_history(existing_payload, daily_warning)
 
     payload = {
