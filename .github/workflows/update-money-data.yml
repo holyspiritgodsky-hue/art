@@ -3,8 +3,7 @@ name: Update Money Data
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 11 * * 1-5'
-    - cron: '0 15 * * 6'
+    - cron: '35 9 * * 1-6'
 
 permissions:
   contents: write
