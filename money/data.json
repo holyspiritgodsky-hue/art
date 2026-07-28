@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-07-28T23:03:46+08:00",
+  "generated_at": "2026-07-28T23:30:47+08:00",
   "data_freshness": {
     "warning_target_date": "2026-07-29",
-    "spot_snapshot_at": "2026-07-28T23:03:46+08:00",
+    "spot_snapshot_at": "2026-07-28T23:30:47+08:00",
     "margin_data_as_of": "20260727",
     "margin_data_dates_by_market": {
       "szse": "20260727",
@@ -288,7 +288,7 @@
       "watch_count": 48,
       "watch_ratio": 0.3967,
       "top_cohort_size": 12,
-      "top_cohort_avg_trap_score": 77.64,
+      "top_cohort_avg_trap_score": 77.63,
       "concentration_spread": 23.48,
       "gauge_score": 72,
       "window_risk": "high",
@@ -349,7 +349,7 @@
         "watch_count": 48,
         "watch_ratio": 0.3967,
         "top_cohort_size": 12,
-        "top_cohort_avg_trap_score": 77.64,
+        "top_cohort_avg_trap_score": 77.63,
         "concentration_spread": 23.48,
         "gauge_score": 72,
         "window_risk": "high",
