@@ -262,6 +262,11 @@ def safe_float(value: Any) -> float | None:
     except TypeError:
         pass
     try:
+        if isinstance(value, str):
+            normalized = value.replace(",", "").replace("%", "").strip()
+            if normalized in {"", "-", "None", "nan"}:
+                return None
+            return float(normalized)
         return float(value)
     except (TypeError, ValueError):
         return None
@@ -334,9 +339,11 @@ def load_spot_data() -> tuple[pd.DataFrame, str]:
             .str.strip()
             .replace({"": None, "-": None, "None": None, "nan": None})
         )
-        return frame[["code", "name", "turnover_rate"]], "tencent:stock_zh_a_spot_tx"
+        frame["float_market_cap"] = None
+        return frame[["code", "name", "turnover_rate", "float_market_cap"]], "tencent:stock_zh_a_spot_tx"
 
     turnover_column = None
+    float_market_cap_column = None
     for candidate in frame.columns:
         if str(candidate).strip() == "换手率":
             turnover_column = candidate
@@ -347,12 +354,24 @@ def load_spot_data() -> tuple[pd.DataFrame, str]:
                 turnover_column = candidate
                 break
 
+    for candidate in frame.columns:
+        if str(candidate).strip() == "流通市值":
+            float_market_cap_column = candidate
+            break
+    if float_market_cap_column is None:
+        for candidate in frame.columns:
+            if "流通市值" in str(candidate):
+                float_market_cap_column = candidate
+                break
+
     rename_map = {
         "代码": "code",
         "名称": "name",
     }
     if turnover_column is not None:
         rename_map[turnover_column] = "turnover_rate"
+    if float_market_cap_column is not None:
+        rename_map[float_market_cap_column] = "float_market_cap"
 
     frame = frame.rename(columns=rename_map).copy()
     required_columns = {"code", "name", "turnover_rate"}
@@ -375,7 +394,9 @@ def load_spot_data() -> tuple[pd.DataFrame, str]:
             missing_ratio * 100,
             list(frame.columns),
         )
-    return frame[["code", "name", "turnover_rate"]], source
+    if "float_market_cap" not in frame.columns:
+        frame["float_market_cap"] = None
+    return frame[["code", "name", "turnover_rate", "float_market_cap"]], source
 
 
 def compute_financing_pressure_score(margin_balance: float | None, margin_buy: float | None) -> float:
@@ -390,6 +411,26 @@ def compute_financing_pressure_score(margin_balance: float | None, margin_buy: f
     if buy_to_balance_ratio <= 0.08:
         return clamp(65 + (buy_to_balance_ratio - 0.05) / 0.03 * 20)
     return clamp(85 + (buy_to_balance_ratio - 0.08) / 0.04 * 15)
+
+
+def compute_margin_burden_score(margin_balance: float | None, float_market_cap: float | None) -> float:
+    if not margin_balance or margin_balance <= 0 or not float_market_cap or float_market_cap <= 0:
+        return 0.0
+
+    balance_to_cap_ratio = margin_balance / float_market_cap
+    if balance_to_cap_ratio <= 0.01:
+        return clamp(balance_to_cap_ratio / 0.01 * 20)
+    if balance_to_cap_ratio <= 0.03:
+        return clamp(20 + (balance_to_cap_ratio - 0.01) / 0.02 * 25)
+    if balance_to_cap_ratio <= 0.05:
+        return clamp(45 + (balance_to_cap_ratio - 0.03) / 0.02 * 25)
+    if balance_to_cap_ratio <= 0.08:
+        return clamp(70 + (balance_to_cap_ratio - 0.05) / 0.03 * 20)
+    return clamp(90 + (balance_to_cap_ratio - 0.08) / 0.04 * 10)
+
+
+def combine_financing_scores(incremental_pressure: float, margin_burden: float) -> float:
+    return round(clamp(incremental_pressure * 0.8 + margin_burden * 0.2), 2)
 
 
 def compute_turnover_heat_score(turnover_rate: float | None) -> float:
@@ -928,13 +969,21 @@ def build_stock_payload(
         name = str(margin_row.get("name", ""))
 
     turnover_rate = safe_float(None if spot_row is None else spot_row.get("turnover_rate"))
+    float_market_cap = safe_float(None if spot_row is None else spot_row.get("float_market_cap"))
     margin_balance = safe_float(None if margin_row is None else margin_row.get("margin_balance"))
     margin_buy = safe_float(None if margin_row is None else margin_row.get("margin_buy"))
 
     business_purity = BUSINESS_PURITY_SCORES.get(code, 50)
-    financing_pressure = compute_financing_pressure_score(margin_balance, margin_buy)
+    incremental_financing_pressure = compute_financing_pressure_score(margin_balance, margin_buy)
+    margin_burden_score = compute_margin_burden_score(margin_balance, float_market_cap)
+    financing_pressure = combine_financing_scores(incremental_financing_pressure, margin_burden_score)
     turnover_heat = compute_turnover_heat_score(turnover_rate)
     trap_score = compute_trap_score(business_purity, financing_pressure, turnover_heat)
+    margin_balance_ratio = (
+        round(margin_balance / float_market_cap, 6)
+        if margin_balance and float_market_cap and float_market_cap > 0
+        else None
+    )
 
     return {
         "code": code,
@@ -944,8 +993,12 @@ def build_stock_payload(
             "business_purity_score": business_purity,
             "margin_balance": margin_balance,
             "margin_buy": margin_buy,
+            "float_market_cap": float_market_cap,
+            "margin_balance_ratio": margin_balance_ratio,
             "turnover_rate": turnover_rate,
             "financing_pressure_score": round(financing_pressure, 2),
+            "incremental_financing_pressure_score": round(incremental_financing_pressure, 2),
+            "margin_burden_score": round(margin_burden_score, 2),
             "turnover_heat_score": round(turnover_heat, 2),
         },
         "trap_score": trap_score,
@@ -964,6 +1017,8 @@ def export_data(codes: list[str], output_path: Path, backup_dir: Path) -> dict[s
     spot_total_count = len(spot_frame)
     spot_turnover_missing_count = int(spot_frame["turnover_rate"].isna().sum())
     spot_turnover_available_count = spot_total_count - spot_turnover_missing_count
+    spot_float_market_cap_missing_count = int(spot_frame["float_market_cap"].isna().sum())
+    spot_float_market_cap_available_count = spot_total_count - spot_float_market_cap_missing_count
     spot_map = {row["code"]: row for _, row in spot_frame.iterrows()}
 
     margin_cache: dict[str, pd.DataFrame] = {}
@@ -1018,7 +1073,9 @@ def export_data(codes: list[str], output_path: Path, backup_dir: Path) -> dict[s
             "business_purity_weight": WEIGHTS.business_purity,
             "financing_pressure_weight": WEIGHTS.financing_pressure,
             "turnover_heat_weight": WEIGHTS.turnover_heat,
-            "financing_pressure_rule": "分段映射融资买入额 / 融资余额，避免高杠杆样本过早全部打满分",
+            "financing_pressure_rule": "融资压力 = 增量压力 80% + 存量包袱 20%；其中增量压力分段映射融资买入额 / 融资余额，存量包袱分段映射融资余额 / 流通市值",
+            "incremental_financing_rule": "分段映射融资买入额 / 融资余额，避免高杠杆样本过早全部打满分",
+            "margin_burden_rule": "轻权重纳入融资余额 / 流通市值，补足历史融资包袱信息",
             "turnover_heat_rule": "min(100, 换手率 * 8)",
             "gauge_score_rule": "前排高分样本均分 * 0.55 + 全样本均分 * 0.25 + 高风险样本占比 * 100 * 0.20",
         },
@@ -1029,6 +1086,11 @@ def export_data(codes: list[str], output_path: Path, backup_dir: Path) -> dict[s
             "turnover_rate_missing_rows": spot_turnover_missing_count,
             "turnover_rate_missing_ratio": round(
                 spot_turnover_missing_count / spot_total_count, 4
+            ) if spot_total_count else None,
+            "float_market_cap_available_rows": spot_float_market_cap_available_count,
+            "float_market_cap_missing_rows": spot_float_market_cap_missing_count,
+            "float_market_cap_missing_ratio": round(
+                spot_float_market_cap_missing_count / spot_total_count, 4
             ) if spot_total_count else None,
         },
         "daily_warning": daily_warning,
