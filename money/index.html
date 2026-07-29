@@ -493,6 +493,19 @@
 			return numericValue.toLocaleString('zh-CN');
 		}
 
+		function formatPercent(value, digits = 2) {
+			if (value === null || value === undefined || value === '') {
+				return '-';
+			}
+
+			const numericValue = Number(String(value).replace(/,/g, ''));
+			if (!Number.isFinite(numericValue)) {
+				return value;
+			}
+
+			return `${(numericValue * 100).toFixed(digits)}%`;
+		}
+
 		function ensureStockShape(stock) {
 			if (!stock) {
 				return {
@@ -654,6 +667,14 @@
 						<div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
 							<div className="text-xs uppercase tracking-[0.25em] text-slate-500">换手率</div>
 							<div className="mt-2 text-base text-white">{metrics.turnover_rate ?? '-'}</div>
+						</div>
+						<div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+							<div className="text-xs uppercase tracking-[0.25em] text-slate-500">流通市值</div>
+							<div className="mt-2 text-base text-white">{formatAmount(metrics.float_market_cap)}</div>
+						</div>
+						<div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+							<div className="text-xs uppercase tracking-[0.25em] text-slate-500">融资余额占比</div>
+							<div className="mt-2 text-base text-white">{formatPercent(metrics.margin_balance_ratio)}</div>
 						</div>
 						<div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
 							<div className="text-xs uppercase tracking-[0.25em] text-slate-500">两融披露日</div>
