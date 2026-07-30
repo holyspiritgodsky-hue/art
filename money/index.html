@@ -886,9 +886,40 @@
 			return { start: matches[0], end: matches[1] };
 		}
 
-		function buildRiskSummary(warning, gaugeScore) {
-			const dateLabel = formatMonthDayLabel(warning?.date);
+		function getWarningValue(warning, keyword) {
 			const warnings = Array.isArray(warning?.warnings) ? warning.warnings : [];
+			return warnings.find((item) => String(item?.label || '').includes(keyword))?.value || '';
+		}
+
+		function getWindowValue(warning) {
+			return warning?.summary?.window_value || getWarningValue(warning, '量化踩踏窗口') || '';
+		}
+
+		function buildRepeatStreak(history, pickValue) {
+			const records = Array.isArray(history) ? history : [];
+			if (records.length === 0) {
+				return 0;
+			}
+
+			const firstValue = String(pickValue(records[0]) || '').trim();
+			if (!firstValue) {
+				return 0;
+			}
+
+			let streak = 0;
+			for (const entry of records) {
+				const nextValue = String(pickValue(entry) || '').trim();
+				if (nextValue !== firstValue) {
+					break;
+				}
+				streak += 1;
+			}
+
+			return streak;
+		}
+
+		function buildRiskSummary(warning, previousWarning, gaugeScore, historyStats = {}) {
+			const dateLabel = formatMonthDayLabel(warning?.date);
 			const summary = warning?.summary || {};
 			const topCohortAverage = Number(summary.top_cohort_avg_trap_score ?? 0);
 			const highRiskCount = Number(summary.high_risk_count ?? 0);
@@ -898,15 +929,32 @@
 			const topFinancingPressureScore = Number(summary.top_financing_pressure_score ?? 0);
 			const topStockName = String(summary.top_stock_name || '').trim();
 			const riskLevel = Math.max(Number(gaugeScore ?? 0), topCohortAverage);
-
-			const findByLabel = (keyword) => warnings.find((item) => String(item?.label || '').includes(keyword))?.value || '';
-			const stampedeWindow = summary.window_value || findByLabel('量化踩踏窗口') || '10:05 - 10:40';
-			const discipline = findByLabel('执行纪律');
+			const repeatStreak = Number(historyStats.latestWindowRepeatStreak ?? 0);
+			const stampedeWindow = getWindowValue(warning) || '10:05 - 10:40';
+			const discipline = getWarningValue(warning, '执行纪律');
 			const { start: riskStart, end: riskEnd } = extractTimeWindow(stampedeWindow, '10:05', '10:40');
 			const highConfidenceRisk = riskLevel >= 70;
 			const veryHighConfidenceRisk = riskLevel >= 78 && highRiskCount >= 10;
+			const previousGaugeScore = Number(previousWarning?.gauge_score ?? NaN);
+			const previousHighRiskCount = Number(previousWarning?.summary?.high_risk_count ?? NaN);
+			const gaugeDelta = Number.isFinite(previousGaugeScore) ? Number(gaugeScore) - previousGaugeScore : null;
+			const highRiskDelta = Number.isFinite(previousHighRiskCount) ? highRiskCount - previousHighRiskCount : null;
 
-			const openingLead = `${dateLabel}量化剧本预测：`;
+			let openingLead = `${dateLabel}${scoreTone(gaugeScore).text}环境：高风险样本 ${highRiskCount} 只`;
+			if (gaugeDelta !== null && (Math.abs(gaugeDelta) >= 3 || Math.abs(highRiskDelta ?? 0) >= 2)) {
+				const direction = gaugeDelta > 0 || (gaugeDelta === 0 && highRiskDelta > 0) ? '升温' : '降温';
+				const changes = [`风险温度${gaugeDelta >= 0 ? '+' : ''}${gaugeDelta}分`];
+				if (highRiskDelta !== null && highRiskDelta !== 0) {
+					changes.push(`高风险样本${highRiskDelta > 0 ? '增加' : '减少'}${Math.abs(highRiskDelta)}只`);
+				}
+				openingLead = `${dateLabel}风险${direction}：${changes.join('，')}`;
+			} else if (repeatStreak >= 3) {
+				openingLead = `${dateLabel}变化有限：暂无足够证据形成新的时段判断`;
+			}
+
+			const credibilityLabel = historyStats.reviewed > 0
+				? `${historyStats.reviewed} 次方向复盘`
+				: '复盘样本不足';
 
 			const disciplineLead = discipline
 				? `操作上就一句话：${discipline.replace(/。+$/g, '')}。`
@@ -943,6 +991,7 @@
 
 			return {
 				headline: openingLead,
+				credibilityLabel,
 				closingNote: disciplineLead,
 				segments: [
 					{ label: '09:30 - 09:50', title: '开盘观察段', text: openSlotText },
@@ -1002,10 +1051,17 @@
 			const reviewed = records.filter((entry) => {
 				return isReviewSuccessful(entry?.review) || isReviewFailure(entry?.review);
 			});
+			const reviewedWindows = records.filter((entry) => {
+				const status = String(entry?.review?.window_review?.status || '').trim();
+				return status === '时段命中' || status === '时段未命中';
+			});
 			const success = reviewed.filter((entry) => isReviewSuccessful(entry?.review)).length;
 			const failure = reviewed.filter((entry) => isReviewFailure(entry?.review)).length;
+			const windowHit = reviewedWindows.filter((entry) => String(entry?.review?.window_review?.status || '').trim() === '时段命中').length;
+			const windowMiss = reviewedWindows.filter((entry) => String(entry?.review?.window_review?.status || '').trim() === '时段未命中').length;
 			const pending = Math.max(records.length - reviewed.length, 0);
 			const successRate = reviewed.length > 0 ? Math.round((success / reviewed.length) * 100) : null;
+			const windowHitRate = reviewedWindows.length > 0 ? Math.round((windowHit / reviewedWindows.length) * 100) : null;
 
 			return {
 				total: records.length,
@@ -1014,39 +1070,130 @@
 				failure,
 				pending,
 				successRate,
+				windowReviewed: reviewedWindows.length,
+				windowHit,
+				windowMiss,
+				windowHitRate,
+				latestWindowRepeatStreak: buildRepeatStreak(records, (entry) => getWindowValue(entry)),
+				latestTitleRepeatStreak: buildRepeatStreak(records, (entry) => entry?.title || entry?.prompt || ''),
 			};
 		}
 
-		function buildDailyFocus(warning, gaugeScore) {
+		function buildDailyFocus(warning, previousWarning, gaugeScore, historyStats) {
 			const summary = warning?.summary || {};
 			const riskLevel = scoreTone(gaugeScore).text;
 			const topStockName = String(summary.top_stock_name || '').trim() || '高分前排';
 			const highRiskCount = Number(summary.high_risk_count ?? 0);
 			const watchCount = Number(summary.watch_count ?? 0);
 			const highRiskRatio = Number(summary.high_risk_ratio ?? 0);
-			const windowValue = summary.window_value || '10:05 - 10:40 是明天最容易冲高回落的时段';
-			const discipline = warning?.warnings?.find((item) => String(item?.label || '').includes('执行纪律'))?.value
+			const topFinancingPressureScore = Number(summary.top_financing_pressure_score ?? 0);
+			const windowValue = getWindowValue(warning) || '10:05 - 10:40';
+			const { start: windowStart, end: windowEnd } = extractTimeWindow(windowValue, '10:05', '10:40');
+			const windowLabel = `${windowStart} - ${windowEnd}`;
+			const discipline = getWarningValue(warning, '执行纪律')
 				|| '别追一致性，优先等第一次回踩承接。';
+			const previousSummary = previousWarning?.summary || {};
+			const previousGaugeScore = Number(previousWarning?.gauge_score ?? NaN);
+			const previousWindowValue = getWindowValue(previousWarning) || '';
+			const gaugeDelta = Number.isFinite(previousGaugeScore) ? gaugeScore - previousGaugeScore : null;
+			const highRiskDelta = previousWarning ? highRiskCount - Number(previousSummary.high_risk_count ?? 0) : null;
+
+			let evidenceText = `${riskLevel}环境，高风险样本 ${highRiskCount} 只，观察样本 ${watchCount} 只。`;
+			if (topFinancingPressureScore >= 90) {
+				evidenceText += `${topStockName} 这类前排票的杠杆压力已经很高，更适合当风险信号，不适合当追价理由。`;
+			} else if (highRiskRatio >= 0.1) {
+				evidenceText += '今天真正该防的是拥挤交易，不是单纯去背某个时段。';
+			} else {
+				evidenceText += '今天更像是先确认承接，再决定是否参与。';
+			}
+
+			let changeText = '历史样本不足，暂时无法判断风险是在升温还是降温。';
+			if (previousWarning) {
+				const sameWindow = previousWindowValue && previousWindowValue === windowValue;
+				const sameRiskBand = gaugeDelta !== null && Math.abs(gaugeDelta) <= 2;
+				const sameRiskCount = highRiskDelta !== null && Math.abs(highRiskDelta) <= 1;
+
+				if (sameWindow && sameRiskBand && sameRiskCount) {
+					changeText = '和上一期相比变化不大，今天没有足够的新信息支持更激进的判断。';
+				} else {
+					const parts = [];
+					if (gaugeDelta !== null && Math.abs(gaugeDelta) > 0) {
+						parts.push(`风险温度 ${gaugeDelta > 0 ? '上升' : '下降'} ${Math.abs(gaugeDelta)} 分`);
+					}
+					if (highRiskDelta !== null && Math.abs(highRiskDelta) > 0) {
+						parts.push(`高风险样本 ${highRiskDelta > 0 ? '增加' : '减少'} ${Math.abs(highRiskDelta)} 只`);
+					}
+					if (previousWindowValue && previousWindowValue !== windowValue) {
+						parts.push(`风险窗口改成 ${windowValue}`);
+					}
+					changeText = parts.length > 0
+						? `相较上一期，${parts.join('，')}。`
+						: '今天和上一期只有细微变化，仍然要以盘中承接验证为主。';
+				}
+			}
+
+			const reviewContext = historyStats?.windowReviewed > 0
+				? `时段判断单独复盘 ${historyStats.windowReviewed} 次，命中 ${historyStats.windowHit} 次。`
+				: `现有 ${historyStats?.reviewed || 0} 次复盘只记录了大方向，尚未单独验证具体时段。`;
 
 			return [
 				{
 					eyebrow: '',
-					title: `${riskLevel}环境，先盯前排承接`,
-					text: `高风险 ${highRiskCount} 只，观察 ${watchCount} 只。先别在情绪最满的时候买。`,
+					title: '风险依据',
+					text: `${evidenceText}${changeText}`,
 				},
 				{
 					eyebrow: '',
-					title: windowValue,
-					text: highRiskRatio >= 0.1
-						? '先看回落后的承接，再决定要不要跟。'
-						: '先确认强票站不站得住，不用急着抢第一波。',
+					title: '盘中怎么确认',
+					text: `${windowLabel} 只作为观察窗口。强票跌破开盘价或分时均线、反抽又没有量，才算风险得到确认。`,
 				},
 				{
 					eyebrow: '',
-					title: `${topStockName} 这类前排高分票，今天先不买`,
-					text: '先观察它们是否冲高回落，只把它们当风险信号。',
+					title: '这条判断何时作废',
+					text: `若 ${windowEnd} 前，前排核心回踩后重新放量站稳，且板块同步走强，就撤销“冲高回落”假设。${reviewContext}`,
 				},
 			];
+		}
+
+		function buildFreshnessSummary(currentWarning, previousWarning, historyStats) {
+			const repeatStreak = Number(historyStats?.latestWindowRepeatStreak ?? 0);
+			if (repeatStreak >= 3) {
+				return {
+					value: '偏少',
+					note: `同一风险窗口连续 ${repeatStreak} 天`,
+				};
+			}
+
+			if (!previousWarning) {
+				return {
+					value: '首日',
+					note: '需要更多历史样本对比',
+				};
+			}
+
+			const currentWindow = getWindowValue(currentWarning);
+			const previousWindow = getWindowValue(previousWarning);
+			const currentRiskCount = Number(currentWarning?.summary?.high_risk_count ?? 0);
+			const previousRiskCount = Number(previousWarning?.summary?.high_risk_count ?? 0);
+
+			if (currentWindow && previousWindow && currentWindow !== previousWindow) {
+				return {
+					value: '有变化',
+					note: `风险窗口改为 ${currentWindow}`,
+				};
+			}
+
+			if (Math.abs(currentRiskCount - previousRiskCount) >= 2) {
+				return {
+					value: '有变化',
+					note: `高风险样本 ${previousRiskCount} -> ${currentRiskCount}`,
+				};
+			}
+
+			return {
+				value: '一般',
+				note: '和上一期差异不大',
+			};
 		}
 
 		function buildMicroRankings(stocks, warning) {
@@ -1307,6 +1454,13 @@
 					|| stockSource.dailyWarning
 					|| fallbackWarningHistory[0];
 			}, [selectedWarningDate, stockSource]);
+			const previousWarning = React.useMemo(() => {
+				const currentIndex = stockSource.warningHistory.findIndex((entry) => entry.date === currentWarning?.date);
+				if (currentIndex < 0) {
+					return null;
+				}
+				return stockSource.warningHistory[currentIndex + 1] || null;
+			}, [currentWarning, stockSource.warningHistory]);
 			const fallbackLeftCode = stockSource.stocks[0]?.code || '300308';
 			const fallbackRightCode = stockSource.stocks[1]?.code || stockSource.stocks[0]?.code || '002230';
 			const leftLiveMatch = findStockMatch(leftInput, stockSource.stocks, aliases);
@@ -1321,9 +1475,10 @@
 			const topCohortAverage = currentWarning?.summary?.top_cohort_avg_trap_score;
 			const topCohortSize = currentWarning?.summary?.top_cohort_size;
 			const windowBasis = currentWarning?.summary?.window_basis;
-			const riskSummary = React.useMemo(() => buildRiskSummary(currentWarning, gaugeScore), [currentWarning, gaugeScore]);
 			const historyStats = React.useMemo(() => buildHistoryStats(stockSource.warningHistory), [stockSource.warningHistory]);
-			const dailyFocus = React.useMemo(() => buildDailyFocus(currentWarning, gaugeScore), [currentWarning, gaugeScore]);
+			const riskSummary = React.useMemo(() => buildRiskSummary(currentWarning, previousWarning, gaugeScore, historyStats), [currentWarning, previousWarning, gaugeScore, historyStats]);
+			const dailyFocus = React.useMemo(() => buildDailyFocus(currentWarning, previousWarning, gaugeScore, historyStats), [currentWarning, previousWarning, gaugeScore, historyStats]);
+			const freshnessSummary = React.useMemo(() => buildFreshnessSummary(currentWarning, previousWarning, historyStats), [currentWarning, previousWarning, historyStats]);
 			const topTrapRanking = React.useMemo(() => {
 				return [...stockSource.stocks]
 					.sort((a, b) => b.score - a.score)
@@ -1364,9 +1519,9 @@
 					note: '',
 				},
 				{
-					label: '数据模式',
-					value: formatMarketPhase(stockSource.dataFreshness.marketPhase),
-					note: '',
+					label: '信息增量',
+					value: freshnessSummary.value,
+					note: freshnessSummary.note,
 				},
 				{
 					label: '高风险样本',
@@ -1393,7 +1548,7 @@
 											历史方向命中 {historyStats.successRate === null ? '待积累' : `${historyStats.successRate}%`}
 										</div>
 										<div className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5">
-											{historyStats.reviewed > 0 ? `${historyStats.success}/${historyStats.reviewed} 次已复盘` : '已复盘样本不足'}
+											{historyStats.latestWindowRepeatStreak >= 3 ? `同一窗口连续 ${historyStats.latestWindowRepeatStreak} 天` : historyStats.windowHitRate === null ? '时段命中待积累' : `时段命中 ${historyStats.windowHitRate}%`}
 										</div>
 									</div>
 							</div>
@@ -1450,7 +1605,7 @@
 										<div className="text-base font-semibold leading-6 text-white">{riskSummary.headline}</div>
 									</div>
 									<div className="rounded-full border border-white/10 bg-slate-950/40 px-3 py-1 text-xs uppercase tracking-[0.22em] text-slate-300">
-										{historyStats.successRate === null ? '复盘积累中' : `方向命中 ${historyStats.successRate}%`}
+										{riskSummary.credibilityLabel}
 									</div>
 								</div>
 								<div className="mt-3 space-y-2">
@@ -1562,7 +1717,7 @@
 									</div>
 								</summary>
 								<p className="mt-3 leading-7 text-slate-300">
-									这不是模棱两可的提醒，而是基于样本拥挤度、杠杆压力和换手热度给出的明日判断。后面会按结果复盘，对错分开记。
+									页面有价值的前提，不是天天重复一句风险时段，而是能说明今天为什么警惕、和昨天哪里不同、以及这类判断过去到底准不准。后面会按结果复盘，对错分开记。
 								</p>
 								<div className="mt-3 rounded-2xl border border-white/10 bg-slate-950/30 p-3 leading-7 text-slate-300">
 									<div className="text-sm font-semibold text-white">陷阱分怎么算</div>
@@ -1588,6 +1743,11 @@
 								{windowBasis ? (
 									<p className="mt-3 leading-7 text-slate-300">
 										时段判断依据：{windowBasis}
+									</p>
+								) : null}
+								{historyStats.latestWindowRepeatStreak >= 3 ? (
+									<p className="mt-3 leading-7 text-amber-100">
+										同一风险窗口已连续出现 {historyStats.latestWindowRepeatStreak} 天。如果没有新的依据变化，这部分只能当观察模板，不能当新增预测结论。
 									</p>
 								) : null}
 								<p className="mt-3 leading-7 text-slate-300">
