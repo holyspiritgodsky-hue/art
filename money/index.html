@@ -105,6 +105,18 @@
 				description: '融资买入冲得越猛，次日越容易出现先冲后砸。这个指标主要用来识别高位加杠杆。',
 			},
 		];
+
+		const fallbackFormula = {
+			business_purity_weight: 0.35,
+			financing_pressure_weight: 0.45,
+			turnover_heat_weight: 0.2,
+			financing_pressure_rule: '融资压力 = 增量压力 80% + 存量包袱 20%。',
+			incremental_financing_rule: '增量压力看融资买入额 / 融资余额，越猛分越高。',
+			margin_burden_rule: '存量包袱看融资余额 / 流通市值，补足历史杠杆沉淀。',
+			turnover_heat_rule: '换手热度 = min(100, 换手率 * 8)。',
+			gauge_score_rule: '风险温度 = 前排均分 55% + 全样本均分 25% + 高风险占比 20%。',
+			watch_ranking_rule: '爆发分优先看题材纯度、换手启动区、融资不过热，再叠加短线趋势确认。',
+		};
 		const fallbackWarningHistory = [
 			{
 				date: '2026-07-27',
@@ -290,9 +302,48 @@
 
 			return {
 				generatedAt: payload.generated_at || '',
+				dataFreshness: normalizeDataFreshness(payload.data_freshness),
+				formula: normalizeFormula(payload.formula),
+				runSource: payload.run_source || '',
 				dailyWarning: normalizeWarningEntry(payload.daily_warning),
 				warningHistory: normalizeWarningHistory(payload.warning_history, payload.daily_warning),
 				stocks: records,
+			};
+		}
+
+		function normalizeFormula(formula) {
+			if (!formula || typeof formula !== 'object') {
+				return fallbackFormula;
+			}
+
+			return {
+				business_purity_weight: Number(formula.business_purity_weight ?? fallbackFormula.business_purity_weight),
+				financing_pressure_weight: Number(formula.financing_pressure_weight ?? fallbackFormula.financing_pressure_weight),
+				turnover_heat_weight: Number(formula.turnover_heat_weight ?? fallbackFormula.turnover_heat_weight),
+				financing_pressure_rule: formula.financing_pressure_rule || fallbackFormula.financing_pressure_rule,
+				incremental_financing_rule: formula.incremental_financing_rule || fallbackFormula.incremental_financing_rule,
+				margin_burden_rule: formula.margin_burden_rule || fallbackFormula.margin_burden_rule,
+				turnover_heat_rule: formula.turnover_heat_rule || fallbackFormula.turnover_heat_rule,
+				gauge_score_rule: formula.gauge_score_rule || fallbackFormula.gauge_score_rule,
+				watch_ranking_rule: formula.watch_ranking_rule || fallbackFormula.watch_ranking_rule,
+			};
+		}
+
+		function normalizeDataFreshness(freshness) {
+			if (!freshness || typeof freshness !== 'object') {
+				return {
+					warningTargetDate: '',
+					spotSnapshotAt: '',
+					marginDataAsOf: '',
+					marketPhase: '',
+				};
+			}
+
+			return {
+				warningTargetDate: freshness.warning_target_date || '',
+				spotSnapshotAt: freshness.spot_snapshot_at || '',
+				marginDataAsOf: freshness.margin_data_as_of || '',
+				marketPhase: freshness.market_phase || '',
 			};
 		}
 
@@ -322,8 +373,15 @@
 				...summary,
 				avg_trap_score: Number(summary.avg_trap_score ?? 0),
 				high_risk_count: Number(summary.high_risk_count ?? 0),
+				high_risk_ratio: Number(summary.high_risk_ratio ?? 0),
+				watch_count: Number(summary.watch_count ?? 0),
+				watch_ratio: Number(summary.watch_ratio ?? 0),
 				top_cohort_size: Number(summary.top_cohort_size ?? 0),
 				top_cohort_avg_trap_score: Number(summary.top_cohort_avg_trap_score ?? 0),
+				concentration_spread: Number(summary.concentration_spread ?? 0),
+				top_financing_pressure_score: Number(summary.top_financing_pressure_score ?? 0),
+				top_stock_name: summary.top_stock_name || '',
+				window_value: summary.window_value || '',
 				window_basis: summary.window_basis || '',
 			};
 		}
@@ -339,10 +397,41 @@
 				gauge_score: Math.round(entry.gauge_score ?? 0),
 				prompt: entry.prompt || fallbackPrompt,
 				summary: normalizeWarningSummary(entry.summary),
+				rankings: normalizeWarningRankings(entry.rankings),
 				signals: normalizeSignals(entry.signals),
 				warnings: Array.isArray(entry.warnings) ? entry.warnings : [],
 				strategy: entry.strategy || '',
 				review: entry.review || { status: '待复盘', note: '' },
+			};
+		}
+
+		function normalizeWarningRankings(rankings) {
+			if (!rankings || typeof rankings !== 'object') {
+				return null;
+			}
+
+			const normalizeList = (list, kind) => {
+				if (!Array.isArray(list)) {
+					return [];
+				}
+
+				return list
+					.filter((item) => item && item.code)
+					.map((item) => ({
+						code: item.code,
+						name: item.name || item.code,
+						score: Math.round(item.score ?? 0),
+						trapScore: Math.round(item.trap_score ?? item.score ?? 0),
+						reason: item.reason || '',
+						trendLabel: item.trend_label || '',
+						scoreLabel: kind === 'watch' ? '爆发分' : '陷阱分',
+					}));
+			};
+
+			return {
+				logicVersion: rankings.logic_version || '',
+				avoidList: normalizeList(rankings.avoid_list, 'avoid'),
+				watchList: normalizeList(rankings.watch_list, 'watch'),
 			};
 		}
 
@@ -366,6 +455,19 @@
 				return `${match[2]}.${match[3]}`;
 			}
 			return value.replace(/-/g, '.');
+		}
+
+		function formatMonthDayLabel(value) {
+			if (!value) {
+				return '明日';
+			}
+
+			const match = String(value).trim().match(/^(\d{4})-(\d{2})-(\d{2})$/);
+			if (!match) {
+				return '明日';
+			}
+
+			return `${Number(match[2])}月${Number(match[3])}日`;
 		}
 
 		function formatInTimeZone(date, includeSeconds) {
@@ -441,6 +543,23 @@
 			}
 
 			return `数据生成时间 ${String(value).trim()}`;
+		}
+
+		function formatMarketPhase(value) {
+			const phase = String(value || '').trim();
+			if (phase === 'post_close') {
+				return '收盘后生成';
+			}
+			if (phase === 'midday_break') {
+				return '午间生成';
+			}
+			if (phase === 'intraday') {
+				return '盘中生成';
+			}
+			if (phase === 'pre_open') {
+				return '开盘前生成';
+			}
+			return '已生成数据';
 		}
 
 		function formatMarginDate(value) {
@@ -626,6 +745,15 @@
 		}
 
 		function SearchField({ label, value, onChange, onSubmit }) {
+			const [draftValue, setDraftValue] = React.useState(value);
+			const [isComposing, setIsComposing] = React.useState(false);
+
+			React.useEffect(() => {
+				if (!isComposing) {
+					setDraftValue(value);
+				}
+			}, [value, isComposing]);
+
 			return (
 				<label className="block">
 					{label ? (
@@ -634,10 +762,26 @@
 					<div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-4 shadow-neon backdrop-blur-md transition duration-300 focus-within:border-cyanGlow/40 focus-within:bg-white/10">
 						<span className="text-lg text-cyanGlow">⌕</span>
 						<input
-							value={value}
-							onChange={(event) => onChange(event.target.value)}
+							value={draftValue}
+							onChange={(event) => {
+								const nextValue = event.target.value;
+								setDraftValue(nextValue);
+								if (!isComposing) {
+									onChange(nextValue);
+								}
+							}}
+							onCompositionStart={() => {
+								setIsComposing(true);
+							}}
+							onCompositionEnd={(event) => {
+								const nextValue = event.target.value;
+								setIsComposing(false);
+								setDraftValue(nextValue);
+								onChange(nextValue);
+							}}
 							onKeyDown={(event) => {
-								if (event.key === 'Enter') {
+								const imeActive = isComposing || event.nativeEvent?.isComposing || event.isComposing || event.keyCode === 229;
+								if (event.key === 'Enter' && !imeActive) {
 									event.preventDefault();
 									onSubmit();
 								}
@@ -734,6 +878,80 @@
 			return `${rightStock.name}这边相对安全一点，但也不要梭哈；${leftStock.name}现在更容易冲高回落，尽量别追。`;
 		}
 
+		function extractTimeWindow(value, fallbackStart, fallbackEnd) {
+			const matches = String(value || '').match(/\d{2}:\d{2}/g);
+			if (!matches || matches.length < 2) {
+				return { start: fallbackStart, end: fallbackEnd };
+			}
+			return { start: matches[0], end: matches[1] };
+		}
+
+		function buildRiskSummary(warning, gaugeScore) {
+			const dateLabel = formatMonthDayLabel(warning?.date);
+			const warnings = Array.isArray(warning?.warnings) ? warning.warnings : [];
+			const summary = warning?.summary || {};
+			const topCohortAverage = Number(summary.top_cohort_avg_trap_score ?? 0);
+			const highRiskCount = Number(summary.high_risk_count ?? 0);
+			const highRiskRatio = Number(summary.high_risk_ratio ?? 0);
+			const watchRatio = Number(summary.watch_ratio ?? 0);
+			const concentrationSpread = Number(summary.concentration_spread ?? 0);
+			const topFinancingPressureScore = Number(summary.top_financing_pressure_score ?? 0);
+			const topStockName = String(summary.top_stock_name || '').trim();
+			const riskLevel = Math.max(Number(gaugeScore ?? 0), topCohortAverage);
+
+			const findByLabel = (keyword) => warnings.find((item) => String(item?.label || '').includes(keyword))?.value || '';
+			const stampedeWindow = summary.window_value || findByLabel('量化踩踏窗口') || '10:05 - 10:40';
+			const discipline = findByLabel('执行纪律');
+			const { start: riskStart, end: riskEnd } = extractTimeWindow(stampedeWindow, '10:05', '10:40');
+			const highConfidenceRisk = riskLevel >= 70;
+			const veryHighConfidenceRisk = riskLevel >= 78 && highRiskCount >= 10;
+
+			const openingLead = `${dateLabel}量化剧本预测：`;
+
+			const disciplineLead = discipline
+				? `操作上就一句话：${discipline.replace(/。+$/g, '')}。`
+				: '操作上就一句话：别追一致性，但前排核心第一次回踩稳住时，可以轻仓试错。';
+
+			let openSlotText = '';
+			if (veryHighConfidenceRisk) {
+				openSlotText = '前排热门股大概率会先走强，开盘几分钟很容易把情绪顶满；这段不追第一波，等第一波回落后还能站回开盘价的前排核心，再轻仓试错。';
+			} else if (highConfidenceRisk || concentrationSpread >= 22) {
+				openSlotText = '开盘后大概率还是前排先强、后排偏弱；如果只是龙头在涨，后面那些跟着涨的票先不要急着买，优先等龙头第一次回踩后的承接。';
+			} else {
+				openSlotText = '先看有没有真正能带队的强票，别因为开盘几分钟拉升就默认今天会一路顺；真正的买点是第一次回踩不破开盘价和均线。';
+			}
+
+			let riskSlotText = '';
+			if (highRiskCount >= 10 && topFinancingPressureScore >= 90) {
+				riskSlotText = `这是上午最该防的窗口。${topStockName || '前排高分股'} 一旦顶不住，获利盘和风控盘很容易一起出来，冲高回落会比较快；只有回落后还能迅速收回均线的前排核心，才值得继续看。`;
+			} else if (highRiskCount >= 6 || riskLevel >= 68) {
+				riskSlotText = '这是上午最容易从强转弱的窗口，早盘这波强势回落的概率已经足够高，这段时间直接重点防回落，不要追高；真要试，也只试回落后还能快速稳住的前排核心。';
+			} else {
+				riskSlotText = '这段重点看强票能不能稳住开盘价和均线，稳不住就说明上午延续性一般；稳得住的那种，才是更像样的低吸观察点。';
+			}
+
+			let lateMorningText = '';
+			if (concentrationSpread >= 24 && highConfidenceRisk) {
+				lateMorningText = '到了午前，前排和后排大概率会继续拉开。能留下来的主要还是前排核心，那些不是龙头、只是跟着涨的票一旦转弱，就当成资金开始撤了；真正还能买的，也只剩重新放量站稳的前排核心。';
+			} else if (highRiskCount >= 8 && watchRatio >= 0.3) {
+				lateMorningText = '到了午前，市场大概率会继续筛票。还能站在开盘价上方的继续看，已经明显走弱的就不要再硬扛；想买就等筛完之后还站得住的那几只。';
+			} else if (highRiskRatio >= 0.08 || watchRatio >= 0.28) {
+				lateMorningText = '到了午前，重点就是留下强的、避开弱的。还能稳住的继续看，已经掉到开盘价下方的先当成风险；要试错，也尽量等重新站回来的那一下。';
+			} else {
+				lateMorningText = '到了午前，先看强票是否继续站得住，再决定要不要跟，不需要太早下重手；确认站稳后的回踩，比开盘直接追进去更像买点。';
+			}
+
+			return {
+				headline: openingLead,
+				closingNote: disciplineLead,
+				segments: [
+					{ label: '09:30 - 09:50', title: '开盘观察段', text: openSlotText },
+					{ label: `${riskStart} - ${riskEnd}`, title: '风险放大段', text: riskSlotText },
+					{ label: `${riskEnd} - 11:30`, title: '午前确认段', text: lateMorningText },
+				],
+			};
+		}
+
 		function reviewTone(review) {
 			if (isReviewSuccessful(review)) {
 				return {
@@ -779,6 +997,246 @@
 			};
 		}
 
+		function buildHistoryStats(history) {
+			const records = Array.isArray(history) ? history : [];
+			const reviewed = records.filter((entry) => {
+				return isReviewSuccessful(entry?.review) || isReviewFailure(entry?.review);
+			});
+			const success = reviewed.filter((entry) => isReviewSuccessful(entry?.review)).length;
+			const failure = reviewed.filter((entry) => isReviewFailure(entry?.review)).length;
+			const pending = Math.max(records.length - reviewed.length, 0);
+			const successRate = reviewed.length > 0 ? Math.round((success / reviewed.length) * 100) : null;
+
+			return {
+				total: records.length,
+				reviewed: reviewed.length,
+				success,
+				failure,
+				pending,
+				successRate,
+			};
+		}
+
+		function buildDailyFocus(warning, gaugeScore) {
+			const summary = warning?.summary || {};
+			const riskLevel = scoreTone(gaugeScore).text;
+			const topStockName = String(summary.top_stock_name || '').trim() || '高分前排';
+			const highRiskCount = Number(summary.high_risk_count ?? 0);
+			const watchCount = Number(summary.watch_count ?? 0);
+			const highRiskRatio = Number(summary.high_risk_ratio ?? 0);
+			const windowValue = summary.window_value || '10:05 - 10:40 是明天最容易冲高回落的时段';
+			const discipline = warning?.warnings?.find((item) => String(item?.label || '').includes('执行纪律'))?.value
+				|| '别追一致性，优先等第一次回踩承接。';
+
+			return [
+				{
+					eyebrow: '',
+					title: `${riskLevel}环境，先盯前排承接`,
+					text: `高风险 ${highRiskCount} 只，观察 ${watchCount} 只。先别在情绪最满的时候买。`,
+				},
+				{
+					eyebrow: '',
+					title: windowValue,
+					text: highRiskRatio >= 0.1
+						? '先看回落后的承接，再决定要不要跟。'
+						: '先确认强票站不站得住，不用急着抢第一波。',
+				},
+				{
+					eyebrow: '',
+					title: `${topStockName} 这类前排高分票，今天先不买`,
+					text: '先观察它们是否冲高回落，只把它们当风险信号。',
+				},
+			];
+		}
+
+		function buildMicroRankings(stocks, warning) {
+			const summary = warning?.summary || {};
+			const focusCode = String(summary.top_stock_code || '').trim();
+			const riskPivot = Number(warning?.gauge_score ?? summary.gauge_score ?? 55);
+			const breakoutCenter = Math.min(58, Math.max(46, riskPivot - 2));
+			const exportedEnvironment = summary.breakout_environment || null;
+
+			const trendSamples = (Array.isArray(stocks) ? stocks : [])
+				.map((stock) => ensureStockShape(stock)?.trend)
+				.filter((trend) => trend && trend.available);
+			const fallbackEnvironment = (() => {
+				if (trendSamples.length < 4) {
+					return { state: 'neutral', score_multiplier: 1, min_return_3d_pct: 0, max_ma5_gap_pct: -2.5 };
+				}
+				const positiveRatio = trendSamples.filter((trend) => Number(trend.return_3d_pct ?? 0) >= 1 && Number(trend.ma5_gap_pct ?? 0) >= -1).length / trendSamples.length;
+				const weakRatio = trendSamples.filter((trend) => Number(trend.return_5d_pct ?? 0) <= -4 || Number(trend.ma5_gap_pct ?? 0) <= -3).length / trendSamples.length;
+				if (riskPivot >= 66 || weakRatio >= 0.5) {
+					return { state: 'tight', score_multiplier: 0.88, min_return_3d_pct: 1, max_ma5_gap_pct: -1 };
+				}
+				if (positiveRatio >= 0.55 && weakRatio <= 0.25 && riskPivot <= 58) {
+					return { state: 'open', score_multiplier: 1.04, min_return_3d_pct: -0.5, max_ma5_gap_pct: -2.5 };
+				}
+				return { state: 'neutral', score_multiplier: 1, min_return_3d_pct: 0, max_ma5_gap_pct: -2 };
+			})();
+			const breakoutEnvironment = exportedEnvironment || fallbackEnvironment;
+
+			const records = (Array.isArray(stocks) ? stocks : []).map((stock) => {
+				const safeStock = ensureStockShape(stock);
+				const metrics = safeStock.metrics || {};
+				const trend = safeStock.trend || {};
+				const trapScore = Number(safeStock.score ?? 0);
+				const purityScore = Number(metrics.business_purity_score ?? 0);
+				const turnoverScore = Number(metrics.turnover_heat_score ?? 0);
+				const turnoverZScore = Number(metrics.turnover_z_score ?? NaN);
+				const financingScore = Number(metrics.financing_pressure_score ?? 0);
+				const focusBonus = safeStock.code === focusCode ? 8 : 0;
+				const avoidScore = trapScore * 0.5
+					+ financingScore * 0.28
+					+ turnoverScore * 0.17
+					+ Math.max(trapScore - 65, 0) * 0.35
+					+ focusBonus;
+				const turnoverSetup = Number.isFinite(turnoverZScore)
+					? Math.max(0, 100 - Math.abs(turnoverZScore - 1.2) * (turnoverZScore >= 0 ? 22 : 30))
+					: Math.max(0, 100 - Math.abs(turnoverScore - 52) * 2.0);
+				const breakoutWindow = Math.max(0, 100 - Math.abs(trapScore - breakoutCenter) * 2.6);
+				const rawWatchScore = purityScore * 0.38
+					+ turnoverSetup * 0.28
+					+ (100 - financingScore) * 0.18
+					+ breakoutWindow * 0.16;
+				const trendScore = trend.available
+					? (
+						Math.max(0, Math.min(100, ((Number(trend.return_3d_pct ?? 0) + 2.5) / 6.5) * 100))
+						+ Math.max(0, Math.min(100, ((Number(trend.return_5d_pct ?? 0) + 4) / 9) * 100))
+						+ Math.max(0, Math.min(100, ((Number(trend.ma5_gap_pct ?? 0) + 4) / 7) * 100))
+						+ Math.max(0, Math.min(100, ((Number(trend.ma10_gap_pct ?? 0) + 7) / 10) * 100))
+					) / 4
+					: null;
+				const reboundBonus = trend.available && Number(trend.return_3d_pct ?? 0) >= 1.5 && Number(trend.ma5_gap_pct ?? 0) >= -0.5 ? 6 : 0;
+				const crowdingPenalty = Math.max(trapScore - 68, 0) * 0.25;
+				const watchScore = trend.available
+					? Math.max(0, Math.min(100, (rawWatchScore * 0.62 + trendScore * 0.38 + reboundBonus) * Number(breakoutEnvironment.score_multiplier ?? 1) - crowdingPenalty))
+					: Math.max(0, Math.min(100, rawWatchScore * 0.84 * Number(breakoutEnvironment.score_multiplier ?? 1) - crowdingPenalty));
+
+				let avoidReason = '前排拥挤度偏高';
+				if (financingScore >= 85) {
+					avoidReason = '杠杆压力过高';
+				} else if (turnoverScore >= 80) {
+					avoidReason = '换手过热，容易一致性兑现';
+				} else if (trapScore >= 70) {
+					avoidReason = '综合陷阱分已进高危区';
+				}
+
+				let watchReason = '先看候选强度，再等趋势确认';
+				if (breakoutEnvironment.state === 'tight' && trend.available && (Number(trend.return_3d_pct ?? 0) < Number(breakoutEnvironment.min_return_3d_pct ?? 0) || Number(trend.ma5_gap_pct ?? 0) < Number(breakoutEnvironment.max_ma5_gap_pct ?? -2))) {
+					watchReason = '环境偏弱，只看最强修复票';
+				} else if (trend.available && Number(trend.return_3d_pct ?? 0) >= 2 && Number(trend.ma5_gap_pct ?? 0) >= -0.5) {
+					watchReason = '短线修复最完整，优先等回踩不破再跟';
+				} else if (purityScore >= 70 && turnoverScore >= 32 && turnoverScore <= 68 && financingScore <= 60) {
+					watchReason = Number.isFinite(turnoverZScore)
+						? `相对换手抬升 ${turnoverZScore.toFixed(1)}σ，具备二次放量条件`
+						: '题材纯度高，量能在启动区，具备二次放量条件';
+				} else if (trapScore >= 46 && trapScore <= 62) {
+					watchReason = '位置不挤、杠杆不热，向上试错空间更大';
+				}
+
+				return {
+					...safeStock,
+					avoidScore,
+					watchScore,
+					avoidReason,
+					watchReason,
+					trendLabel: '待趋势确认',
+					trapScore,
+					purityScore,
+					turnoverScore,
+					turnoverZScore,
+					financingScore,
+				};
+			});
+
+			const avoidList = [...records]
+				.sort((left, right) => {
+					return right.avoidScore - left.avoidScore
+						|| right.trapScore - left.trapScore
+						|| right.financingScore - left.financingScore;
+				})
+				.slice(0, 3);
+
+			const watchPool = records
+				.filter((stock) => stock.trapScore >= 40 && stock.trapScore < 70 && stock.financingScore < 85)
+				.sort((left, right) => {
+					return right.watchScore - left.watchScore
+						|| right.purityScore - left.purityScore
+						|| left.financingScore - right.financingScore;
+				})
+				.slice(0, 3);
+
+			const watchList = watchPool.length === 3
+				? watchPool
+				: records
+					.filter((stock) => !avoidList.some((item) => item.code === stock.code) && stock.financingScore < 85)
+					.sort((left, right) => {
+						return right.watchScore - left.watchScore
+							|| right.purityScore - left.purityScore
+							|| left.financingScore - right.financingScore;
+					})
+					.slice(0, 3);
+
+			return { avoidList, watchList };
+		}
+
+		function fillRankingSlots(list, size) {
+			const records = Array.isArray(list) ? [...list] : [];
+			while (records.length < size) {
+				records.push({
+					code: '',
+					name: '暂无更多标的',
+					score: '-',
+					reason: '今日先只看通过筛选的样本',
+					placeholder: true,
+				});
+			}
+			return records;
+		}
+
+		function RankingListItem({ stock, index, tone }) {
+			const palette = tone === 'danger'
+				? {
+					reason: 'text-red-100/75',
+					score: 'text-red-100',
+					label: 'text-red-100/45',
+					panel: 'border-red-200/10 bg-red-300/5',
+				}
+				: {
+					reason: 'text-cyanGlow/75',
+					score: 'text-cyanGlow',
+					label: 'text-cyanGlow/45',
+					panel: 'border-cyanGlow/15 bg-cyanGlow/5',
+				};
+
+			const baseReason = stock.reason || stock.watchReason || stock.avoidReason || '';
+			const shouldAppendTrendLabel = Boolean(
+				stock.trendLabel
+				&& !stock.placeholder
+				&& !String(baseReason).includes(String(stock.trendLabel))
+			);
+
+			const reasonText = stock.placeholder
+				? stock.reason
+				: `${baseReason}${shouldAppendTrendLabel ? ` · ${stock.trendLabel}` : ''}`;
+
+			return (
+				<div className={`grid grid-cols-[minmax(0,1fr)_56px] items-start gap-3 rounded-xl border px-3 ${stock.placeholder ? 'border-white/8 bg-white/5 py-2' : 'border-white/10 bg-black/15 py-2.5'}`}>
+					<div className="min-w-0">
+						<div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+							<div className="text-sm font-semibold text-white">#{index + 1} {stock.name}</div>
+							{!stock.placeholder && <div className="text-[11px] text-slate-400">{stock.code || '候补空位'}</div>}
+						</div>
+						<div className={`mt-1 text-[11px] leading-4 ${stock.placeholder ? 'text-slate-400' : palette.reason}`}>{reasonText}</div>
+					</div>
+					<div className={`rounded-lg border px-2 py-1 text-right ${stock.placeholder ? 'border-white/10 bg-white/5' : palette.panel}`}>
+						<div className={`font-display text-xl leading-none ${stock.placeholder ? 'text-slate-500' : palette.score}`}>{stock.score}</div>
+						{!stock.placeholder && <div className={`mt-1 text-[10px] leading-3 uppercase tracking-[0.12em] ${palette.label}`}>{stock.scoreLabel}</div>}
+					</div>
+				</div>
+			);
+		}
+
 		function App() {
 			const fallbackRecords = React.useMemo(
 				() => Object.values(fallbackDatabase).map((stock) => ensureStockShape(stock)),
@@ -786,6 +1244,9 @@
 			);
 			const [stockSource, setStockSource] = React.useState({
 				generatedAt: '',
+				dataFreshness: normalizeDataFreshness(null),
+				formula: fallbackFormula,
+				runSource: '',
 				dailyWarning: fallbackWarningHistory[0],
 				warningHistory: fallbackWarningHistory,
 				stocks: fallbackRecords,
@@ -860,6 +1321,59 @@
 			const topCohortAverage = currentWarning?.summary?.top_cohort_avg_trap_score;
 			const topCohortSize = currentWarning?.summary?.top_cohort_size;
 			const windowBasis = currentWarning?.summary?.window_basis;
+			const riskSummary = React.useMemo(() => buildRiskSummary(currentWarning, gaugeScore), [currentWarning, gaugeScore]);
+			const historyStats = React.useMemo(() => buildHistoryStats(stockSource.warningHistory), [stockSource.warningHistory]);
+			const dailyFocus = React.useMemo(() => buildDailyFocus(currentWarning, gaugeScore), [currentWarning, gaugeScore]);
+			const topTrapRanking = React.useMemo(() => {
+				return [...stockSource.stocks]
+					.sort((a, b) => b.score - a.score)
+					.slice(0, 5);
+			}, [stockSource]);
+			const hasStoredRankings = Boolean(
+				currentWarning?.rankings
+				&& (
+					currentWarning.rankings.logicVersion
+					|| currentWarning.rankings.avoidList?.length
+					|| currentWarning.rankings.watchList?.length
+				)
+			);
+			const canUseFallbackRankings = currentWarning?.date === stockSource.dailyWarning?.date;
+			const microRankings = React.useMemo(() => {
+				if (hasStoredRankings) {
+					return currentWarning.rankings;
+				}
+				if (!canUseFallbackRankings) {
+					return { avoidList: [], watchList: [] };
+				}
+				return buildMicroRankings(stockSource.stocks, currentWarning);
+			}, [stockSource.stocks, currentWarning, hasStoredRankings, canUseFallbackRankings]);
+			const rankingHistoryUnavailable = !hasStoredRankings && !canUseFallbackRankings;
+			const displayRankings = React.useMemo(() => ({
+				avoidList: fillRankingSlots(microRankings?.avoidList, 3),
+				watchList: fillRankingSlots(microRankings?.watchList, 3),
+			}), [microRankings]);
+			const summary = currentWarning?.summary || {};
+			const formula = stockSource.formula || fallbackFormula;
+			const trapWeightPurity = Math.round((Number(formula.business_purity_weight ?? 0) || 0) * 100);
+			const trapWeightFinancing = Math.round((Number(formula.financing_pressure_weight ?? 0) || 0) * 100);
+			const trapWeightTurnover = Math.round((Number(formula.turnover_heat_weight ?? 0) || 0) * 100);
+			const dashboardStats = [
+				{
+					label: '预警目标日',
+					value: formatMonthDayLabel(stockSource.dataFreshness.warningTargetDate || currentWarning.date),
+					note: '',
+				},
+				{
+					label: '数据模式',
+					value: formatMarketPhase(stockSource.dataFreshness.marketPhase),
+					note: '',
+				},
+				{
+					label: '高风险样本',
+					value: `${Number(summary.high_risk_count ?? 0)} 只`,
+					note: '优先避开一致性追高',
+				},
+			];
 
 			function applyQueries() {
 				setLeftSubmittedQuery(leftInput);
@@ -867,40 +1381,46 @@
 			}
 
 			return (
-				<main className="mx-auto flex min-h-screen w-full max-w-7xl flex-col px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
-					<section className="grid min-h-[52vh] grid-cols-1 gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-						<div className="rounded-[32px] border border-white/10 bg-[linear-gradient(135deg,rgba(10,17,35,0.92),rgba(8,12,24,0.82))] p-6 shadow-neon backdrop-blur-xl sm:p-8 lg:p-10">
-							<div className="flex flex-wrap items-center justify-between gap-4">
-								<div>
-						
-									<h1 className="mt-3 max-w-2xl font-display text-3xl font-extrabold leading-tight text-white sm:text-4xl lg:text-5xl">
+				<main className="mx-auto flex min-h-screen w-full max-w-7xl flex-col px-4 py-4 sm:px-6 lg:px-8 lg:py-5">
+					<section className="grid grid-cols-1 gap-4 md:grid-cols-[1.02fr_0.98fr]">
+						<div className="rounded-[28px] border border-white/10 bg-[linear-gradient(135deg,rgba(10,17,35,0.92),rgba(8,12,24,0.82))] p-5 shadow-neon backdrop-blur-xl sm:p-6 lg:p-7">
+							<div>
+									<h1 className="max-w-2xl font-display text-2xl font-extrabold leading-tight text-white sm:text-3xl lg:text-4xl">
 										量化陷阱预警系统
 									</h1>
-									<p className="mt-4 max-w-2xl text-base text-slate-300 sm:text-lg">
-										直接给判断，也保留复盘。判断错了，就在历史里明确写错。
-									</p>
-								</div>
-								
+									<div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-slate-300">
+										<div className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5">
+											历史方向命中 {historyStats.successRate === null ? '待积累' : `${historyStats.successRate}%`}
+										</div>
+										<div className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5">
+											{historyStats.reviewed > 0 ? `${historyStats.success}/${historyStats.reviewed} 次已复盘` : '已复盘样本不足'}
+										</div>
+									</div>
+							</div>
+
+							<div className="mt-5 grid max-w-3xl gap-3 sm:grid-cols-3">
+								{dashboardStats.map((item, index) => {
+									const cardTone = [
+										'border-white/10 bg-white/5',
+										index === 2 ? 'shadow-[0_0_30px_rgba(89,243,255,0.1)]' : '',
+									].join(' ');
+
+									return (
+										<div key={item.label} className={`rounded-[20px] border p-4 ${cardTone}`}>
+											<div className="text-xs uppercase tracking-[0.3em] text-slate-500">{item.label}</div>
+											<div className="mt-2 font-display text-2xl font-bold text-white">{item.value}</div>
+											{item.note ? <div className="mt-1 text-xs text-slate-300">{item.note}</div> : null}
+										</div>
+									);
+								})}
 							</div>
 
 							<div className="mt-10 flex flex-col items-center gap-10 xl:flex-row xl:justify-between">
 								<Gauge score={gaugeScore} />
 								<div className="w-full max-w-xl space-y-5">
-									<div className="rounded-[28px] border border-white/10 bg-white/5 p-6 shadow-neon">
-										<div className="mb-5 flex flex-wrap items-center gap-3">
-											<div className="rounded-full border border-white/10 bg-white/5 px-3 py-2 text-xs uppercase tracking-[0.28em] text-slate-300">
-												{formatWarningUpdatedAt(stockSource.generatedAt, currentWarning.date)}
-											</div>
-										</div>
-										<div className="text-xs uppercase tracking-[0.35em] text-slate-400">{formatWarningDate(currentWarning.date)} 操作提示词</div>
-										<div className="mt-4 text-2xl font-semibold leading-relaxed text-white sm:text-3xl">
-											{currentWarning.title}
-										</div>
-										<p className="mt-4 text-lg leading-8 text-slate-300">
-											{currentWarning.prompt}
-										</p>
+									<div className="rounded-full border border-white/10 bg-white/5 px-3 py-2 text-xs uppercase tracking-[0.28em] text-slate-300">
+										{formatWarningUpdatedAt(stockSource.generatedAt, currentWarning.date)}
 									</div>
-
 									<div className="grid gap-4 sm:grid-cols-3">
 										{currentWarning.signals.map((signal, index) => {
 											const cardClass = [
@@ -923,65 +1443,76 @@
 							</div>
 						</div>
 
-						<div className="rounded-[32px] border border-white/10 bg-[linear-gradient(180deg,rgba(16,24,44,0.88),rgba(6,10,24,0.92))] p-6 shadow-neon sm:p-8">
-							<div className="text-xs uppercase tracking-[0.45em] text-slate-400">明日风险结论</div>
-							<div className="mt-4 space-y-4">
-								{currentWarning.warnings.map((warning) => (
-									<div key={warning.label} className="rounded-2xl border border-white/10 bg-white/5 p-5">
-										<div className="text-sm text-slate-400">{warning.label}</div>
-										<div className="mt-2 text-2xl font-semibold text-white">{warning.value}</div>
+						<div className="rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(16,24,44,0.88),rgba(6,10,24,0.92))] p-5 shadow-neon sm:p-6">
+							<div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+								<div className="flex items-center justify-between gap-3">
+									<div>
+										<div className="text-base font-semibold leading-6 text-white">{riskSummary.headline}</div>
 									</div>
-								))}
-							</div>
-							<details className="group mt-5 max-w-md rounded-2xl border border-cyanGlow/20 bg-cyanGlow/10 px-4 py-3 text-sm text-slate-200 transition duration-300 open:border-cyanGlow/40">
-								<summary className="flex cursor-pointer list-none items-center justify-between gap-3 select-none font-semibold text-white">
-									<span>理论依据</span>
-									<div className="flex items-center gap-2 text-xs font-normal uppercase tracking-[0.22em] text-cyanGlow/75">
-										<span>展开</span>
-										<span className="text-lg leading-none transition duration-300 group-open:rotate-180">⌄</span>
+									<div className="rounded-full border border-white/10 bg-slate-950/40 px-3 py-1 text-xs uppercase tracking-[0.22em] text-slate-300">
+										{historyStats.successRate === null ? '复盘积累中' : `方向命中 ${historyStats.successRate}%`}
 									</div>
-								</summary>
-								<p className="mt-3 leading-7 text-slate-300">
-									这不是模棱两可的提醒，而是基于样本拥挤度、杠杆压力和换手热度给出的明日判断。后面会按结果复盘，对错分开记。
-								</p>
-								{topCohortAverage > 0 ? (
-									<p className="mt-3 leading-7 text-slate-300">
-										这一版重点看前 {topCohortSize || '-'} 只高分样本的平均陷阱分，目前是 {topCohortAverage.toFixed(1)} 分。
-									</p>
-								) : null}
-								{windowBasis ? (
-									<p className="mt-3 leading-7 text-slate-300">
-										时段判断依据：{windowBasis}
-									</p>
-								) : null}
-								<div className="mt-3 space-y-3 leading-7">
-									{metricGlossary.map((item) => (
-										<div key={item.label}>
-											<span className="font-semibold text-white">{item.label}：</span>
-											{item.description}
+								</div>
+								<div className="mt-3 space-y-2">
+									{dailyFocus.map((item, index) => (
+										<div key={`${item.title}-${index}`} className="rounded-2xl border border-white/10 bg-slate-950/30 p-2.5">
+											<div className={`${item.eyebrow ? 'mt-1' : ''} text-base font-semibold leading-6 text-white`}>{item.title}</div>
+											<div className="mt-1 text-xs leading-5 text-slate-300">{item.text}</div>
 										</div>
 									))}
 								</div>
-							</details>
-							<div className="mt-5 rounded-2xl border border-white/10 bg-white/5 p-5">
-								<div className="flex flex-wrap items-center justify-between gap-3">
-									<div>
-										<div className="text-xs uppercase tracking-[0.3em] text-slate-400">回溯历史</div>
-										
+								<div className="mt-2 rounded-2xl border border-amber-300/15 bg-amber-300/10 px-4 py-2.5 text-xs leading-5 text-amber-50">{riskSummary.closingNote}</div>
+							</div>
+							{!rankingHistoryUnavailable && (displayRankings.avoidList.length > 0 || displayRankings.watchList.length > 0) && (
+								<div className="mt-3 grid gap-3 sm:grid-cols-2">
+									<div className="rounded-2xl border border-red-300/15 bg-red-400/10 p-4">
+										<div className="flex items-center justify-between gap-2">
+											<div className="text-xs uppercase tracking-[0.28em] text-red-100/75">今日最不适合追高</div>
+											<div className="text-xs text-red-100/70">前 3 只</div>
+										</div>
+										<div className="mt-1 text-[11px] leading-4 text-red-100/65">不等于看跌，只代表今天追进去更容易买在拥挤位置。</div>
+										<div className="mt-3 space-y-2">
+											{displayRankings.avoidList.map((stock, index) => (
+												<RankingListItem key={`${stock.code || 'avoid-empty'}-${index}`} stock={stock} index={index} tone="danger" />
+											))}
+										</div>
 									</div>
-									<select
-										value={selectedWarningDate}
-										onChange={(event) => setSelectedWarningDate(event.target.value)}
-										className="rounded-full border border-white/10 bg-panel px-4 py-2 text-sm text-slate-100 outline-none"
-									>
-										{stockSource.warningHistory.map((entry) => (
-											<option key={entry.date} value={entry.date}>
-												{formatWarningDate(entry.date)}
-											</option>
-										))}
-									</select>
+									<div className="rounded-2xl border border-cyanGlow/15 bg-cyanGlow/10 p-4">
+										<div className="flex items-center justify-between gap-2">
+											<div className="text-xs uppercase tracking-[0.28em] text-cyanGlow/90">最有爆发潜力</div>
+											<div className="text-xs text-cyanGlow/75">前 3 只</div>
+										</div>
+										<div className="mt-1 text-[11px] leading-4 text-cyanGlow/70">不等于必涨，只代表今天更值得优先观察强趋势与成交结构。</div>
+										<div className="mt-3 space-y-2">
+											{displayRankings.watchList.map((stock, index) => (
+												<RankingListItem key={`${stock.code || 'watch-empty'}-${index}`} stock={stock} index={index} tone="watch" />
+											))}
+										</div>
+									</div>
 								</div>
-								<div className="mt-4 rounded-2xl border border-white/10 bg-slate-950/30 p-4">
+							)}
+							<details className="group mt-2 rounded-2xl border border-white/10 bg-white/5 p-3 open:bg-white/5">
+								<summary className="flex cursor-pointer list-none items-center justify-between gap-3 select-none">
+									<div>
+										<div className="text-xs uppercase tracking-[0.3em] text-slate-400">历史回顾</div>
+										<div className="mt-1 text-xs text-slate-300">已复盘 {historyStats.reviewed} 次，对了 {historyStats.success} 次，错了 {historyStats.failure} 次。</div>
+									</div>
+									<div className="flex items-center gap-2">
+										<select
+											value={selectedWarningDate}
+											onChange={(event) => setSelectedWarningDate(event.target.value)}
+											className="rounded-full border border-white/10 bg-panel px-4 py-2 text-sm text-slate-100 outline-none"
+										>
+											{stockSource.warningHistory.map((entry) => (
+												<option key={entry.date} value={entry.date}>
+													{formatWarningDate(entry.date)}
+												</option>
+											))}
+										</select>
+										<div className="text-sm text-slate-400 transition duration-300 group-open:rotate-180">⌄</div>
+									</div>
+								</summary>
+								<div className="mt-3 rounded-2xl border border-white/10 bg-slate-950/30 p-3">
 									<div className="flex flex-wrap items-center gap-3">
 										<div className="text-xs uppercase tracking-[0.28em] text-slate-500">复盘结果</div>
 										<div className={`rounded-full border px-3 py-1 text-sm font-semibold ${reviewBadge.className}`}>
@@ -993,16 +1524,84 @@
 											</div>
 										) : null}
 									</div>
-									{currentWarning?.review?.window_review?.note ? (
-										<p className="mt-3 text-sm leading-7 text-slate-400">
-											{currentWarning.review.window_review.note}
-										</p>
-									) : null}
-									<p className="mt-3 text-sm leading-7 text-slate-300">
+									<p className="mt-2 text-xs leading-5 text-slate-300">
 										{currentWarning.review?.note || '该日期暂无复盘说明。'}
 									</p>
 								</div>
-							</div>
+							</details>
+							<details className="group mt-2 rounded-2xl border border-red-400/20 bg-red-500/10 p-3 text-sm text-slate-200 transition duration-300 open:border-red-300/35">
+								<summary className="flex cursor-pointer list-none items-center justify-between gap-3 select-none font-semibold text-white">
+									<span className="text-sm uppercase tracking-[0.28em] text-red-100/80">最高量化陷阱分 TOP 5</span>
+									<div className="flex items-center gap-2 text-xs font-normal uppercase tracking-[0.22em] text-red-100/70">
+										<span>展开</span>
+										<span className="text-lg leading-none transition duration-300 group-open:rotate-180">⌄</span>
+									</div>
+								</summary>
+								<div className="mt-3 text-xs text-red-100/70">按综合陷阱分降序</div>
+								<div className="mt-4 space-y-2">
+									{topTrapRanking.map((stock, index) => (
+										<div key={`${stock.code}-${index}`} className="flex items-center justify-between rounded-xl border border-white/10 bg-white/5 px-3 py-2">
+											<div className="flex items-center gap-3">
+												<div className="w-6 text-sm font-bold text-red-200">#{index + 1}</div>
+												<div>
+													<div className="text-sm font-semibold text-white">{stock.name}</div>
+													<div className="text-xs text-slate-300">{stock.code}</div>
+												</div>
+											</div>
+											<div className="font-display text-xl font-bold text-red-100">{stock.score}</div>
+										</div>
+									))}
+								</div>
+							</details>
+							<details className="group mt-2 w-full rounded-2xl border border-cyanGlow/20 bg-cyanGlow/10 px-4 py-2.5 text-sm text-slate-200 transition duration-300 open:border-cyanGlow/40">
+								<summary className="flex cursor-pointer list-none items-center justify-between gap-3 select-none font-semibold text-white">
+									<span>理论依据</span>
+									<div className="flex items-center gap-2 text-xs font-normal uppercase tracking-[0.22em] text-cyanGlow/75">
+										<span>展开</span>
+										<span className="text-lg leading-none transition duration-300 group-open:rotate-180">⌄</span>
+									</div>
+								</summary>
+								<p className="mt-3 leading-7 text-slate-300">
+									这不是模棱两可的提醒，而是基于样本拥挤度、杠杆压力和换手热度给出的明日判断。后面会按结果复盘，对错分开记。
+								</p>
+								<div className="mt-3 rounded-2xl border border-white/10 bg-slate-950/30 p-3 leading-7 text-slate-300">
+									<div className="text-sm font-semibold text-white">陷阱分怎么算</div>
+									<p className="mt-2">陷阱分 = 主营纯度 {trapWeightPurity}% + 融资压力 {trapWeightFinancing}% + 换手热度 {trapWeightTurnover}%。分数越高，代表这只票当前位置越拥挤、越容易追进去买在不舒服的位置。</p>
+									<p className="mt-2">{formula.financing_pressure_rule}</p>
+									<p className="mt-2">{formula.incremental_financing_rule}</p>
+									<p className="mt-2">{formula.margin_burden_rule}</p>
+									<p className="mt-2">{formula.turnover_heat_rule}</p>
+								</div>
+								<div className="mt-3 rounded-2xl border border-white/10 bg-slate-950/30 p-3 leading-7 text-slate-300">
+									<div className="text-sm font-semibold text-white">爆发分怎么算</div>
+									<p className="mt-2">爆发分 = 候选强度 62% + 趋势确认 38% + 短线修复加分 - 位置过热扣分。分数越高，代表这只票越像“还能继续向上走一段”的强候选。</p>
+									<p className="mt-2">候选强度 = 题材纯度 38% + 启动区换手 28% + 融资不过热 18% + 位置激活度 16%。核心不是找最冷的票，而是找热度刚起来、但还没挤到高危区的票。</p>
+									<p className="mt-2">趋势确认主要看近 3 到 10 日涨跌、5 日和 10 日均线偏离、以及近 8 日回撤。短线修复更完整、趋势未坏的票，会排得更靠前。</p>
+									<p className="mt-2">{formula.watch_ranking_rule}</p>
+									<p className="mt-2">趋势走弱、连跌、回撤过深的样本会被降权或直接剔除；趋势数据缺失的样本只能补位，不能优先霸榜。</p>
+								</div>
+								{topCohortAverage > 0 ? (
+									<p className="mt-3 leading-7 text-slate-300">
+										这一版重点看前 {topCohortSize || '-'} 只高分样本的平均陷阱分，目前是 {topCohortAverage.toFixed(1)} 分。
+									</p>
+								) : null}
+								{windowBasis ? (
+									<p className="mt-3 leading-7 text-slate-300">
+										时段判断依据：{windowBasis}
+									</p>
+								) : null}
+								<p className="mt-3 leading-7 text-slate-300">
+									风险温度的汇总方式：{formula.gauge_score_rule}
+								</p>
+								<div className="mt-3 space-y-3 leading-7">
+									{metricGlossary.map((item) => (
+										<div key={item.label}>
+											<span className="font-semibold text-white">{item.label}：</span>
+											{item.description}
+										</div>
+									))}
+								</div>
+							</details>
 						</div>
 					</section>
 
