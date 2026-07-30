@@ -1,18 +1,18 @@
 {
-  "generated_at": "2026-07-30T18:25:40+08:00",
+  "generated_at": "2026-07-31T06:17:30+08:00",
   "data_freshness": {
     "warning_target_date": "2026-07-31",
-    "spot_snapshot_at": "2026-07-30T18:25:40+08:00",
+    "spot_snapshot_at": "2026-07-31T06:17:30+08:00",
     "margin_data_as_of": "20260729",
     "margin_data_dates_by_market": {
       "szse": "20260729",
       "sse": "20260729"
     },
-    "market_phase": "post_close"
+    "market_phase": "pre_open"
   },
   "run_source": "manual",
-  "whitelist_size": 121,
-  "requested_count": 121,
+  "whitelist_size": 125,
+  "requested_count": 125,
   "requested_codes": [
     "300476",
     "002384",
@@ -134,9 +134,13 @@
     "605020",
     "600160",
     "603379",
-    "600988"
+    "600988",
+    "000636",
+    "688825",
+    "600105",
+    "300285"
   ],
-  "processed_count": 121,
+  "processed_count": 125,
   "processed_codes": [
     "300476",
     "002384",
@@ -258,7 +262,11 @@
     "605020",
     "600160",
     "603379",
-    "600988"
+    "600988",
+    "000636",
+    "688825",
+    "600105",
+    "300285"
   ],
   "failed_codes": [],
   "formula": {
@@ -269,7 +277,9 @@
     "incremental_financing_rule": "分段映射融资买入额 / 融资余额，避免高杠杆样本过早全部打满分",
     "margin_burden_rule": "轻权重纳入融资余额 / 流通市值，补足历史融资包袱信息",
     "turnover_heat_rule": "min(100, 换手率 * 8)",
-    "gauge_score_rule": "前排高分样本均分 * 0.55 + 全样本均分 * 0.25 + 高风险样本占比 * 100 * 0.20"
+    "turnover_z_rule": "爆发分额外比较当前换手率相对近 20 日均值的偏离程度，优先保留相对放量但不过热的样本",
+    "gauge_score_rule": "前排高分样本均分 * 0.55 + 全样本均分 * 0.25 + 高风险样本占比 * 100 * 0.20",
+    "watch_ranking_rule": "爆发榜先看题材纯度、相对换手抬升、融资不过热和位置激活度，再叠加近 3 到 10 日趋势确认；环境偏弱时会自动抬高趋势门槛。"
   },
   "spot_data_health": {
     "source": "tencent:stock_zh_a_spot_tx",
@@ -284,35 +294,44 @@
   "daily_warning": {
     "date": "2026-07-31",
     "title": "量化分歧区，先看换手再定方向。",
-    "gauge_score": 53,
+    "gauge_score": 55,
     "summary": {
-      "sample_size": 121,
-      "avg_trap_score": 51.48,
-      "high_risk_count": 7,
-      "high_risk_ratio": 0.0579,
-      "watch_count": 33,
-      "watch_ratio": 0.2727,
+      "sample_size": 125,
+      "avg_trap_score": 52.16,
+      "high_risk_count": 10,
+      "high_risk_ratio": 0.08,
+      "watch_count": 37,
+      "watch_ratio": 0.296,
       "top_cohort_size": 12,
-      "top_cohort_avg_trap_score": 70.59,
-      "concentration_spread": 19.1,
-      "gauge_score": 53,
+      "top_cohort_avg_trap_score": 72.53,
+      "concentration_spread": 20.38,
+      "gauge_score": 55,
       "window_risk": "high",
       "window_value": "10:05 - 10:40 是明天最容易冲高回落的时段",
       "window_basis": "高风险票数量多，前排平均分也偏高。",
       "top_stock_code": "300308",
       "top_stock_name": "中际旭创",
-      "top_financing_pressure_score": 80.0
+      "top_financing_pressure_score": 80.0,
+      "breakout_environment": {
+        "state": "tight",
+        "score_multiplier": 0.88,
+        "min_return_3d_pct": 1.0,
+        "max_ma5_gap_pct": -1.0,
+        "note": "当前环境偏弱，缩量修复需要更强确认。",
+        "positive_ratio": 0.167,
+        "weak_ratio": 0.833
+      }
     },
-    "prompt": "当前高风险样本集中在 中际旭创 等标的，前排样本平均陷阱分约 70.6，高风险票 7 只，优先防范一致性追高后的回撤兑现。",
+    "prompt": "当前高风险样本集中在 中际旭创 等标的，前排样本平均陷阱分约 72.5，高风险票 10 只，优先防范一致性追高后的回撤兑现。",
     "signals": [
       {
         "label": "高风险个股数量",
-        "value": "7",
+        "value": "10",
         "note": "陷阱分大于等于 70 的样本数"
       },
       {
         "label": "整体追高热度",
-        "value": "71%",
+        "value": "73%",
         "note": "前 12 只高分样本的平均陷阱分"
       },
       {
@@ -339,41 +358,101 @@
     "review": {
       "status": "待复盘",
       "note": ""
+    },
+    "rankings": {
+      "logic_version": "breakout-aware-v3",
+      "trend_candidate_count": 12,
+      "environment_state": "tight",
+      "avoid_list": [
+        {
+          "code": "300308",
+          "name": "中际旭创",
+          "score": 77,
+          "reason": "综合陷阱分已进高危区"
+        },
+        {
+          "code": "603986",
+          "name": "兆易创新",
+          "score": 74,
+          "reason": "换手过热，容易一致性兑现"
+        },
+        {
+          "code": "300223",
+          "name": "北京君正",
+          "score": 74,
+          "reason": "换手过热，容易一致性兑现"
+        }
+      ],
+      "watch_list": [
+        {
+          "code": "300624",
+          "name": "万兴科技",
+          "score": 65,
+          "trap_score": 48,
+          "reason": "趋势未坏，优先盯分歧后的承接",
+          "trend_label": "趋势中性"
+        },
+        {
+          "code": "300364",
+          "name": "中文在线",
+          "score": 64,
+          "trap_score": 56,
+          "reason": "短线修复最完整，优先等回踩不破再跟",
+          "trend_label": "趋势中性"
+        },
+        {
+          "code": "301095",
+          "name": "广立微",
+          "score": 47,
+          "trap_score": 54,
+          "reason": "趋势数据暂缺，先盯开盘前 15 分钟量价确认",
+          "trend_label": "趋势数据暂缺"
+        }
+      ]
     }
   },
   "warning_history": [
     {
       "date": "2026-07-31",
       "title": "量化分歧区，先看换手再定方向。",
-      "gauge_score": 53,
+      "gauge_score": 55,
       "summary": {
-        "sample_size": 121,
-        "avg_trap_score": 51.48,
-        "high_risk_count": 7,
-        "high_risk_ratio": 0.0579,
-        "watch_count": 33,
-        "watch_ratio": 0.2727,
+        "sample_size": 125,
+        "avg_trap_score": 52.16,
+        "high_risk_count": 10,
+        "high_risk_ratio": 0.08,
+        "watch_count": 37,
+        "watch_ratio": 0.296,
         "top_cohort_size": 12,
-        "top_cohort_avg_trap_score": 70.59,
-        "concentration_spread": 19.1,
-        "gauge_score": 53,
+        "top_cohort_avg_trap_score": 72.53,
+        "concentration_spread": 20.38,
+        "gauge_score": 55,
         "window_risk": "high",
         "window_value": "10:05 - 10:40 是明天最容易冲高回落的时段",
         "window_basis": "高风险票数量多，前排平均分也偏高。",
         "top_stock_code": "300308",
         "top_stock_name": "中际旭创",
-        "top_financing_pressure_score": 80.0
+        "top_financing_pressure_score": 80.0,
+        "breakout_environment": {
+          "state": "tight",
+          "score_multiplier": 0.88,
+          "min_return_3d_pct": 1.0,
+          "max_ma5_gap_pct": -1.0,
+          "note": "当前环境偏弱，缩量修复需要更强确认。",
+          "positive_ratio": 0.167,
+          "weak_ratio": 0.833
+        }
       },
-      "prompt": "当前高风险样本集中在 中际旭创 等标的，前排样本平均陷阱分约 70.6，高风险票 7 只，优先防范一致性追高后的回撤兑现。",
+      "prompt": "当前高风险样本集中在 中际旭创 等标的，前排样本平均陷阱分约 72.5，高风险票 10 只，优先防范一致性追高后的回撤兑现。",
       "signals": [
         {
           "label": "高风险个股数量",
-          "value": "7",
+          "value": "10",
           "note": "陷阱分大于等于 70 的样本数"
         },
         {
           "label": "整体追高热度",
-          "value": "71%",
+          "value": "73%",
           "note": "前 12 只高分样本的平均陷阱分"
         },
         {
@@ -400,6 +479,57 @@
       "review": {
         "status": "待复盘",
         "note": ""
+      },
+      "rankings": {
+        "logic_version": "breakout-aware-v3",
+        "trend_candidate_count": 12,
+        "environment_state": "tight",
+        "avoid_list": [
+          {
+            "code": "300308",
+            "name": "中际旭创",
+            "score": 77,
+            "reason": "综合陷阱分已进高危区"
+          },
+          {
+            "code": "603986",
+            "name": "兆易创新",
+            "score": 74,
+            "reason": "换手过热，容易一致性兑现"
+          },
+          {
+            "code": "300223",
+            "name": "北京君正",
+            "score": 74,
+            "reason": "换手过热，容易一致性兑现"
+          }
+        ],
+        "watch_list": [
+          {
+            "code": "300624",
+            "name": "万兴科技",
+            "score": 65,
+            "trap_score": 48,
+            "reason": "趋势未坏，优先盯分歧后的承接",
+            "trend_label": "趋势中性"
+          },
+          {
+            "code": "300364",
+            "name": "中文在线",
+            "score": 64,
+            "trap_score": 56,
+            "reason": "短线修复最完整，优先等回踩不破再跟",
+            "trend_label": "趋势中性"
+          },
+          {
+            "code": "301095",
+            "name": "广立微",
+            "score": 47,
+            "trap_score": 54,
+            "reason": "趋势数据暂缺，先盯开盘前 15 分钟量价确认",
+            "trend_label": "趋势数据暂缺"
+          }
+        ]
       }
     },
     {
@@ -459,13 +589,54 @@
       "strategy": "当板块一致性预期过满时，陷阱往往不是来自逻辑错误，而是来自交易位置错误。先审视筹码，再决定出手。",
       "review": {
         "status": "方向对了",
-        "note": "方向判断对了。次日前排样本平均陷阱分 70.6，高风险样本 7 只，追高风险没有明显退潮。10:05 - 10:40 这段是否精准命中，仍建议人工看分时确认。",
-        "window_review": {
-          "status": "时段待补",
-          "note": "分钟级市场代理数据暂时不可用，先保留主方向复盘，时段结果后补。",
-          "proxies": [],
-          "source_state": "unavailable"
-        }
+        "note": "方向判断对了。次日前排样本平均陷阱分 70.6，高风险样本 7 只，追高风险没有明显退潮。10:05 - 10:40 这段是否精准命中，仍建议人工看分时确认。"
+      },
+      "rankings": {
+        "logic_version": "snapshot-rebuilt-v1",
+        "trend_candidate_count": 0,
+        "avoid_list": [
+          {
+            "code": "002384",
+            "name": "东山精密",
+            "score": 75,
+            "reason": "综合陷阱分已进高危区"
+          },
+          {
+            "code": "300458",
+            "name": "全志科技",
+            "score": 74,
+            "reason": "换手过热，容易一致性兑现"
+          },
+          {
+            "code": "002156",
+            "name": "通富微电",
+            "score": 74,
+            "reason": "换手过热，容易一致性兑现"
+          }
+        ],
+        "watch_list": [
+          {
+            "code": "300803",
+            "name": "指南针",
+            "score": 38,
+            "reason": "陷阱分处于可观察区，杠杆压力也不重",
+            "trend_label": "历史快照重建"
+          },
+          {
+            "code": "300118",
+            "name": "东方日升",
+            "score": 38,
+            "reason": "陷阱分处于可观察区，杠杆压力也不重",
+            "trend_label": "历史快照重建"
+          },
+          {
+            "code": "002517",
+            "name": "恺英网络",
+            "score": 41,
+            "reason": "陷阱分处于可观察区，杠杆压力也不重",
+            "trend_label": "历史快照重建"
+          }
+        ]
       }
     },
     {
@@ -532,6 +703,53 @@
           "proxies": [],
           "source_state": "unavailable"
         }
+      },
+      "rankings": {
+        "logic_version": "snapshot-rebuilt-v1",
+        "trend_candidate_count": 0,
+        "avoid_list": [
+          {
+            "code": "002384",
+            "name": "东山精密",
+            "score": 81,
+            "reason": "杠杆压力过高"
+          },
+          {
+            "code": "300458",
+            "name": "全志科技",
+            "score": 80,
+            "reason": "杠杆压力过高"
+          },
+          {
+            "code": "603986",
+            "name": "兆易创新",
+            "score": 79,
+            "reason": "杠杆压力过高"
+          }
+        ],
+        "watch_list": [
+          {
+            "code": "300059",
+            "name": "东方财富",
+            "score": 38,
+            "reason": "陷阱分处于可观察区，杠杆压力也不重",
+            "trend_label": "历史快照重建"
+          },
+          {
+            "code": "002456",
+            "name": "欧菲光",
+            "score": 40,
+            "reason": "陷阱分处于可观察区，杠杆压力也不重",
+            "trend_label": "历史快照重建"
+          },
+          {
+            "code": "300251",
+            "name": "光线传媒",
+            "score": 38,
+            "reason": "陷阱分处于可观察区，杠杆压力也不重",
+            "trend_label": "历史快照重建"
+          }
+        ]
       }
     },
     {
@@ -598,6 +816,53 @@
           "proxies": [],
           "source_state": "unavailable"
         }
+      },
+      "rankings": {
+        "logic_version": "snapshot-rebuilt-v1",
+        "trend_candidate_count": 0,
+        "avoid_list": [
+          {
+            "code": "300458",
+            "name": "全志科技",
+            "score": 82,
+            "reason": "杠杆压力过高"
+          },
+          {
+            "code": "002156",
+            "name": "通富微电",
+            "score": 82,
+            "reason": "杠杆压力过高"
+          },
+          {
+            "code": "002185",
+            "name": "华天科技",
+            "score": 82,
+            "reason": "杠杆压力过高"
+          }
+        ],
+        "watch_list": [
+          {
+            "code": "301171",
+            "name": "易点天下",
+            "score": 41,
+            "reason": "陷阱分处于可观察区，杠杆压力也不重",
+            "trend_label": "历史快照重建"
+          },
+          {
+            "code": "688213",
+            "name": "思特威-W",
+            "score": 38,
+            "reason": "陷阱分处于可观察区，杠杆压力也不重",
+            "trend_label": "历史快照重建"
+          },
+          {
+            "code": "002049",
+            "name": "紫光国微",
+            "score": 39,
+            "reason": "陷阱分处于可观察区，杠杆压力也不重",
+            "trend_label": "历史快照重建"
+          }
+        ]
       }
     },
     {
@@ -640,6 +905,53 @@
       "review": {
         "status": "避坑成功",
         "note": "次日全市场高风险特征延续，样本平均陷阱分 49.6，高风险样本 20 只，继续控制追高是有效的。"
+      },
+      "rankings": {
+        "logic_version": "snapshot-rebuilt-v1",
+        "trend_candidate_count": 0,
+        "avoid_list": [
+          {
+            "code": "300458",
+            "name": "全志科技",
+            "score": 82,
+            "reason": "杠杆压力过高"
+          },
+          {
+            "code": "002156",
+            "name": "通富微电",
+            "score": 82,
+            "reason": "杠杆压力过高"
+          },
+          {
+            "code": "002185",
+            "name": "华天科技",
+            "score": 82,
+            "reason": "杠杆压力过高"
+          }
+        ],
+        "watch_list": [
+          {
+            "code": "301171",
+            "name": "易点天下",
+            "score": 41,
+            "reason": "陷阱分处于可观察区，杠杆压力也不重",
+            "trend_label": "历史快照重建"
+          },
+          {
+            "code": "688213",
+            "name": "思特威-W",
+            "score": 38,
+            "reason": "陷阱分处于可观察区，杠杆压力也不重",
+            "trend_label": "历史快照重建"
+          },
+          {
+            "code": "002049",
+            "name": "紫光国微",
+            "score": 39,
+            "reason": "陷阱分处于可观察区，杠杆压力也不重",
+            "trend_label": "历史快照重建"
+          }
+        ]
       }
     },
     {
@@ -682,6 +994,53 @@
       "review": {
         "status": "避坑成功",
         "note": "次日高开冲高后回落，追涨资金承压，预警兑现。"
+      },
+      "rankings": {
+        "logic_version": "snapshot-rebuilt-v1",
+        "trend_candidate_count": 0,
+        "avoid_list": [
+          {
+            "code": "002156",
+            "name": "通富微电",
+            "score": 82,
+            "reason": "杠杆压力过高"
+          },
+          {
+            "code": "688099",
+            "name": "晶晨股份",
+            "score": 74,
+            "reason": "杠杆压力过高"
+          },
+          {
+            "code": "300308",
+            "name": "中际旭创",
+            "score": 76,
+            "reason": "杠杆压力过高"
+          }
+        ],
+        "watch_list": [
+          {
+            "code": "002555",
+            "name": "三七互娱",
+            "score": 39,
+            "reason": "陷阱分处于可观察区，杠杆压力也不重",
+            "trend_label": "历史快照重建"
+          },
+          {
+            "code": "002049",
+            "name": "紫光国微",
+            "score": 39,
+            "reason": "陷阱分处于可观察区，杠杆压力也不重",
+            "trend_label": "历史快照重建"
+          },
+          {
+            "code": "600536",
+            "name": "中国软件",
+            "score": 39,
+            "reason": "陷阱分处于可观察区，杠杆压力也不重",
+            "trend_label": "历史快照重建"
+          }
+        ]
       }
     },
     {
@@ -910,9 +1269,22 @@
         "financing_pressure_score": 56.44,
         "incremental_financing_pressure_score": 70.55,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 44.88
+        "turnover_heat_score": 44.88,
+        "turnover_z_score": 1.43
       },
-      "trap_score": 63.07
+      "trap_score": 63.07,
+      "trend": {
+        "available": true,
+        "down_streak": 3,
+        "return_3d_pct": -24.43,
+        "return_5d_pct": -24.51,
+        "return_8d_pct": -19.52,
+        "ma5_gap_pct": -14.99,
+        "ma10_gap_pct": -19.7,
+        "drawdown_8d_pct": -24.98,
+        "trend_penalty": 82.0,
+        "trend_label": "短线趋势走弱"
+      }
     },
     {
       "code": "002384",
@@ -946,9 +1318,22 @@
         "financing_pressure_score": 80.0,
         "incremental_financing_pressure_score": 100.0,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 50.0
+        "turnover_heat_score": 50.0,
+        "turnover_z_score": 2.63
       },
-      "trap_score": 76.8
+      "trap_score": 76.8,
+      "trend": {
+        "available": true,
+        "down_streak": 1,
+        "return_3d_pct": -19.77,
+        "return_5d_pct": -19.44,
+        "return_8d_pct": -13.94,
+        "ma5_gap_pct": -10.86,
+        "ma10_gap_pct": -14.45,
+        "drawdown_8d_pct": -23.98,
+        "trend_penalty": 72.0,
+        "trend_label": "短线趋势走弱"
+      }
     },
     {
       "code": "002230",
@@ -1612,9 +1997,22 @@
         "financing_pressure_score": 45.56,
         "incremental_financing_pressure_score": 56.95,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 52.0
+        "turnover_heat_score": 52.0,
+        "turnover_z_score": 0.86
       },
-      "trap_score": 48.4
+      "trap_score": 48.4,
+      "trend": {
+        "available": true,
+        "down_streak": 1,
+        "return_3d_pct": 1.56,
+        "return_5d_pct": 0.39,
+        "return_8d_pct": 0.0,
+        "ma5_gap_pct": 1.35,
+        "ma10_gap_pct": 0.41,
+        "drawdown_8d_pct": -4.43,
+        "trend_penalty": 0.0,
+        "trend_label": "趋势中性"
+      }
     },
     {
       "code": "300442",
@@ -1666,9 +2064,22 @@
         "financing_pressure_score": 63.6,
         "incremental_financing_pressure_score": 79.5,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 47.44
+        "turnover_heat_score": 47.44,
+        "turnover_z_score": -0.19
       },
-      "trap_score": 55.61
+      "trap_score": 55.61,
+      "trend": {
+        "available": true,
+        "down_streak": 1,
+        "return_3d_pct": 3.14,
+        "return_5d_pct": 3.92,
+        "return_8d_pct": -3.05,
+        "ma5_gap_pct": 1.81,
+        "ma10_gap_pct": 0.2,
+        "drawdown_8d_pct": -4.57,
+        "trend_penalty": 0.0,
+        "trend_label": "趋势中性"
+      }
     },
     {
       "code": "300394",
@@ -1684,9 +2095,22 @@
         "financing_pressure_score": 58.5,
         "incremental_financing_pressure_score": 73.12,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 42.56
+        "turnover_heat_score": 42.56,
+        "turnover_z_score": 1.2
       },
-      "trap_score": 52.34
+      "trap_score": 52.34,
+      "trend": {
+        "available": true,
+        "down_streak": 1,
+        "return_3d_pct": -23.47,
+        "return_5d_pct": -24.51,
+        "return_8d_pct": -25.03,
+        "ma5_gap_pct": -14.51,
+        "ma10_gap_pct": -20.82,
+        "drawdown_8d_pct": -30.69,
+        "trend_penalty": 72.0,
+        "trend_label": "短线趋势走弱"
+      }
     },
     {
       "code": "300570",
@@ -1900,9 +2324,22 @@
         "financing_pressure_score": 40.67,
         "incremental_financing_pressure_score": 50.84,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 61.76
+        "turnover_heat_score": 61.76,
+        "turnover_z_score": 0.0
       },
-      "trap_score": 48.15
+      "trap_score": 48.15,
+      "trend": {
+        "available": true,
+        "down_streak": 3,
+        "return_3d_pct": -3.93,
+        "return_5d_pct": -4.51,
+        "return_8d_pct": -5.75,
+        "ma5_gap_pct": -1.76,
+        "ma10_gap_pct": -3.55,
+        "drawdown_8d_pct": -7.43,
+        "trend_penalty": 10.0,
+        "trend_label": "趋势中性"
+      }
     },
     {
       "code": "301165",
@@ -2152,9 +2589,22 @@
         "financing_pressure_score": 43.54,
         "incremental_financing_pressure_score": 54.42,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 42.8
+        "turnover_heat_score": 42.8,
+        "turnover_z_score": -0.95
       },
-      "trap_score": 45.65
+      "trap_score": 45.65,
+      "trend": {
+        "available": true,
+        "down_streak": 3,
+        "return_3d_pct": -9.79,
+        "return_5d_pct": -12.21,
+        "return_8d_pct": -11.55,
+        "ma5_gap_pct": -6.56,
+        "ma10_gap_pct": -9.43,
+        "drawdown_8d_pct": -14.41,
+        "trend_penalty": 82.0,
+        "trend_label": "短线趋势走弱"
+      }
     },
     {
       "code": "002273",
@@ -2274,13 +2724,26 @@
         "margin_buy": 114524402.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 6.91,
+        "turnover_rate": 6.83,
         "financing_pressure_score": 69.4,
         "incremental_financing_pressure_score": 86.75,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 55.28
+        "turnover_heat_score": 54.64,
+        "turnover_z_score": 0.37
       },
-      "trap_score": 59.79
+      "trap_score": 59.66,
+      "trend": {
+        "available": true,
+        "down_streak": 1,
+        "return_3d_pct": -11.26,
+        "return_5d_pct": -7.69,
+        "return_8d_pct": 5.3,
+        "ma5_gap_pct": -5.53,
+        "ma10_gap_pct": -4.93,
+        "drawdown_8d_pct": -11.26,
+        "trend_penalty": 32.0,
+        "trend_label": "短线趋势走弱"
+      }
     },
     {
       "code": "002185",
@@ -2368,9 +2831,22 @@
         "financing_pressure_score": 62.68,
         "incremental_financing_pressure_score": 78.36,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 58.48
+        "turnover_heat_score": 58.48,
+        "turnover_z_score": 0.84
       },
-      "trap_score": 57.4
+      "trap_score": 57.4,
+      "trend": {
+        "available": true,
+        "down_streak": 3,
+        "return_3d_pct": -18.49,
+        "return_5d_pct": -18.6,
+        "return_8d_pct": -13.94,
+        "ma5_gap_pct": -11.02,
+        "ma10_gap_pct": -15.17,
+        "drawdown_8d_pct": -19.74,
+        "trend_penalty": 82.0,
+        "trend_label": "短线趋势走弱"
+      }
     },
     {
       "code": "000034",
@@ -2386,9 +2862,22 @@
         "financing_pressure_score": 55.86,
         "incremental_financing_pressure_score": 69.82,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 49.92
+        "turnover_heat_score": 49.92,
+        "turnover_z_score": -0.89
       },
-      "trap_score": 52.62
+      "trap_score": 52.62,
+      "trend": {
+        "available": true,
+        "down_streak": 3,
+        "return_3d_pct": -13.53,
+        "return_5d_pct": -16.08,
+        "return_8d_pct": -6.49,
+        "ma5_gap_pct": -8.96,
+        "ma10_gap_pct": -9.62,
+        "drawdown_8d_pct": -16.08,
+        "trend_penalty": 82.0,
+        "trend_label": "短线趋势走弱"
+      }
     },
     {
       "code": "000066",
@@ -2584,9 +3073,22 @@
         "financing_pressure_score": 59.08,
         "incremental_financing_pressure_score": 73.85,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 44.16
+        "turnover_heat_score": 44.16,
+        "turnover_z_score": -0.55
       },
-      "trap_score": 52.92
+      "trap_score": 52.92,
+      "trend": {
+        "available": true,
+        "down_streak": 3,
+        "return_3d_pct": -15.28,
+        "return_5d_pct": -15.48,
+        "return_8d_pct": -12.19,
+        "ma5_gap_pct": -8.96,
+        "ma10_gap_pct": -12.94,
+        "drawdown_8d_pct": -17.95,
+        "trend_penalty": 82.0,
+        "trend_label": "短线趋势走弱"
+      }
     },
     {
       "code": "600183",
@@ -2872,9 +3374,22 @@
         "financing_pressure_score": 54.83,
         "incremental_financing_pressure_score": 68.53,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 43.84
+        "turnover_heat_score": 43.84,
+        "turnover_z_score": -1.01
       },
-      "trap_score": 50.94
+      "trap_score": 50.94,
+      "trend": {
+        "available": true,
+        "down_streak": 3,
+        "return_3d_pct": -5.69,
+        "return_5d_pct": -8.44,
+        "return_8d_pct": -16.12,
+        "ma5_gap_pct": -2.85,
+        "ma10_gap_pct": -8.67,
+        "drawdown_8d_pct": -17.2,
+        "trend_penalty": 64.0,
+        "trend_label": "短线趋势走弱"
+      }
     },
     {
       "code": "002218",
@@ -3073,6 +3588,78 @@
         "turnover_heat_score": 37.36
       },
       "trap_score": 60.97
+    },
+    {
+      "code": "000636",
+      "name": "风华高科",
+      "margin_date": "20260729",
+      "metrics": {
+        "business_purity_score": 50,
+        "margin_balance": 2975684942.0,
+        "margin_buy": 1115277040.0,
+        "float_market_cap": null,
+        "margin_balance_ratio": null,
+        "turnover_rate": 23.11,
+        "financing_pressure_score": 80.0,
+        "incremental_financing_pressure_score": 100.0,
+        "margin_burden_score": 0.0,
+        "turnover_heat_score": 100.0
+      },
+      "trap_score": 73.5
+    },
+    {
+      "code": "688825",
+      "name": "C长鑫",
+      "margin_date": "20260729",
+      "metrics": {
+        "business_purity_score": 50,
+        "margin_balance": 14496743339.0,
+        "margin_buy": 5309168368.0,
+        "float_market_cap": null,
+        "margin_balance_ratio": null,
+        "turnover_rate": 19.12,
+        "financing_pressure_score": 80.0,
+        "incremental_financing_pressure_score": 100.0,
+        "margin_burden_score": 0.0,
+        "turnover_heat_score": 100.0
+      },
+      "trap_score": 73.5
+    },
+    {
+      "code": "600105",
+      "name": "永鼎股份",
+      "margin_date": "20260729",
+      "metrics": {
+        "business_purity_score": 50,
+        "margin_balance": 1665888298.0,
+        "margin_buy": 150954008.0,
+        "float_market_cap": null,
+        "margin_balance_ratio": null,
+        "turnover_rate": 19.75,
+        "financing_pressure_score": 71.18,
+        "incremental_financing_pressure_score": 88.98,
+        "margin_burden_score": 0.0,
+        "turnover_heat_score": 100.0
+      },
+      "trap_score": 69.53
+    },
+    {
+      "code": "300285",
+      "name": "国瓷材料",
+      "margin_date": "20260729",
+      "metrics": {
+        "business_purity_score": 50,
+        "margin_balance": 3339476918.0,
+        "margin_buy": 786443737.0,
+        "float_market_cap": null,
+        "margin_balance_ratio": null,
+        "turnover_rate": 21.68,
+        "financing_pressure_score": 80.0,
+        "incremental_financing_pressure_score": 100.0,
+        "margin_burden_score": 0.0,
+        "turnover_heat_score": 100.0
+      },
+      "trap_score": 73.5
     }
   ]
 }
