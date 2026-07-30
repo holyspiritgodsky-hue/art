@@ -46,6 +46,7 @@ STOCK_WHITELIST = [
     "600588", "600602", "600171", "600498", "600183", "600460", "600703", "601138", "601360", "603000",
     "300054", "002192", "002466", "002837", "601869", "002938", "000878", "002155", "600378", "300418",
     "002218", "300617", "300738", "002126", "002050", "603075", "603667", "605020", "600160", "603379", "600988",
+    "000636", "688825", "600105", "300285",
 ]
 
 STOCK_WHITELIST = list(dict.fromkeys(STOCK_WHITELIST))
@@ -69,6 +70,8 @@ class WeightProfile:
 
 WEIGHTS = WeightProfile()
 WINDOW_PATTERN = re.compile(r"(\d{2}:\d{2})\s*-\s*(\d{2}:\d{2})")
+WATCH_TREND_CANDIDATE_COUNT = 12
+WATCH_TREND_FETCH_DELAY_SECONDS = 0.18
 INTRADAY_REVIEW_PROXIES = [
     {"symbol": "000001", "name": "上证指数"},
     {"symbol": "399001", "name": "深证成指"},
@@ -457,6 +460,97 @@ def average(values: list[float]) -> float:
     return sum(values) / len(values) if values else 0.0
 
 
+def build_centered_score(value: float, center: float, penalty_per_point: float) -> float:
+    return clamp(100.0 - abs(value - center) * penalty_per_point)
+
+
+def compute_turnover_z_score(frame: pd.DataFrame | None, current_turnover_rate: float | None) -> float | None:
+    if frame is None or frame.empty or current_turnover_rate is None:
+        return None
+
+    turnover_series = pd.to_numeric(frame.get("turnover_rate"), errors="coerce").dropna()
+    if len(turnover_series) < 8:
+        return None
+
+    recent = turnover_series.tail(20)
+    mean_value = float(recent.mean())
+    std_value = float(recent.std(ddof=0))
+    if std_value <= 0:
+        return None
+
+    return round((float(current_turnover_rate) - mean_value) / std_value, 2)
+
+
+def build_relative_turnover_setup_score(turnover_heat_score: float, turnover_z_score: float | None) -> float:
+    if turnover_z_score is None:
+        return build_centered_score(turnover_heat_score, 52.0, 2.0)
+
+    target_z = 1.2
+    penalty = 22.0 if turnover_z_score >= 0 else 30.0
+    return build_centered_score(turnover_z_score, target_z, penalty)
+
+
+def compute_breakout_environment(stocks: list[dict[str, Any]], gauge_score: float) -> dict[str, Any]:
+    trend_records = [
+        item.get("trend") or {}
+        for item in stocks
+        if (item.get("trend") or {}).get("available")
+    ]
+    if len(trend_records) < 4:
+        return {
+            "state": "neutral",
+            "score_multiplier": 1.0,
+            "min_return_3d_pct": 0.0,
+            "max_ma5_gap_pct": -2.5,
+            "note": "趋势样本不足，先按中性环境处理。",
+            "positive_ratio": 0.0,
+            "weak_ratio": 0.0,
+        }
+
+    positive_ratio = sum(
+        1
+        for item in trend_records
+        if float(item.get("return_3d_pct", 0.0) or 0.0) >= 1.0
+        and float(item.get("ma5_gap_pct", 0.0) or 0.0) >= -1.0
+    ) / len(trend_records)
+    weak_ratio = sum(
+        1
+        for item in trend_records
+        if float(item.get("return_5d_pct", 0.0) or 0.0) <= -4.0
+        or float(item.get("ma5_gap_pct", 0.0) or 0.0) <= -3.0
+    ) / len(trend_records)
+
+    if gauge_score >= 66 or weak_ratio >= 0.5:
+        return {
+            "state": "tight",
+            "score_multiplier": 0.88,
+            "min_return_3d_pct": 1.0,
+            "max_ma5_gap_pct": -1.0,
+            "note": "当前环境偏弱，缩量修复需要更强确认。",
+            "positive_ratio": round(positive_ratio, 3),
+            "weak_ratio": round(weak_ratio, 3),
+        }
+    if positive_ratio >= 0.55 and weak_ratio <= 0.25 and gauge_score <= 58:
+        return {
+            "state": "open",
+            "score_multiplier": 1.04,
+            "min_return_3d_pct": -0.5,
+            "max_ma5_gap_pct": -2.5,
+            "note": "当前环境偏强，趋势修复票更容易走成。",
+            "positive_ratio": round(positive_ratio, 3),
+            "weak_ratio": round(weak_ratio, 3),
+        }
+    return {
+        "state": "neutral",
+        "score_multiplier": 1.0,
+        "min_return_3d_pct": 0.0,
+        "max_ma5_gap_pct": -2.0,
+        "note": "当前环境中性，优先看趋势确认更完整的票。",
+        "positive_ratio": round(positive_ratio, 3),
+        "weak_ratio": round(weak_ratio, 3),
+    }
+
+
 def parse_warning_window(value: str) -> tuple[str, str] | None:
     match = WINDOW_PATTERN.search(str(value or ""))
     if not match:
@@ -490,6 +584,579 @@ def normalize_intraday_frame(frame: pd.DataFrame) -> pd.DataFrame:
     if normalized.empty:
         raise ValueError("Intraday frame is empty after normalization")
     return normalized[["timestamp", "price"]]
+
+
+def normalize_daily_history_frame(frame: pd.DataFrame) -> pd.DataFrame:
+    rename_map: dict[str, str] = {}
+    for column in frame.columns:
+        name = str(column).strip()
+        if name in {"日期", "date", "Date", "datetime", "Datetime"}:
+            rename_map[column] = "date"
+        elif name in {"收盘", "close", "Close", "最新价"}:
+            rename_map[column] = "close"
+        elif name in {"换手率", "turnover", "Turnover"}:
+            rename_map[column] = "turnover_rate"
+
+    normalized = frame.rename(columns=rename_map).copy()
+    if "date" not in normalized.columns or "close" not in normalized.columns:
+        raise ValueError(f"Unexpected daily history columns: {list(frame.columns)}")
+
+    normalized["date"] = pd.to_datetime(normalized["date"], errors="coerce")
+    normalized["close"] = pd.to_numeric(normalized["close"], errors="coerce")
+    if "turnover_rate" not in normalized.columns:
+        normalized["turnover_rate"] = None
+    normalized["turnover_rate"] = pd.to_numeric(normalized["turnover_rate"], errors="coerce")
+    turnover_values = normalized["turnover_rate"].dropna()
+    if not turnover_values.empty and float(turnover_values.abs().max()) <= 1.0:
+        normalized["turnover_rate"] = normalized["turnover_rate"] * 100.0
+    normalized = normalized.dropna(subset=["date", "close"]).sort_values("date")
+    if normalized.empty:
+        raise ValueError("Daily history frame is empty after normalization")
+    return normalized[["date", "close", "turnover_rate"]]
+
+
+def load_recent_daily_history(code: str, end_date: datetime, lookback_days: int = 45) -> pd.DataFrame | None:
+    start_date = (end_date - timedelta(days=lookback_days)).strftime("%Y%m%d")
+    finish_date = end_date.strftime("%Y%m%d")
+
+    try:
+        frame = ak.stock_zh_a_hist(
+            symbol=code,
+            period="daily",
+            start_date=start_date,
+            end_date=finish_date,
+            adjust="qfq",
+        )
+    except Exception as exc:
+        LOGGER.warning("Primary daily history source failed for %s: %s", code, exc)
+        frame = None
+
+    if frame is None or frame.empty:
+        try:
+            frame = ak.stock_zh_a_hist_tx(
+                symbol=code,
+                start_date=start_date,
+                end_date=finish_date,
+                adjust="qfq",
+            )
+        except Exception as exc:
+            LOGGER.warning("Fallback daily history source failed for %s: %s", code, exc)
+            return None
+
+    if frame is None or frame.empty:
+        return None
+
+    try:
+        return normalize_daily_history_frame(frame)
+    except Exception as exc:
+        LOGGER.warning("Failed to normalize daily history for %s: %s", code, exc)
+        return None
+
+
+def compute_price_trend_metrics(frame: pd.DataFrame | None) -> dict[str, Any]:
+    if frame is None or frame.empty:
+        return {
+            "available": False,
+            "down_streak": 0,
+            "return_3d_pct": 0.0,
+            "return_5d_pct": 0.0,
+            "return_8d_pct": 0.0,
+            "ma5_gap_pct": 0.0,
+            "ma10_gap_pct": 0.0,
+            "drawdown_8d_pct": 0.0,
+            "trend_penalty": 0.0,
+            "trend_label": "趋势数据暂缺",
+        }
+
+    closes = frame["close"].astype(float).tolist()
+    latest_close = closes[-1]
+
+    def pct_change(reference_index: int) -> float:
+        if len(closes) <= reference_index:
+            return 0.0
+        base = closes[-reference_index - 1]
+        if not base:
+            return 0.0
+        return round((latest_close / base - 1) * 100, 2)
+
+    down_streak = 0
+    for index in range(len(closes) - 1, 0, -1):
+        if closes[index] < closes[index - 1]:
+            down_streak += 1
+            continue
+        break
+
+    ma5 = average(closes[-5:]) if len(closes) >= 5 else average(closes)
+    ma10 = average(closes[-10:]) if len(closes) >= 10 else average(closes)
+    recent_peak = max(closes[-8:]) if len(closes) >= 8 else max(closes)
+    ma5_gap_pct = round((latest_close / ma5 - 1) * 100, 2) if ma5 else 0.0
+    ma10_gap_pct = round((latest_close / ma10 - 1) * 100, 2) if ma10 else 0.0
+    drawdown_8d_pct = round((latest_close / recent_peak - 1) * 100, 2) if recent_peak else 0.0
+    return_3d_pct = pct_change(3)
+    return_5d_pct = pct_change(5)
+    return_8d_pct = pct_change(8)
+
+    trend_penalty = 0.0
+    if down_streak >= 3:
+        trend_penalty += min(28.0, 10.0 + (down_streak - 3) * 6.0)
+    if return_5d_pct <= -8:
+        trend_penalty += 24.0
+    elif return_5d_pct <= -5:
+        trend_penalty += 14.0
+    if ma5_gap_pct <= -4:
+        trend_penalty += 18.0
+    if ma10_gap_pct <= -7:
+        trend_penalty += 14.0
+    if drawdown_8d_pct <= -12:
+        trend_penalty += 16.0
+    trend_penalty = round(clamp(trend_penalty), 2)
+
+    if down_streak >= 4 and return_5d_pct <= -8:
+        trend_label = f"已连跌 {down_streak} 天"
+    elif ma5_gap_pct <= -4 or ma10_gap_pct <= -7:
+        trend_label = "短线趋势走弱"
+    elif return_5d_pct <= -5:
+        trend_label = "近 5 日明显回撤"
+    else:
+        trend_label = "趋势中性"
+
+    return {
+        "available": True,
+        "down_streak": down_streak,
+        "return_3d_pct": return_3d_pct,
+        "return_5d_pct": return_5d_pct,
+        "return_8d_pct": return_8d_pct,
+        "ma5_gap_pct": ma5_gap_pct,
+        "ma10_gap_pct": ma10_gap_pct,
+        "drawdown_8d_pct": drawdown_8d_pct,
+        "trend_penalty": trend_penalty,
+        "trend_label": trend_label,
+    }
+
+
+def build_preliminary_breakout_setup_score(stock: dict[str, Any], gauge_score: float) -> float:
+    metrics = stock.get("metrics", {})
+    trap_score = float(stock.get("trap_score", 0) or 0.0)
+    purity_score = float(metrics.get("business_purity_score", 0) or 0.0)
+    turnover_score = float(metrics.get("turnover_heat_score", 0) or 0.0)
+    turnover_z_score = metrics.get("turnover_z_score")
+    financing_score = float(metrics.get("financing_pressure_score", 0) or 0.0)
+    setup_center = min(58.0, max(46.0, gauge_score - 2.0))
+    turnover_setup = build_relative_turnover_setup_score(
+        turnover_score,
+        None if turnover_z_score is None else float(turnover_z_score),
+    )
+    activation_score = build_centered_score(trap_score, setup_center, 2.6)
+    return (
+        purity_score * 0.38
+        + turnover_setup * 0.28
+        + (100.0 - financing_score) * 0.18
+        + activation_score * 0.16
+    )
+
+
+def build_breakout_potential_score(
+    stock: dict[str, Any],
+    gauge_score: float,
+    trend_metrics: dict[str, Any],
+    environment: dict[str, Any],
+) -> float:
+    trap_score = float(stock.get("trap_score", 0) or 0.0)
+    setup_score = build_preliminary_breakout_setup_score(stock, gauge_score)
+    if not trend_metrics.get("available"):
+        crowding_penalty = max(trap_score - 68.0, 0.0) * 0.25
+        return round(
+            clamp(
+                setup_score * 0.84 * float(environment.get("score_multiplier", 1.0) or 1.0)
+                - crowding_penalty
+            ),
+            2,
+        )
+
+    trend_score = average([
+        clamp((float(trend_metrics.get("return_3d_pct", 0.0) or 0.0) + 2.5) / 6.5 * 100.0),
+        clamp((float(trend_metrics.get("return_5d_pct", 0.0) or 0.0) + 4.0) / 9.0 * 100.0),
+        clamp((float(trend_metrics.get("ma5_gap_pct", 0.0) or 0.0) + 4.0) / 7.0 * 100.0),
+        clamp((float(trend_metrics.get("ma10_gap_pct", 0.0) or 0.0) + 7.0) / 10.0 * 100.0),
+    ])
+    rebound_bonus = 6.0 if float(trend_metrics.get("return_3d_pct", 0.0) or 0.0) >= 1.5 and float(trend_metrics.get("ma5_gap_pct", 0.0) or 0.0) >= -0.5 else 0.0
+    crowding_penalty = max(trap_score - 68.0, 0.0) * 0.25
+    environment_multiplier = float(environment.get("score_multiplier", 1.0) or 1.0)
+    return round(clamp((setup_score * 0.62 + trend_score * 0.38 + rebound_bonus) * environment_multiplier - crowding_penalty), 2)
+
+
+def hydrate_breakout_candidate_trends(stocks: list[dict[str, Any]], gauge_score: float, generated_at_dt: datetime) -> int:
+    ranked_candidates = sorted(
+        stocks,
+        key=lambda item: build_preliminary_breakout_setup_score(item, gauge_score),
+        reverse=True,
+    )
+    selected_candidates = ranked_candidates[:WATCH_TREND_CANDIDATE_COUNT]
+    hydrated_count = 0
+
+    for item in selected_candidates:
+        code = str(item.get("code", "")).strip()
+        if not code:
+            continue
+        existing_trend = item.get("trend") or {}
+        if existing_trend.get("available"):
+            hydrated_count += 1
+            continue
+        time.sleep(WATCH_TREND_FETCH_DELAY_SECONDS)
+        frame = load_recent_daily_history(code, generated_at_dt)
+        item["trend"] = compute_price_trend_metrics(frame)
+        item.setdefault("metrics", {})["turnover_z_score"] = compute_turnover_z_score(
+            frame,
+            safe_float((item.get("metrics") or {}).get("turnover_rate")),
+        )
+        hydrated_count += 1
+
+    return hydrated_count
+
+
+def evaluate_watch_trend_gate(trend_metrics: dict[str, Any]) -> tuple[bool, str]:
+    if not trend_metrics.get("available"):
+        return False, "趋势数据暂缺，先不进观察榜"
+
+    down_streak = int(trend_metrics.get("down_streak", 0) or 0)
+    return_3d_pct = float(trend_metrics.get("return_3d_pct", 0.0) or 0.0)
+    return_5d_pct = float(trend_metrics.get("return_5d_pct", 0.0) or 0.0)
+    return_8d_pct = float(trend_metrics.get("return_8d_pct", 0.0) or 0.0)
+    ma5_gap_pct = float(trend_metrics.get("ma5_gap_pct", 0.0) or 0.0)
+    ma10_gap_pct = float(trend_metrics.get("ma10_gap_pct", 0.0) or 0.0)
+    drawdown_8d_pct = float(trend_metrics.get("drawdown_8d_pct", 0.0) or 0.0)
+
+    if down_streak >= 3 and return_5d_pct <= -4.0:
+        return False, f"已连跌 {down_streak} 天，先不进观察榜"
+    if down_streak >= 2 and ma5_gap_pct <= -4.0 and return_3d_pct <= -2.5:
+        return False, "短线趋势已破位，先不进观察榜"
+    if ma10_gap_pct <= -6.0 and drawdown_8d_pct <= -10.0:
+        return False, "中短线都在走弱，先不进观察榜"
+    if return_8d_pct <= -12.0:
+        return False, "近 8 日回撤过大，先不进观察榜"
+
+    if return_3d_pct >= 2.0 and ma5_gap_pct >= -1.0:
+        return True, "短线修复已出现，优先等回踩确认再跟"
+    if ma5_gap_pct >= -2.0 and drawdown_8d_pct >= -6.0:
+        return True, "趋势未坏，优先盯分歧后的承接"
+    return True, "先看回踩承接，再决定要不要跟"
+
+
+def build_daily_rankings(stocks: list[dict[str, Any]], daily_warning: dict[str, Any], generated_at_dt: datetime) -> dict[str, Any]:
+    summary = daily_warning.get("summary", {})
+    gauge_score = float(daily_warning.get("gauge_score", 0) or summary.get("gauge_score", 55) or 55)
+    focus_code = str(summary.get("top_stock_code", "") or "").strip()
+    trend_candidate_count = sum(1 for item in stocks if (item.get("trend") or {}).get("available"))
+    breakout_environment = summary.get("breakout_environment") or compute_breakout_environment(stocks, gauge_score)
+
+    ranked_records: list[dict[str, Any]] = []
+    for stock in stocks:
+        metrics = stock.get("metrics", {})
+        code = str(stock.get("code", "") or "").strip()
+        trap_score = float(stock.get("trap_score", 0) or 0.0)
+        purity_score = float(metrics.get("business_purity_score", 0) or 0.0)
+        turnover_score = float(metrics.get("turnover_heat_score", 0) or 0.0)
+        financing_score = float(metrics.get("financing_pressure_score", 0) or 0.0)
+        trend_metrics = stock.get("trend") or compute_price_trend_metrics(None)
+        watch_eligible, trend_gate_reason = evaluate_watch_trend_gate(trend_metrics)
+        focus_bonus = 8.0 if code == focus_code else 0.0
+        avoid_score = (
+            trap_score * 0.50
+            + financing_score * 0.28
+            + turnover_score * 0.17
+            + max(trap_score - 65.0, 0.0) * 0.35
+            + focus_bonus
+        )
+        breakout_score = build_breakout_potential_score(stock, gauge_score, trend_metrics, breakout_environment)
+
+        avoid_reason = "前排拥挤度偏高"
+        if financing_score >= 85:
+            avoid_reason = "杠杆压力过高"
+        elif turnover_score >= 80:
+            avoid_reason = "换手过热，容易一致性兑现"
+        elif trap_score >= 70:
+            avoid_reason = "综合陷阱分已进高危区"
+
+        watch_reason = "先看开盘量价，再确认要不要跟"
+        if not watch_eligible:
+            if not trend_metrics.get("available"):
+                watch_reason = "趋势数据暂缺，先盯开盘前 15 分钟量价确认"
+            else:
+                watch_reason = trend_gate_reason
+        elif breakout_environment.get("state") == "tight" and (
+            float(trend_metrics.get("return_3d_pct", 0.0) or 0.0) < float(breakout_environment.get("min_return_3d_pct", 0.0) or 0.0)
+            or float(trend_metrics.get("ma5_gap_pct", 0.0) or 0.0) < float(breakout_environment.get("max_ma5_gap_pct", -2.0) or -2.0)
+        ):
+            watch_reason = "环境偏弱，只看最强修复票"
+        elif float(trend_metrics.get("return_3d_pct", 0.0) or 0.0) >= 2.0 and float(trend_metrics.get("ma5_gap_pct", 0.0) or 0.0) >= -0.5:
+            watch_reason = "短线修复最完整，优先等回踩不破再跟"
+        elif trend_gate_reason not in {"", "先看回踩承接再判断"}:
+            watch_reason = trend_gate_reason
+        elif purity_score >= 70 and turnover_score >= 32 and turnover_score <= 68 and financing_score <= 60:
+            turnover_z_score = metrics.get("turnover_z_score")
+            if turnover_z_score is not None:
+                watch_reason = f"相对换手抬升 {float(turnover_z_score):.1f}σ，具备二次放量条件"
+            else:
+                watch_reason = "题材纯度高，量能在启动区，具备二次放量条件"
+        elif float(trend_metrics.get("ma5_gap_pct", 0.0) or 0.0) >= -1.5 and float(trend_metrics.get("drawdown_8d_pct", 0.0) or 0.0) >= -5.0:
+            watch_reason = "趋势没破，分歧后容易重新走强"
+        elif trap_score >= 46 and trap_score <= 62:
+            watch_reason = "位置不挤、杠杆不热，向上试错空间更大"
+
+        ranked_records.append({
+            "code": code,
+            "name": stock.get("name", code),
+            "score": round(trap_score),
+            "avoid_score": round(avoid_score, 2),
+            "watch_score": round(breakout_score, 2),
+            "avoid_reason": avoid_reason,
+            "watch_reason": watch_reason,
+            "watch_eligible": watch_eligible,
+            "trend": trend_metrics,
+            "metrics": {
+                "business_purity_score": round(purity_score, 2),
+                "financing_pressure_score": round(financing_score, 2),
+                "turnover_heat_score": round(turnover_score, 2),
+                "turnover_z_score": metrics.get("turnover_z_score"),
+            },
+        })
+
+    avoid_list = sorted(
+        ranked_records,
+        key=lambda item: (item["avoid_score"], item["score"], item["metrics"]["financing_pressure_score"]),
+        reverse=True,
+    )[:3]
+
+    watch_candidates = [
+        item
+        for item in ranked_records
+        if item["watch_eligible"]
+        if item["score"] >= 40
+        and item["score"] < 70
+        and item["metrics"]["financing_pressure_score"] < 85
+        and item["trend"].get("trend_penalty", 0.0) < 32
+    ]
+    watch_list = sorted(
+        watch_candidates,
+        key=lambda item: (item["watch_score"], item["metrics"]["business_purity_score"], -item["metrics"]["financing_pressure_score"]),
+        reverse=True,
+    )[:3]
+
+    if len(watch_list) < 3:
+        supplement = [
+            item
+            for item in sorted(
+                ranked_records,
+                key=lambda item: (
+                    1 if item["trend"].get("available") else 0,
+                    item["watch_score"],
+                    item["metrics"]["business_purity_score"],
+                    -item["metrics"]["financing_pressure_score"],
+                ),
+                reverse=True,
+            )
+            if item["code"] not in {record["code"] for record in avoid_list}
+            and item["code"] not in {record["code"] for record in watch_list}
+            and item["score"] >= 40
+            and item["score"] < 70
+            and item["metrics"]["financing_pressure_score"] < 85
+            and (
+                item["watch_eligible"]
+                or (
+                    not item["trend"].get("available")
+                    and item["score"] < 60
+                )
+            )
+            and item["trend"].get("trend_penalty", 0.0) < 32
+        ]
+        watch_list.extend(supplement[: 3 - len(watch_list)])
+
+    return {
+        "logic_version": "breakout-aware-v3",
+        "trend_candidate_count": trend_candidate_count,
+        "environment_state": breakout_environment.get("state", "neutral"),
+        "avoid_list": [
+            {
+                "code": item["code"],
+                "name": item["name"],
+                "score": item["score"],
+                "reason": item["avoid_reason"],
+            }
+            for item in avoid_list
+        ],
+        "watch_list": [
+            {
+                "code": item["code"],
+                "name": item["name"],
+                "score": round(item["watch_score"]),
+                "trap_score": item["score"],
+                "reason": item["watch_reason"],
+                "trend_label": item["trend"].get("trend_label", ""),
+            }
+            for item in watch_list
+        ],
+    }
+
+
+def build_snapshot_rankings(stocks: list[dict[str, Any]], daily_warning: dict[str, Any]) -> dict[str, Any]:
+    summary = daily_warning.get("summary", {})
+    gauge_score = float(daily_warning.get("gauge_score", 0) or summary.get("gauge_score", 55) or 55)
+    focus_code = str(summary.get("top_stock_code", "") or "").strip()
+    breakout_environment = summary.get("breakout_environment") or compute_breakout_environment(stocks, gauge_score)
+
+    ranked_records: list[dict[str, Any]] = []
+    for stock in stocks:
+        metrics = stock.get("metrics", {})
+        code = str(stock.get("code", "") or "").strip()
+        trap_score = float(stock.get("trap_score", 0) or 0.0)
+        purity_score = float(metrics.get("business_purity_score", 0) or 0.0)
+        turnover_score = float(metrics.get("turnover_heat_score", 0) or 0.0)
+        financing_score = float(metrics.get("financing_pressure_score", 0) or 0.0)
+        focus_bonus = 8.0 if code == focus_code else 0.0
+        avoid_score = (
+            trap_score * 0.50
+            + financing_score * 0.28
+            + turnover_score * 0.17
+            + max(trap_score - 65.0, 0.0) * 0.35
+            + focus_bonus
+        )
+        trend_metrics = stock.get("trend") or compute_price_trend_metrics(None)
+        watch_score = build_breakout_potential_score(stock, gauge_score, trend_metrics, breakout_environment)
+
+        avoid_reason = "前排拥挤度偏高"
+        if financing_score >= 85:
+            avoid_reason = "杠杆压力过高"
+        elif turnover_score >= 80:
+            avoid_reason = "换手过热，容易一致性兑现"
+        elif trap_score >= 70:
+            avoid_reason = "综合陷阱分已进高危区"
+
+        watch_reason = "先看开盘量价，再确认要不要跟"
+        if trend_metrics.get("available") and float(trend_metrics.get("return_3d_pct", 0.0) or 0.0) >= 2.0 and float(trend_metrics.get("ma5_gap_pct", 0.0) or 0.0) >= -0.5:
+            watch_reason = "短线修复最完整，优先等回踩不破再跟"
+        elif purity_score >= 70 and turnover_score >= 32 and turnover_score <= 68 and financing_score <= 60:
+            watch_reason = "题材纯度高，量能在启动区，具备二次放量条件"
+        elif trap_score >= 46 and trap_score <= 62:
+            watch_reason = "位置不挤、杠杆不热，向上试错空间更大"
+
+        ranked_records.append({
+            "code": code,
+            "name": stock.get("name", code),
+            "score": round(trap_score),
+            "avoid_score": round(avoid_score, 2),
+            "watch_score": round(watch_score, 2),
+            "avoid_reason": avoid_reason,
+            "watch_reason": watch_reason,
+            "metrics": {
+                "business_purity_score": round(purity_score, 2),
+                "financing_pressure_score": round(financing_score, 2),
+                "turnover_heat_score": round(turnover_score, 2),
+            },
+        })
+
+    avoid_list = sorted(
+        ranked_records,
+        key=lambda item: (item["avoid_score"], item["score"], item["metrics"]["financing_pressure_score"]),
+        reverse=True,
+    )[:3]
+    watch_list = [
+        item
+        for item in sorted(
+            ranked_records,
+            key=lambda item: (item["watch_score"], item["metrics"]["business_purity_score"], -item["metrics"]["financing_pressure_score"]),
+            reverse=True,
+        )
+        if item["score"] >= 40
+        and item["score"] < 70
+        and item["metrics"]["financing_pressure_score"] < 85
+    ][:3]
+
+    return {
+        "logic_version": "snapshot-breakout-v3",
+        "trend_candidate_count": 0,
+        "avoid_list": [
+            {
+                "code": item["code"],
+                "name": item["name"],
+                "score": item["score"],
+                "reason": item["avoid_reason"],
+            }
+            for item in avoid_list
+        ],
+        "watch_list": [
+            {
+                "code": item["code"],
+                "name": item["name"],
+                "score": round(item["watch_score"]),
+                "trap_score": item["score"],
+                "reason": f"{item['watch_reason']}（按当日快照重建）",
+                "trend_label": "历史快照重建",
+            }
+            for item in watch_list
+        ],
+    }
+
+
+def has_rankings_payload(rankings: dict[str, Any] | None) -> bool:
+    if not isinstance(rankings, dict):
+        return False
+    return bool(
+        rankings.get("logic_version")
+        or rankings.get("avoid_list")
+        or rankings.get("watch_list")
+    )
+
+
+def build_history_rankings_index(payloads: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
+    indexed_rankings: dict[str, tuple[int, dict[str, Any]]] = {}
+
+    for payload in payloads:
+        daily_warning = payload.get("daily_warning") or {}
+        warning_date = str(daily_warning.get("date") or "").strip()
+        stocks = payload.get("stocks") or []
+        if not warning_date or not stocks:
+            continue
+
+        existing_rankings = daily_warning.get("rankings") if isinstance(daily_warning, dict) else None
+        if has_rankings_payload(existing_rankings):
+            priority = 2
+            rankings = existing_rankings
+        else:
+            priority = 1
+            rankings = build_snapshot_rankings(stocks, daily_warning)
+
+        previous = indexed_rankings.get(warning_date)
+        if previous and previous[0] >= priority:
+            continue
+        indexed_rankings[warning_date] = (priority, rankings)
+
+    return {date: item[1] for date, item in indexed_rankings.items()}
+
+
+def enrich_warning_history_rankings(
+    history: list[dict[str, Any]],
+    payloads: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    rankings_index = build_history_rankings_index(payloads)
+    enriched_history: list[dict[str, Any]] = []
+
+    for entry in history:
+        if has_rankings_payload(entry.get("rankings")):
+            enriched_history.append(entry)
+            continue
+
+        entry_date = str(entry.get("date") or "").strip()
+        rankings = rankings_index.get(entry_date)
+        if not rankings:
+            enriched_history.append(entry)
+            continue
+
+        enriched_history.append({
+            **entry,
+            "rankings": rankings,
+        })
+
+    return enriched_history
 
 
 def fetch_market_proxy_intraday(review_date: str) -> list[dict[str, Any]]:
@@ -751,6 +1418,10 @@ def build_daily_warning(stocks: list[dict[str, Any]], generated_at: str, warning
         "review": {
             "status": "待复盘",
             "note": "",
+        },
+        "rankings": {
+            "avoid_list": [],
+            "watch_list": [],
         },
     }
 
@@ -1056,7 +1727,26 @@ def export_data(codes: list[str], output_path: Path, backup_dir: Path) -> dict[s
     generated_at = generated_at_dt.isoformat(timespec="seconds")
     warning_date = infer_warning_target_date(generated_at_dt)
     daily_warning = build_daily_warning(result_stocks, generated_at, warning_date)
+    trend_candidate_count = hydrate_breakout_candidate_trends(result_stocks, float(daily_warning.get("gauge_score", 55) or 55), generated_at_dt)
+    daily_warning.setdefault("summary", {})["breakout_environment"] = compute_breakout_environment(
+        result_stocks,
+        float(daily_warning.get("gauge_score", 55) or 55),
+    )
+    daily_warning["rankings"] = build_daily_rankings(result_stocks, daily_warning, generated_at_dt)
+    daily_warning["rankings"]["trend_candidate_count"] = trend_candidate_count
     warning_history = merge_warning_history(existing_payload, backup_payloads, daily_warning, generated_at_dt)
+    warning_history = enrich_warning_history_rankings(
+        warning_history,
+        [
+            {
+                **existing_payload,
+                "daily_warning": daily_warning,
+                "stocks": result_stocks,
+            },
+            existing_payload,
+            *backup_payloads,
+        ],
+    )
     data_freshness = build_data_freshness(generated_at, generated_at_dt, warning_date, margin_dates)
 
     payload = {
@@ -1077,7 +1767,9 @@ def export_data(codes: list[str], output_path: Path, backup_dir: Path) -> dict[s
             "incremental_financing_rule": "分段映射融资买入额 / 融资余额，避免高杠杆样本过早全部打满分",
             "margin_burden_rule": "轻权重纳入融资余额 / 流通市值，补足历史融资包袱信息",
             "turnover_heat_rule": "min(100, 换手率 * 8)",
+            "turnover_z_rule": "爆发分额外比较当前换手率相对近 20 日均值的偏离程度，优先保留相对放量但不过热的样本",
             "gauge_score_rule": "前排高分样本均分 * 0.55 + 全样本均分 * 0.25 + 高风险样本占比 * 100 * 0.20",
+            "watch_ranking_rule": "爆发榜先看题材纯度、相对换手抬升、融资不过热和位置激活度，再叠加近 3 到 10 日趋势确认；环境偏弱时会自动抬高趋势门槛。",
         },
         "spot_data_health": {
             "source": spot_source,
