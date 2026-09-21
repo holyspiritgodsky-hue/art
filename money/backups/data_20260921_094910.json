@@ -1,14 +1,14 @@
-window.__QUANT_DATA__ = {
-  "generated_at": "2026-09-21T17:47:46+08:00",
+{
+  "generated_at": "2026-09-19T17:41:02+08:00",
   "data_freshness": {
-    "warning_target_date": "2026-09-22",
-    "spot_snapshot_at": "2026-09-21T17:47:46+08:00",
+    "warning_target_date": "2026-09-21",
+    "spot_snapshot_at": "2026-09-19T17:41:02+08:00",
     "margin_data_as_of": "20260918",
     "margin_data_dates_by_market": {
-      "szse": "20260918",
+      "szse": "20260917",
       "sse": "20260918"
     },
-    "market_phase": "post_close"
+    "market_phase": "weekend"
   },
   "run_source": "manual",
   "whitelist_size": 125,
@@ -292,25 +292,25 @@ window.__QUANT_DATA__ = {
     "float_market_cap_missing_ratio": 1.0
   },
   "daily_warning": {
-    "date": "2026-09-22",
+    "date": "2026-09-21",
     "title": "量化分歧区，先看换手再定方向。",
     "gauge_score": 52,
     "summary": {
       "sample_size": 125,
-      "avg_trap_score": 48.0,
-      "high_risk_count": 2,
-      "high_risk_ratio": 0.016,
-      "watch_count": 23,
-      "watch_ratio": 0.184,
+      "avg_trap_score": 46.93,
+      "high_risk_count": 3,
+      "high_risk_ratio": 0.024,
+      "watch_count": 25,
+      "watch_ratio": 0.2,
       "top_cohort_size": 12,
-      "top_cohort_avg_trap_score": 67.97,
-      "concentration_spread": 19.97,
+      "top_cohort_avg_trap_score": 68.33,
+      "concentration_spread": 21.41,
       "gauge_score": 52,
       "window_risk": "high",
       "window_value": "10:05 - 10:40 是明天最容易冲高回落的时段",
       "window_basis": "高风险票数量多，前排平均分也偏高。",
-      "top_stock_code": "002185",
-      "top_stock_name": "华天科技",
+      "top_stock_code": "300570",
+      "top_stock_name": "太辰光",
       "top_financing_pressure_score": 80.0,
       "breakout_environment": {
         "state": "open",
@@ -318,15 +318,15 @@ window.__QUANT_DATA__ = {
         "min_return_3d_pct": -0.5,
         "max_ma5_gap_pct": -2.5,
         "note": "当前环境偏强，趋势修复票更容易走成。",
-        "positive_ratio": 1.0,
+        "positive_ratio": 0.833,
         "weak_ratio": 0.0
       }
     },
-    "prompt": "当前高风险样本集中在 华天科技 等标的，前排样本平均陷阱分约 68.0，高风险票 2 只，优先防范一致性追高后的回撤兑现。",
+    "prompt": "当前高风险样本集中在 太辰光 等标的，前排样本平均陷阱分约 68.3，高风险票 3 只，优先防范一致性追高后的回撤兑现。",
     "signals": [
       {
         "label": "高风险个股数量",
-        "value": "2",
+        "value": "3",
         "note": "陷阱分大于等于 70 的样本数"
       },
       {
@@ -337,7 +337,7 @@ window.__QUANT_DATA__ = {
       {
         "label": "杠杆资金压力",
         "value": "80%",
-        "note": "华天科技 的融资压力得分"
+        "note": "太辰光 的融资压力得分"
       }
     ],
     "warnings": [
@@ -365,46 +365,46 @@ window.__QUANT_DATA__ = {
       "environment_state": "open",
       "avoid_list": [
         {
-          "code": "002185",
-          "name": "华天科技",
+          "code": "300570",
+          "name": "太辰光",
+          "score": 74,
+          "reason": "换手过热，容易一致性兑现"
+        },
+        {
+          "code": "600105",
+          "name": "永鼎股份",
           "score": 74,
           "reason": "换手过热，容易一致性兑现"
         },
         {
           "code": "000636",
           "name": "风华高科",
-          "score": 74,
-          "reason": "换手过热，容易一致性兑现"
-        },
-        {
-          "code": "300570",
-          "name": "太辰光",
-          "score": 70,
+          "score": 72,
           "reason": "换手过热，容易一致性兑现"
         }
       ],
       "watch_list": [
         {
-          "code": "300476",
-          "name": "胜宏科技",
+          "code": "300458",
+          "name": "全志科技",
           "score": 89,
-          "trap_score": 64,
+          "trap_score": 44,
           "reason": "短线修复最完整，优先等回踩不破再跟",
           "trend_label": "趋势中性"
         },
         {
-          "code": "301308",
-          "name": "江波龙",
+          "code": "000988",
+          "name": "华工科技",
           "score": 85,
-          "trap_score": 51,
+          "trap_score": 54,
           "reason": "短线修复最完整，优先等回踩不破再跟",
           "trend_label": "趋势中性"
         },
         {
-          "code": "000066",
-          "name": "中国长城",
-          "score": 85,
-          "trap_score": 42,
+          "code": "002156",
+          "name": "通富微电",
+          "score": 84,
+          "trap_score": 56,
           "reason": "短线修复最完整，优先等回踩不破再跟",
           "trend_label": "趋势中性"
         }
@@ -412,126 +412,6 @@ window.__QUANT_DATA__ = {
     }
   },
   "warning_history": [
-    {
-      "date": "2026-09-22",
-      "title": "量化分歧区，先看换手再定方向。",
-      "gauge_score": 52,
-      "summary": {
-        "sample_size": 125,
-        "avg_trap_score": 48.0,
-        "high_risk_count": 2,
-        "high_risk_ratio": 0.016,
-        "watch_count": 23,
-        "watch_ratio": 0.184,
-        "top_cohort_size": 12,
-        "top_cohort_avg_trap_score": 67.97,
-        "concentration_spread": 19.97,
-        "gauge_score": 52,
-        "window_risk": "high",
-        "window_value": "10:05 - 10:40 是明天最容易冲高回落的时段",
-        "window_basis": "高风险票数量多，前排平均分也偏高。",
-        "top_stock_code": "002185",
-        "top_stock_name": "华天科技",
-        "top_financing_pressure_score": 80.0,
-        "breakout_environment": {
-          "state": "open",
-          "score_multiplier": 1.04,
-          "min_return_3d_pct": -0.5,
-          "max_ma5_gap_pct": -2.5,
-          "note": "当前环境偏强，趋势修复票更容易走成。",
-          "positive_ratio": 1.0,
-          "weak_ratio": 0.0
-        }
-      },
-      "prompt": "当前高风险样本集中在 华天科技 等标的，前排样本平均陷阱分约 68.0，高风险票 2 只，优先防范一致性追高后的回撤兑现。",
-      "signals": [
-        {
-          "label": "高风险个股数量",
-          "value": "2",
-          "note": "陷阱分大于等于 70 的样本数"
-        },
-        {
-          "label": "整体追高热度",
-          "value": "68%",
-          "note": "前 12 只高分样本的平均陷阱分"
-        },
-        {
-          "label": "杠杆资金压力",
-          "value": "80%",
-          "note": "华天科技 的融资压力得分"
-        }
-      ],
-      "warnings": [
-        {
-          "label": "风格漂移预警",
-          "value": "前排龙头与跟风标的分化增大，追高容错率下降。"
-        },
-        {
-          "label": "量化踩踏窗口",
-          "value": "10:05 - 10:40 是明天最容易冲高回落的时段"
-        },
-        {
-          "label": "执行纪律",
-          "value": "轻仓试错，优先保留强趋势与成交结构更干净的样本。"
-        }
-      ],
-      "strategy": "当板块一致性预期过满时，陷阱往往不是来自逻辑错误，而是来自交易位置错误。先审视筹码，再决定出手。",
-      "review": {
-        "status": "待复盘",
-        "note": ""
-      },
-      "rankings": {
-        "logic_version": "breakout-aware-v3",
-        "trend_candidate_count": 12,
-        "environment_state": "open",
-        "avoid_list": [
-          {
-            "code": "002185",
-            "name": "华天科技",
-            "score": 74,
-            "reason": "换手过热，容易一致性兑现"
-          },
-          {
-            "code": "000636",
-            "name": "风华高科",
-            "score": 74,
-            "reason": "换手过热，容易一致性兑现"
-          },
-          {
-            "code": "300570",
-            "name": "太辰光",
-            "score": 70,
-            "reason": "换手过热，容易一致性兑现"
-          }
-        ],
-        "watch_list": [
-          {
-            "code": "300476",
-            "name": "胜宏科技",
-            "score": 89,
-            "trap_score": 64,
-            "reason": "短线修复最完整，优先等回踩不破再跟",
-            "trend_label": "趋势中性"
-          },
-          {
-            "code": "301308",
-            "name": "江波龙",
-            "score": 85,
-            "trap_score": 51,
-            "reason": "短线修复最完整，优先等回踩不破再跟",
-            "trend_label": "趋势中性"
-          },
-          {
-            "code": "000066",
-            "name": "中国长城",
-            "score": 85,
-            "trap_score": 42,
-            "reason": "短线修复最完整，优先等回踩不破再跟",
-            "trend_label": "趋势中性"
-          }
-        ]
-      }
-    },
     {
       "date": "2026-09-21",
       "title": "量化分歧区，先看换手再定方向。",
@@ -597,14 +477,8 @@ window.__QUANT_DATA__ = {
       ],
       "strategy": "当板块一致性预期过满时，陷阱往往不是来自逻辑错误，而是来自交易位置错误。先审视筹码，再决定出手。",
       "review": {
-        "status": "方向对了",
-        "note": "方向判断对了。次日前排样本平均陷阱分 68.0，高风险样本 2 只，追高风险没有明显退潮。10:05 - 10:40 这段是否精准命中，仍建议人工看分时确认。",
-        "window_review": {
-          "status": "时段待补",
-          "note": "分钟级市场代理数据暂时不可用，先保留主方向复盘，时段结果后补。",
-          "proxies": [],
-          "source_state": "unavailable"
-        }
+        "status": "待复盘",
+        "note": ""
       },
       "rankings": {
         "logic_version": "breakout-aware-v3",
@@ -5920,30 +5794,30 @@ window.__QUANT_DATA__ = {
     {
       "code": "300476",
       "name": "胜宏科技",
-      "margin_date": "20260918",
+      "margin_date": "20260917",
       "metrics": {
         "business_purity_score": 82,
-        "margin_balance": 16366470112.0,
-        "margin_buy": 866516012.0,
+        "margin_balance": 16393121745.0,
+        "margin_buy": 799625152.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 7.18,
-        "financing_pressure_score": 53.57,
-        "incremental_financing_pressure_score": 66.96,
+        "turnover_rate": 3.56,
+        "financing_pressure_score": 51.02,
+        "incremental_financing_pressure_score": 63.78,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 57.44,
-        "turnover_z_score": 2.87
+        "turnover_heat_score": 28.48,
+        "turnover_z_score": 0.45
       },
-      "trap_score": 64.29,
+      "trap_score": 57.36,
       "trend": {
         "available": true,
         "down_streak": 0,
-        "return_3d_pct": 7.66,
-        "return_5d_pct": 10.22,
-        "return_8d_pct": 6.21,
-        "ma5_gap_pct": 7.42,
-        "ma10_gap_pct": 7.79,
-        "drawdown_8d_pct": 0.0,
+        "return_3d_pct": 0.44,
+        "return_5d_pct": -0.85,
+        "return_8d_pct": -0.86,
+        "ma5_gap_pct": 0.34,
+        "ma10_gap_pct": -0.69,
+        "drawdown_8d_pct": -2.77,
         "trend_penalty": 0.0,
         "trend_label": "趋势中性"
       }
@@ -5951,56 +5825,56 @@ window.__QUANT_DATA__ = {
     {
       "code": "002384",
       "name": "东山精密",
-      "margin_date": "20260918",
+      "margin_date": "20260917",
       "metrics": {
         "business_purity_score": 68,
-        "margin_balance": 10684316889.0,
-        "margin_buy": 1403866147.0,
+        "margin_balance": 10463396829.0,
+        "margin_buy": 1275475963.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 3.61,
+        "turnover_rate": 5.1,
         "financing_pressure_score": 80.0,
         "incremental_financing_pressure_score": 100.0,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 28.88
+        "turnover_heat_score": 40.8
       },
-      "trap_score": 65.58
+      "trap_score": 67.96
     },
     {
       "code": "300308",
       "name": "中际旭创",
-      "margin_date": "20260918",
+      "margin_date": "20260917",
       "metrics": {
         "business_purity_score": 88,
-        "margin_balance": 31955903255.0,
-        "margin_buy": 3340060847.0,
+        "margin_balance": 32430011458.0,
+        "margin_buy": 2761332933.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 1.89,
-        "financing_pressure_score": 75.36,
-        "incremental_financing_pressure_score": 94.2,
+        "turnover_rate": 2.66,
+        "financing_pressure_score": 69.54,
+        "incremental_financing_pressure_score": 86.93,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 15.12
+        "turnover_heat_score": 21.28
       },
-      "trap_score": 67.74
+      "trap_score": 66.35
     },
     {
       "code": "002230",
       "name": "科大讯飞",
-      "margin_date": "20260918",
+      "margin_date": "20260917",
       "metrics": {
         "business_purity_score": 50,
-        "margin_balance": 5286219273.0,
-        "margin_buy": 65980819.0,
+        "margin_balance": 5296427181.0,
+        "margin_buy": 49492037.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 0.68,
-        "financing_pressure_score": 17.47,
-        "incremental_financing_pressure_score": 21.84,
+        "turnover_rate": 0.76,
+        "financing_pressure_score": 13.08,
+        "incremental_financing_pressure_score": 16.35,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 5.44
+        "turnover_heat_score": 6.08
       },
-      "trap_score": 26.45
+      "trap_score": 24.6
     },
     {
       "code": "688256",
@@ -6012,13 +5886,13 @@ window.__QUANT_DATA__ = {
         "margin_buy": 1514288589.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 1.2,
+        "turnover_rate": 1.9,
         "financing_pressure_score": 68.94,
         "incremental_financing_pressure_score": 86.17,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 9.6
+        "turnover_heat_score": 15.2
       },
-      "trap_score": 50.44
+      "trap_score": 51.56
     },
     {
       "code": "603019",
@@ -6030,13 +5904,13 @@ window.__QUANT_DATA__ = {
         "margin_buy": 267406190.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 1.4,
+        "turnover_rate": 1.95,
         "financing_pressure_score": 37.51,
         "incremental_financing_pressure_score": 46.89,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 11.2
+        "turnover_heat_score": 15.6
       },
-      "trap_score": 36.62
+      "trap_score": 37.5
     },
     {
       "code": "603160",
@@ -6048,13 +5922,13 @@ window.__QUANT_DATA__ = {
         "margin_buy": 19764579.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 0.74,
+        "turnover_rate": 0.78,
         "financing_pressure_score": 29.07,
         "incremental_financing_pressure_score": 36.33,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 5.92
+        "turnover_heat_score": 6.24
       },
-      "trap_score": 31.77
+      "trap_score": 31.83
     },
     {
       "code": "603986",
@@ -6066,13 +5940,26 @@ window.__QUANT_DATA__ = {
         "margin_buy": 1914034518.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 4.9,
+        "turnover_rate": 6.12,
         "financing_pressure_score": 77.38,
         "incremental_financing_pressure_score": 96.73,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 39.2
+        "turnover_heat_score": 48.96,
+        "turnover_z_score": 1.46
       },
-      "trap_score": 60.16
+      "trap_score": 62.11,
+      "trend": {
+        "available": true,
+        "down_streak": 0,
+        "return_3d_pct": 6.9,
+        "return_5d_pct": 4.54,
+        "return_8d_pct": 0.58,
+        "ma5_gap_pct": 4.85,
+        "ma10_gap_pct": 3.34,
+        "drawdown_8d_pct": 0.0,
+        "trend_penalty": 0.0,
+        "trend_label": "趋势中性"
+      }
     },
     {
       "code": "603501",
@@ -6084,13 +5971,13 @@ window.__QUANT_DATA__ = {
         "margin_buy": 105492622.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 0.89,
+        "turnover_rate": 1.39,
         "financing_pressure_score": 30.29,
         "incremental_financing_pressure_score": 37.87,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 7.12
+        "turnover_heat_score": 11.12
       },
-      "trap_score": 32.55
+      "trap_score": 33.35
     },
     {
       "code": "603893",
@@ -6102,13 +5989,13 @@ window.__QUANT_DATA__ = {
         "margin_buy": 212946899.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 2.85,
+        "turnover_rate": 2.96,
         "financing_pressure_score": 78.24,
         "incremental_financing_pressure_score": 97.8,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 22.8
+        "turnover_heat_score": 23.68
       },
-      "trap_score": 57.27
+      "trap_score": 57.44
     },
     {
       "code": "688111",
@@ -6120,13 +6007,13 @@ window.__QUANT_DATA__ = {
         "margin_buy": 134589344.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 0.95,
+        "turnover_rate": 1.1,
         "financing_pressure_score": 34.83,
         "incremental_financing_pressure_score": 43.54,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 7.6
+        "turnover_heat_score": 8.8
       },
-      "trap_score": 34.69
+      "trap_score": 34.93
     },
     {
       "code": "688041",
@@ -6138,13 +6025,13 @@ window.__QUANT_DATA__ = {
         "margin_buy": 513767004.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 1.01,
+        "turnover_rate": 1.15,
         "financing_pressure_score": 57.28,
         "incremental_financing_pressure_score": 71.6,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 8.08
+        "turnover_heat_score": 9.2
       },
-      "trap_score": 44.89
+      "trap_score": 45.12
     },
     {
       "code": "688012",
@@ -6156,13 +6043,13 @@ window.__QUANT_DATA__ = {
         "margin_buy": 562956275.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 1.27,
+        "turnover_rate": 2.19,
         "financing_pressure_score": 78.83,
         "incremental_financing_pressure_score": 98.54,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 10.16
+        "turnover_heat_score": 17.52
       },
-      "trap_score": 55.01
+      "trap_score": 56.48
     },
     {
       "code": "688008",
@@ -6174,13 +6061,13 @@ window.__QUANT_DATA__ = {
         "margin_buy": 743203553.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 3.32,
+        "turnover_rate": 3.49,
         "financing_pressure_score": 54.27,
         "incremental_financing_pressure_score": 67.84,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 26.56
+        "turnover_heat_score": 27.92
       },
-      "trap_score": 47.23
+      "trap_score": 47.51
     },
     {
       "code": "688169",
@@ -6192,13 +6079,13 @@ window.__QUANT_DATA__ = {
         "margin_buy": 51667317.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 1.75,
+        "turnover_rate": 1.92,
         "financing_pressure_score": 58.5,
         "incremental_financing_pressure_score": 73.13,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 14.0
+        "turnover_heat_score": 15.36
       },
-      "trap_score": 46.62
+      "trap_score": 46.9
     },
     {
       "code": "688072",
@@ -6210,13 +6097,13 @@ window.__QUANT_DATA__ = {
         "margin_buy": 551736358.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 1.46,
+        "turnover_rate": 2.28,
         "financing_pressure_score": 80.0,
         "incremental_financing_pressure_score": 100.0,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 11.68
+        "turnover_heat_score": 18.24
       },
-      "trap_score": 55.84
+      "trap_score": 57.15
     },
     {
       "code": "688099",
@@ -6228,13 +6115,13 @@ window.__QUANT_DATA__ = {
         "margin_buy": 100228046.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 2.01,
+        "turnover_rate": 2.14,
         "financing_pressure_score": 73.07,
         "incremental_financing_pressure_score": 91.33,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 16.08
+        "turnover_heat_score": 17.12
       },
-      "trap_score": 53.6
+      "trap_score": 53.81
     },
     {
       "code": "688027",
@@ -6246,13 +6133,13 @@ window.__QUANT_DATA__ = {
         "margin_buy": 28432102.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 1.04,
+        "turnover_rate": 1.57,
         "financing_pressure_score": 32.42,
         "incremental_financing_pressure_score": 40.52,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 8.32
+        "turnover_heat_score": 12.56
       },
-      "trap_score": 33.75
+      "trap_score": 34.6
     },
     {
       "code": "688608",
@@ -6264,13 +6151,13 @@ window.__QUANT_DATA__ = {
         "margin_buy": 51249750.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 1.44,
+        "turnover_rate": 3.37,
         "financing_pressure_score": 53.04,
         "incremental_financing_pressure_score": 66.3,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 11.52
+        "turnover_heat_score": 26.96
       },
-      "trap_score": 43.67
+      "trap_score": 46.76
     },
     {
       "code": "688018",
@@ -6282,13 +6169,13 @@ window.__QUANT_DATA__ = {
         "margin_buy": 72350668.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 1.55,
+        "turnover_rate": 3.26,
         "financing_pressure_score": 76.7,
         "incremental_financing_pressure_score": 95.87,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 12.4
+        "turnover_heat_score": 26.08
       },
-      "trap_score": 54.5
+      "trap_score": 57.23
     },
     {
       "code": "688036",
@@ -6300,13 +6187,13 @@ window.__QUANT_DATA__ = {
         "margin_buy": 32284566.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 1.01,
+        "turnover_rate": 0.58,
         "financing_pressure_score": 39.42,
         "incremental_financing_pressure_score": 49.27,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 8.08
+        "turnover_heat_score": 4.64
       },
-      "trap_score": 36.86
+      "trap_score": 36.17
     },
     {
       "code": "688047",
@@ -6318,13 +6205,13 @@ window.__QUANT_DATA__ = {
         "margin_buy": 39212837.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 0.86,
+        "turnover_rate": 0.96,
         "financing_pressure_score": 38.97,
         "incremental_financing_pressure_score": 48.71,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 6.88
+        "turnover_heat_score": 7.68
       },
-      "trap_score": 36.41
+      "trap_score": 36.57
     },
     {
       "code": "688126",
@@ -6336,13 +6223,13 @@ window.__QUANT_DATA__ = {
         "margin_buy": 176453112.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 1.76,
+        "turnover_rate": 2.45,
         "financing_pressure_score": 61.6,
         "incremental_financing_pressure_score": 76.99,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 14.08
+        "turnover_heat_score": 19.6
       },
-      "trap_score": 48.04
+      "trap_score": 49.14
     },
     {
       "code": "688037",
@@ -6354,13 +6241,13 @@ window.__QUANT_DATA__ = {
         "margin_buy": 69640592.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 2.08,
+        "turnover_rate": 2.62,
         "financing_pressure_score": 80.0,
         "incremental_financing_pressure_score": 100.0,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 16.64
+        "turnover_heat_score": 20.96
       },
-      "trap_score": 56.83
+      "trap_score": 57.69
     },
     {
       "code": "688213",
@@ -6372,13 +6259,13 @@ window.__QUANT_DATA__ = {
         "margin_buy": 65710655.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 1.65,
+        "turnover_rate": 3.15,
         "financing_pressure_score": 62.92,
         "incremental_financing_pressure_score": 78.65,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 13.2
+        "turnover_heat_score": 25.2
       },
-      "trap_score": 48.45
+      "trap_score": 50.85
     },
     {
       "code": "688120",
@@ -6390,13 +6277,13 @@ window.__QUANT_DATA__ = {
         "margin_buy": 231938191.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 2.21,
+        "turnover_rate": 3.27,
         "financing_pressure_score": 80.0,
         "incremental_financing_pressure_score": 100.0,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 17.68
+        "turnover_heat_score": 26.16
       },
-      "trap_score": 57.04
+      "trap_score": 58.73
     },
     {
       "code": "688981",
@@ -6408,13 +6295,13 @@ window.__QUANT_DATA__ = {
         "margin_buy": null,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 1.29,
+        "turnover_rate": 1.94,
         "financing_pressure_score": 0.0,
         "incremental_financing_pressure_score": 0.0,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 10.32
+        "turnover_heat_score": 15.52
       },
-      "trap_score": 19.56
+      "trap_score": 20.6
     },
     {
       "code": "603296",
@@ -6426,143 +6313,130 @@ window.__QUANT_DATA__ = {
         "margin_buy": 196971338.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 1.39,
+        "turnover_rate": 2.17,
         "financing_pressure_score": 80.0,
         "incremental_financing_pressure_score": 100.0,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 11.12
+        "turnover_heat_score": 17.36
       },
-      "trap_score": 55.72
+      "trap_score": 56.97
     },
     {
       "code": "300033",
       "name": "同花顺",
-      "margin_date": "20260918",
+      "margin_date": "20260917",
       "metrics": {
         "business_purity_score": 50,
-        "margin_balance": 5835036937.0,
-        "margin_buy": 269643824.0,
+        "margin_balance": 5842591114.0,
+        "margin_buy": 246056965.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 2.21,
-        "financing_pressure_score": 48.97,
-        "incremental_financing_pressure_score": 61.21,
+        "turnover_rate": 2.29,
+        "financing_pressure_score": 45.69,
+        "incremental_financing_pressure_score": 57.11,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 17.68
+        "turnover_heat_score": 18.32
       },
-      "trap_score": 43.07
+      "trap_score": 41.72
     },
     {
       "code": "300496",
       "name": "中科创达",
-      "margin_date": "20260918",
+      "margin_date": "20260917",
       "metrics": {
         "business_purity_score": 50,
-        "margin_balance": 1687649408.0,
-        "margin_buy": 53744580.0,
+        "margin_balance": 1697971476.0,
+        "margin_buy": 41228409.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 2.09,
-        "financing_pressure_score": 37.48,
-        "incremental_financing_pressure_score": 46.85,
+        "turnover_rate": 2.34,
+        "financing_pressure_score": 31.42,
+        "incremental_financing_pressure_score": 39.28,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 16.72
+        "turnover_heat_score": 18.72
       },
-      "trap_score": 37.71
+      "trap_score": 35.38
     },
     {
       "code": "300502",
       "name": "新易盛",
-      "margin_date": "20260918",
+      "margin_date": "20260917",
       "metrics": {
         "business_purity_score": 50,
-        "margin_balance": 20215314116.0,
-        "margin_buy": 2294770290.0,
+        "margin_balance": 19780627776.0,
+        "margin_buy": 1660648111.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 2.81,
-        "financing_pressure_score": 78.05,
-        "incremental_financing_pressure_score": 97.57,
+        "turnover_rate": 3.35,
+        "financing_pressure_score": 69.19,
+        "incremental_financing_pressure_score": 86.48,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 22.48
+        "turnover_heat_score": 26.8
       },
-      "trap_score": 57.12
+      "trap_score": 54.0
     },
     {
       "code": "300223",
       "name": "君正股份",
-      "margin_date": "20260918",
+      "margin_date": "20260917",
       "metrics": {
         "business_purity_score": 50,
-        "margin_balance": 3563737221.0,
-        "margin_buy": 656219292.0,
+        "margin_balance": 3328940658.0,
+        "margin_buy": 191104443.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 6.75,
-        "financing_pressure_score": 80.0,
-        "incremental_financing_pressure_score": 100.0,
+        "turnover_rate": 8.53,
+        "financing_pressure_score": 55.95,
+        "incremental_financing_pressure_score": 69.94,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 54.0,
-        "turnover_z_score": 1.42
+        "turnover_heat_score": 68.24
       },
-      "trap_score": 64.3,
-      "trend": {
-        "available": true,
-        "down_streak": 0,
-        "return_3d_pct": 8.98,
-        "return_5d_pct": 15.66,
-        "return_8d_pct": 10.7,
-        "ma5_gap_pct": 6.52,
-        "ma10_gap_pct": 9.1,
-        "drawdown_8d_pct": 0.0,
-        "trend_penalty": 0.0,
-        "trend_label": "趋势中性"
-      }
+      "trap_score": 56.33
     },
     {
       "code": "300383",
       "name": "光环新网",
-      "margin_date": "20260918",
+      "margin_date": "20260917",
       "metrics": {
         "business_purity_score": 50,
-        "margin_balance": 1379841481.0,
-        "margin_buy": 28782827.0,
+        "margin_balance": 1383315841.0,
+        "margin_buy": 37283649.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 1.63,
-        "financing_pressure_score": 28.69,
-        "incremental_financing_pressure_score": 35.86,
+        "turnover_rate": 1.82,
+        "financing_pressure_score": 33.56,
+        "incremental_financing_pressure_score": 41.95,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 13.04
+        "turnover_heat_score": 14.56
       },
-      "trap_score": 33.02
+      "trap_score": 35.51
     },
     {
       "code": "300458",
       "name": "全志科技",
-      "margin_date": "20260918",
+      "margin_date": "20260917",
       "metrics": {
         "business_purity_score": 50,
-        "margin_balance": 1423875459.0,
-        "margin_buy": 125650487.0,
+        "margin_balance": 1428702371.0,
+        "margin_buy": 50077704.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 4.95,
-        "financing_pressure_score": 70.47,
-        "incremental_financing_pressure_score": 88.09,
+        "turnover_rate": 5.51,
+        "financing_pressure_score": 40.04,
+        "incremental_financing_pressure_score": 50.05,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 39.6,
-        "turnover_z_score": 0.28
+        "turnover_heat_score": 44.08,
+        "turnover_z_score": 0.6
       },
-      "trap_score": 57.13,
+      "trap_score": 44.33,
       "trend": {
         "available": true,
         "down_streak": 0,
-        "return_3d_pct": 4.97,
-        "return_5d_pct": 8.27,
-        "return_8d_pct": 3.39,
-        "ma5_gap_pct": 3.94,
-        "ma10_gap_pct": 4.68,
+        "return_3d_pct": 6.58,
+        "return_5d_pct": 6.36,
+        "return_8d_pct": 1.56,
+        "ma5_gap_pct": 4.25,
+        "ma10_gap_pct": 3.37,
         "drawdown_8d_pct": 0.0,
         "trend_penalty": 0.0,
         "trend_label": "趋势中性"
@@ -6571,385 +6445,385 @@ window.__QUANT_DATA__ = {
     {
       "code": "300474",
       "name": "景嘉微",
-      "margin_date": "20260918",
+      "margin_date": "20260917",
       "metrics": {
         "business_purity_score": 50,
-        "margin_balance": 1305308284.0,
-        "margin_buy": 68351263.0,
+        "margin_balance": 1278856733.0,
+        "margin_buy": 44765937.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 2.51,
-        "financing_pressure_score": 53.26,
-        "incremental_financing_pressure_score": 66.58,
+        "turnover_rate": 2.48,
+        "financing_pressure_score": 40.0,
+        "incremental_financing_pressure_score": 50.0,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 20.08
+        "turnover_heat_score": 19.84
       },
-      "trap_score": 45.48
+      "trap_score": 39.47
     },
     {
       "code": "300454",
       "name": "深信服",
-      "margin_date": "20260918",
+      "margin_date": "20260917",
       "metrics": {
         "business_purity_score": 50,
-        "margin_balance": 990638767.0,
-        "margin_buy": 174285547.0,
+        "margin_balance": 1047437174.0,
+        "margin_buy": 118743318.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 3.51,
-        "financing_pressure_score": 80.0,
-        "incremental_financing_pressure_score": 100.0,
+        "turnover_rate": 5.57,
+        "financing_pressure_score": 78.01,
+        "incremental_financing_pressure_score": 97.51,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 28.08
+        "turnover_heat_score": 44.56
       },
-      "trap_score": 59.12
+      "trap_score": 61.52
     },
     {
       "code": "300212",
       "name": "*ST易录",
-      "margin_date": "20260918",
+      "margin_date": "20260917",
       "metrics": {
         "business_purity_score": 50,
         "margin_balance": null,
         "margin_buy": null,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 1.03,
+        "turnover_rate": 0.93,
         "financing_pressure_score": 0.0,
         "incremental_financing_pressure_score": 0.0,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 8.24
+        "turnover_heat_score": 7.44
       },
-      "trap_score": 19.15
+      "trap_score": 18.99
     },
     {
       "code": "300251",
       "name": "光线传媒",
-      "margin_date": "20260918",
+      "margin_date": "20260917",
       "metrics": {
         "business_purity_score": 50,
-        "margin_balance": 1148884795.0,
-        "margin_buy": 29610833.0,
+        "margin_balance": 1155886489.0,
+        "margin_buy": 24017352.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 1.02,
-        "financing_pressure_score": 32.62,
-        "incremental_financing_pressure_score": 40.77,
+        "turnover_rate": 0.83,
+        "financing_pressure_score": 28.62,
+        "incremental_financing_pressure_score": 35.78,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 8.16
+        "turnover_heat_score": 6.64
       },
-      "trap_score": 33.81
+      "trap_score": 31.71
     },
     {
       "code": "300229",
       "name": "拓尔思",
-      "margin_date": "20260918",
+      "margin_date": "20260917",
       "metrics": {
         "business_purity_score": 50,
-        "margin_balance": 906272908.0,
-        "margin_buy": 14543196.0,
+        "margin_balance": 909544202.0,
+        "margin_buy": 10199076.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 2.08,
-        "financing_pressure_score": 22.47,
-        "incremental_financing_pressure_score": 28.08,
+        "turnover_rate": 1.75,
+        "financing_pressure_score": 15.7,
+        "incremental_financing_pressure_score": 19.62,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 16.64
+        "turnover_heat_score": 14.0
       },
-      "trap_score": 30.94
+      "trap_score": 27.36
     },
     {
       "code": "300624",
       "name": "万兴科技",
-      "margin_date": "20260918",
+      "margin_date": "20260917",
       "metrics": {
         "business_purity_score": 50,
-        "margin_balance": 508708658.0,
-        "margin_buy": 27303532.0,
+        "margin_balance": 508644069.0,
+        "margin_buy": 17563144.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 3.79,
-        "financing_pressure_score": 53.96,
-        "incremental_financing_pressure_score": 67.45,
+        "turnover_rate": 3.58,
+        "financing_pressure_score": 39.62,
+        "incremental_financing_pressure_score": 49.53,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 30.32,
-        "turnover_z_score": -0.69
+        "turnover_heat_score": 28.64
       },
-      "trap_score": 47.85,
+      "trap_score": 41.06
+    },
+    {
+      "code": "300442",
+      "name": "润泽科技",
+      "margin_date": "20260917",
+      "metrics": {
+        "business_purity_score": 50,
+        "margin_balance": 3309884703.0,
+        "margin_buy": 71258329.0,
+        "float_market_cap": null,
+        "margin_balance_ratio": null,
+        "turnover_rate": 1.24,
+        "financing_pressure_score": 29.22,
+        "incremental_financing_pressure_score": 36.53,
+        "margin_burden_score": 0.0,
+        "turnover_heat_score": 9.92
+      },
+      "trap_score": 32.63
+    },
+    {
+      "code": "300803",
+      "name": "指南针",
+      "margin_date": "20260917",
+      "metrics": {
+        "business_purity_score": 50,
+        "margin_balance": 3286135963.0,
+        "margin_buy": 79610262.0,
+        "float_market_cap": null,
+        "margin_balance_ratio": null,
+        "turnover_rate": 2.69,
+        "financing_pressure_score": 31.38,
+        "incremental_financing_pressure_score": 39.23,
+        "margin_burden_score": 0.0,
+        "turnover_heat_score": 21.52
+      },
+      "trap_score": 35.93
+    },
+    {
+      "code": "300364",
+      "name": "中文在线",
+      "margin_date": "20260917",
+      "metrics": {
+        "business_purity_score": 50,
+        "margin_balance": 1036627088.0,
+        "margin_buy": 118556524.0,
+        "float_market_cap": null,
+        "margin_balance_ratio": null,
+        "turnover_rate": 7.75,
+        "financing_pressure_score": 78.31,
+        "incremental_financing_pressure_score": 97.89,
+        "margin_burden_score": 0.0,
+        "turnover_heat_score": 62.0
+      },
+      "trap_score": 65.14
+    },
+    {
+      "code": "300394",
+      "name": "天孚通信",
+      "margin_date": "20260917",
+      "metrics": {
+        "business_purity_score": 50,
+        "margin_balance": 7526845127.0,
+        "margin_buy": 1671799318.0,
+        "float_market_cap": null,
+        "margin_balance_ratio": null,
+        "turnover_rate": 4.19,
+        "financing_pressure_score": 80.0,
+        "incremental_financing_pressure_score": 100.0,
+        "margin_burden_score": 0.0,
+        "turnover_heat_score": 33.52
+      },
+      "trap_score": 60.2
+    },
+    {
+      "code": "300570",
+      "name": "太辰光",
+      "margin_date": "20260917",
+      "metrics": {
+        "business_purity_score": 50,
+        "margin_balance": 1535498563.0,
+        "margin_buy": 434622811.0,
+        "float_market_cap": null,
+        "margin_balance_ratio": null,
+        "turnover_rate": 14.94,
+        "financing_pressure_score": 80.0,
+        "incremental_financing_pressure_score": 100.0,
+        "margin_burden_score": 0.0,
+        "turnover_heat_score": 100.0
+      },
+      "trap_score": 73.5
+    },
+    {
+      "code": "300782",
+      "name": "卓胜微",
+      "margin_date": "20260917",
+      "metrics": {
+        "business_purity_score": 50,
+        "margin_balance": 1640774097.0,
+        "margin_buy": 49380521.0,
+        "float_market_cap": null,
+        "margin_balance_ratio": null,
+        "turnover_rate": 2.02,
+        "financing_pressure_score": 36.08,
+        "incremental_financing_pressure_score": 45.1,
+        "margin_burden_score": 0.0,
+        "turnover_heat_score": 16.16
+      },
+      "trap_score": 36.97
+    },
+    {
+      "code": "300548",
+      "name": "长芯博创",
+      "margin_date": "20260917",
+      "metrics": {
+        "business_purity_score": 50,
+        "margin_balance": 2022923100.0,
+        "margin_buy": 265926710.0,
+        "float_market_cap": null,
+        "margin_balance_ratio": null,
+        "turnover_rate": 5.28,
+        "financing_pressure_score": 80.0,
+        "incremental_financing_pressure_score": 100.0,
+        "margin_burden_score": 0.0,
+        "turnover_heat_score": 42.24
+      },
+      "trap_score": 61.95
+    },
+    {
+      "code": "300604",
+      "name": "长川科技",
+      "margin_date": "20260917",
+      "metrics": {
+        "business_purity_score": 50,
+        "margin_balance": 3344890046.0,
+        "margin_buy": 383775281.0,
+        "float_market_cap": null,
+        "margin_balance_ratio": null,
+        "turnover_rate": 4.79,
+        "financing_pressure_score": 78.42,
+        "incremental_financing_pressure_score": 98.03,
+        "margin_burden_score": 0.0,
+        "turnover_heat_score": 38.32
+      },
+      "trap_score": 60.45
+    },
+    {
+      "code": "300118",
+      "name": "东方日升",
+      "margin_date": "20260917",
+      "metrics": {
+        "business_purity_score": 50,
+        "margin_balance": 526775914.0,
+        "margin_buy": 8915425.0,
+        "float_market_cap": null,
+        "margin_balance_ratio": null,
+        "turnover_rate": 2.84,
+        "financing_pressure_score": 23.69,
+        "incremental_financing_pressure_score": 29.62,
+        "margin_burden_score": 0.0,
+        "turnover_heat_score": 22.72
+      },
+      "trap_score": 32.7
+    },
+    {
+      "code": "300373",
+      "name": "扬杰科技",
+      "margin_date": "20260917",
+      "metrics": {
+        "business_purity_score": 50,
+        "margin_balance": 1527557711.0,
+        "margin_buy": 159398751.0,
+        "float_market_cap": null,
+        "margin_balance_ratio": null,
+        "turnover_rate": 3.23,
+        "financing_pressure_score": 75.3,
+        "incremental_financing_pressure_score": 94.13,
+        "margin_burden_score": 0.0,
+        "turnover_heat_score": 25.84
+      },
+      "trap_score": 56.55
+    },
+    {
+      "code": "301236",
+      "name": "软通动力",
+      "margin_date": "20260917",
+      "metrics": {
+        "business_purity_score": 50,
+        "margin_balance": 2071290389.0,
+        "margin_buy": 40397592.0,
+        "float_market_cap": null,
+        "margin_balance_ratio": null,
+        "turnover_rate": 1.76,
+        "financing_pressure_score": 27.31,
+        "incremental_financing_pressure_score": 34.13,
+        "margin_burden_score": 0.0,
+        "turnover_heat_score": 14.08
+      },
+      "trap_score": 32.61
+    },
+    {
+      "code": "301269",
+      "name": "华大九天",
+      "margin_date": "20260917",
+      "metrics": {
+        "business_purity_score": 50,
+        "margin_balance": 953243149.0,
+        "margin_buy": 28346360.0,
+        "float_market_cap": null,
+        "margin_balance_ratio": null,
+        "turnover_rate": 1.09,
+        "financing_pressure_score": 35.79,
+        "incremental_financing_pressure_score": 44.74,
+        "margin_burden_score": 0.0,
+        "turnover_heat_score": 8.72
+      },
+      "trap_score": 35.35
+    },
+    {
+      "code": "301312",
+      "name": "智立方",
+      "margin_date": "20260917",
+      "metrics": {
+        "business_purity_score": 50,
+        "margin_balance": 281428562.0,
+        "margin_buy": 27141267.0,
+        "float_market_cap": null,
+        "margin_balance_ratio": null,
+        "turnover_rate": 6.6,
+        "financing_pressure_score": 72.93,
+        "incremental_financing_pressure_score": 91.17,
+        "margin_burden_score": 0.0,
+        "turnover_heat_score": 52.8,
+        "turnover_z_score": -0.48
+      },
+      "trap_score": 60.88,
       "trend": {
         "available": true,
         "down_streak": 0,
-        "return_3d_pct": 1.75,
-        "return_5d_pct": 0.08,
-        "return_8d_pct": -8.69,
-        "ma5_gap_pct": 0.94,
-        "ma10_gap_pct": -2.71,
-        "drawdown_8d_pct": -6.22,
+        "return_3d_pct": 10.19,
+        "return_5d_pct": 10.37,
+        "return_8d_pct": 3.05,
+        "ma5_gap_pct": 4.51,
+        "ma10_gap_pct": 4.78,
+        "drawdown_8d_pct": 0.0,
         "trend_penalty": 0.0,
         "trend_label": "趋势中性"
       }
     },
     {
-      "code": "300442",
-      "name": "润泽科技",
-      "margin_date": "20260918",
-      "metrics": {
-        "business_purity_score": 50,
-        "margin_balance": 3294530570.0,
-        "margin_buy": 113698573.0,
-        "float_market_cap": null,
-        "margin_balance_ratio": null,
-        "turnover_rate": 1.19,
-        "financing_pressure_score": 39.61,
-        "incremental_financing_pressure_score": 49.51,
-        "margin_burden_score": 0.0,
-        "turnover_heat_score": 9.52
-      },
-      "trap_score": 37.23
-    },
-    {
-      "code": "300803",
-      "name": "指南针",
-      "margin_date": "20260918",
-      "metrics": {
-        "business_purity_score": 50,
-        "margin_balance": 3291465354.0,
-        "margin_buy": 150077288.0,
-        "float_market_cap": null,
-        "margin_balance_ratio": null,
-        "turnover_rate": 2.03,
-        "financing_pressure_score": 48.48,
-        "incremental_financing_pressure_score": 60.6,
-        "margin_burden_score": 0.0,
-        "turnover_heat_score": 16.24
-      },
-      "trap_score": 42.56
-    },
-    {
-      "code": "300364",
-      "name": "中文在线",
-      "margin_date": "20260918",
-      "metrics": {
-        "business_purity_score": 50,
-        "margin_balance": 1022037131.0,
-        "margin_buy": 95940240.0,
-        "float_market_cap": null,
-        "margin_balance_ratio": null,
-        "turnover_rate": 9.83,
-        "financing_pressure_score": 72.16,
-        "incremental_financing_pressure_score": 90.2,
-        "margin_burden_score": 0.0,
-        "turnover_heat_score": 78.64
-      },
-      "trap_score": 65.7
-    },
-    {
-      "code": "300394",
-      "name": "天孚通信",
-      "margin_date": "20260918",
-      "metrics": {
-        "business_purity_score": 50,
-        "margin_balance": 7474357540.0,
-        "margin_buy": 1151241318.0,
-        "float_market_cap": null,
-        "margin_balance_ratio": null,
-        "turnover_rate": 3.16,
-        "financing_pressure_score": 80.0,
-        "incremental_financing_pressure_score": 100.0,
-        "margin_burden_score": 0.0,
-        "turnover_heat_score": 25.28
-      },
-      "trap_score": 58.56
-    },
-    {
-      "code": "300570",
-      "name": "太辰光",
-      "margin_date": "20260918",
-      "metrics": {
-        "business_purity_score": 50,
-        "margin_balance": 1699048285.0,
-        "margin_buy": 713579704.0,
-        "float_market_cap": null,
-        "margin_balance_ratio": null,
-        "turnover_rate": 10.29,
-        "financing_pressure_score": 80.0,
-        "incremental_financing_pressure_score": 100.0,
-        "margin_burden_score": 0.0,
-        "turnover_heat_score": 82.32
-      },
-      "trap_score": 69.96
-    },
-    {
-      "code": "300782",
-      "name": "卓胜微",
-      "margin_date": "20260918",
-      "metrics": {
-        "business_purity_score": 50,
-        "margin_balance": 1636231938.0,
-        "margin_buy": 53018399.0,
-        "float_market_cap": null,
-        "margin_balance_ratio": null,
-        "turnover_rate": 3.32,
-        "financing_pressure_score": 37.92,
-        "incremental_financing_pressure_score": 47.4,
-        "margin_burden_score": 0.0,
-        "turnover_heat_score": 26.56
-      },
-      "trap_score": 39.88
-    },
-    {
-      "code": "300548",
-      "name": "长芯博创",
-      "margin_date": "20260918",
-      "metrics": {
-        "business_purity_score": 50,
-        "margin_balance": 2143542049.0,
-        "margin_buy": 409937861.0,
-        "float_market_cap": null,
-        "margin_balance_ratio": null,
-        "turnover_rate": 4.42,
-        "financing_pressure_score": 80.0,
-        "incremental_financing_pressure_score": 100.0,
-        "margin_burden_score": 0.0,
-        "turnover_heat_score": 35.36
-      },
-      "trap_score": 60.57
-    },
-    {
-      "code": "300604",
-      "name": "长川科技",
-      "margin_date": "20260918",
-      "metrics": {
-        "business_purity_score": 50,
-        "margin_balance": 3497772286.0,
-        "margin_buy": 669054650.0,
-        "float_market_cap": null,
-        "margin_balance_ratio": null,
-        "turnover_rate": 4.24,
-        "financing_pressure_score": 80.0,
-        "incremental_financing_pressure_score": 100.0,
-        "margin_burden_score": 0.0,
-        "turnover_heat_score": 33.92
-      },
-      "trap_score": 60.28
-    },
-    {
-      "code": "300118",
-      "name": "东方日升",
-      "margin_date": "20260918",
-      "metrics": {
-        "business_purity_score": 50,
-        "margin_balance": 525871229.0,
-        "margin_buy": 18930159.0,
-        "float_market_cap": null,
-        "margin_balance_ratio": null,
-        "turnover_rate": 1.99,
-        "financing_pressure_score": 40.8,
-        "incremental_financing_pressure_score": 51.0,
-        "margin_burden_score": 0.0,
-        "turnover_heat_score": 15.92
-      },
-      "trap_score": 39.04
-    },
-    {
-      "code": "300373",
-      "name": "扬杰科技",
-      "margin_date": "20260918",
-      "metrics": {
-        "business_purity_score": 50,
-        "margin_balance": 1512371309.0,
-        "margin_buy": 155725877.0,
-        "float_market_cap": null,
-        "margin_balance_ratio": null,
-        "turnover_rate": 2.12,
-        "financing_pressure_score": 74.89,
-        "incremental_financing_pressure_score": 93.61,
-        "margin_burden_score": 0.0,
-        "turnover_heat_score": 16.96
-      },
-      "trap_score": 54.59
-    },
-    {
-      "code": "301236",
-      "name": "软通动力",
-      "margin_date": "20260918",
-      "metrics": {
-        "business_purity_score": 50,
-        "margin_balance": 2054643953.0,
-        "margin_buy": 54312860.0,
-        "float_market_cap": null,
-        "margin_balance_ratio": null,
-        "turnover_rate": 2.44,
-        "financing_pressure_score": 33.15,
-        "incremental_financing_pressure_score": 41.43,
-        "margin_burden_score": 0.0,
-        "turnover_heat_score": 19.52
-      },
-      "trap_score": 36.32
-    },
-    {
-      "code": "301269",
-      "name": "华大九天",
-      "margin_date": "20260918",
-      "metrics": {
-        "business_purity_score": 50,
-        "margin_balance": 947086165.0,
-        "margin_buy": 37774888.0,
-        "float_market_cap": null,
-        "margin_balance_ratio": null,
-        "turnover_rate": 1.09,
-        "financing_pressure_score": 43.91,
-        "incremental_financing_pressure_score": 54.89,
-        "margin_burden_score": 0.0,
-        "turnover_heat_score": 8.72
-      },
-      "trap_score": 39.0
-    },
-    {
-      "code": "301312",
-      "name": "智立方",
-      "margin_date": "20260918",
-      "metrics": {
-        "business_purity_score": 50,
-        "margin_balance": 283536209.0,
-        "margin_buy": 48155159.0,
-        "float_market_cap": null,
-        "margin_balance_ratio": null,
-        "turnover_rate": 5.01,
-        "financing_pressure_score": 80.0,
-        "incremental_financing_pressure_score": 100.0,
-        "margin_burden_score": 0.0,
-        "turnover_heat_score": 40.08
-      },
-      "trap_score": 61.52
-    },
-    {
       "code": "301308",
       "name": "江波龙",
-      "margin_date": "20260918",
+      "margin_date": "20260917",
       "metrics": {
         "business_purity_score": 50,
-        "margin_balance": 6214128787.0,
-        "margin_buy": 405571715.0,
+        "margin_balance": 6183114076.0,
+        "margin_buy": 161093518.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 3.87,
-        "financing_pressure_score": 60.14,
-        "incremental_financing_pressure_score": 75.18,
+        "turnover_rate": 4.19,
+        "financing_pressure_score": 32.84,
+        "incremental_financing_pressure_score": 41.05,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 30.96,
-        "turnover_z_score": 0.79
+        "turnover_heat_score": 33.52,
+        "turnover_z_score": 1.09
       },
-      "trap_score": 50.76,
+      "trap_score": 38.98,
       "trend": {
         "available": true,
         "down_streak": 0,
-        "return_3d_pct": 2.61,
-        "return_5d_pct": 5.07,
-        "return_8d_pct": -0.07,
-        "ma5_gap_pct": 2.45,
-        "ma10_gap_pct": 1.64,
-        "drawdown_8d_pct": 0.0,
+        "return_3d_pct": 5.62,
+        "return_5d_pct": 2.18,
+        "return_8d_pct": -3.32,
+        "ma5_gap_pct": 3.23,
+        "ma10_gap_pct": 1.09,
+        "drawdown_8d_pct": -0.31,
         "trend_penalty": 0.0,
         "trend_label": "趋势中性"
       }
@@ -6957,182 +6831,182 @@ window.__QUANT_DATA__ = {
     {
       "code": "301095",
       "name": "广立微",
-      "margin_date": "20260918",
+      "margin_date": "20260917",
       "metrics": {
         "business_purity_score": 50,
-        "margin_balance": 498368555.0,
-        "margin_buy": 52572720.0,
+        "margin_balance": 485648482.0,
+        "margin_buy": 22151264.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 2.81,
-        "financing_pressure_score": 75.65,
-        "incremental_financing_pressure_score": 94.56,
+        "turnover_rate": 3.58,
+        "financing_pressure_score": 48.49,
+        "incremental_financing_pressure_score": 60.61,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 22.48
+        "turnover_heat_score": 28.64
       },
-      "trap_score": 56.04
+      "trap_score": 45.05
     },
     {
       "code": "301171",
       "name": "易点天下",
-      "margin_date": "20260918",
+      "margin_date": "20260917",
       "metrics": {
         "business_purity_score": 50,
-        "margin_balance": 1317730738.0,
-        "margin_buy": 169050046.0,
+        "margin_balance": 1340165146.0,
+        "margin_buy": 166940958.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 9.74,
+        "turnover_rate": 9.47,
         "financing_pressure_score": 80.0,
         "incremental_financing_pressure_score": 100.0,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 77.92
+        "turnover_heat_score": 75.76
       },
-      "trap_score": 69.08
+      "trap_score": 68.65
     },
     {
       "code": "301165",
       "name": "锐捷网络",
-      "margin_date": "20260918",
+      "margin_date": "20260917",
       "metrics": {
         "business_purity_score": 50,
-        "margin_balance": 741700499.0,
-        "margin_buy": 154699129.0,
+        "margin_balance": 740372782.0,
+        "margin_buy": 140640350.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 0.9,
+        "turnover_rate": 1.45,
         "financing_pressure_score": 80.0,
         "incremental_financing_pressure_score": 100.0,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 7.2
+        "turnover_heat_score": 11.6
       },
-      "trap_score": 54.94
+      "trap_score": 55.82
     },
     {
       "code": "300059",
       "name": "东方财富",
-      "margin_date": "20260918",
+      "margin_date": "20260917",
       "metrics": {
         "business_purity_score": 50,
-        "margin_balance": 22643522934.0,
-        "margin_buy": 342115502.0,
+        "margin_balance": 22729512147.0,
+        "margin_buy": 322741056.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 1.38,
-        "financing_pressure_score": 21.15,
-        "incremental_financing_pressure_score": 26.44,
+        "turnover_rate": 1.13,
+        "financing_pressure_score": 19.88,
+        "incremental_financing_pressure_score": 24.85,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 11.04
+        "turnover_heat_score": 9.04
       },
-      "trap_score": 29.23
+      "trap_score": 28.25
     },
     {
       "code": "002371",
       "name": "北方华创",
-      "margin_date": "20260918",
+      "margin_date": "20260917",
       "metrics": {
         "business_purity_score": 50,
-        "margin_balance": 2513009800.0,
-        "margin_buy": 261543387.0,
+        "margin_balance": 2518406511.0,
+        "margin_buy": 226288956.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 0.82,
-        "financing_pressure_score": 75.22,
-        "incremental_financing_pressure_score": 94.03,
+        "turnover_rate": 1.34,
+        "financing_pressure_score": 70.96,
+        "incremental_financing_pressure_score": 88.7,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 6.56
+        "turnover_heat_score": 10.72
       },
-      "trap_score": 52.66
+      "trap_score": 51.58
     },
     {
       "code": "002475",
       "name": "立讯精密",
-      "margin_date": "20260918",
+      "margin_date": "20260917",
       "metrics": {
         "business_purity_score": 50,
-        "margin_balance": 5837904631.0,
-        "margin_buy": 380252427.0,
+        "margin_balance": 6003911089.0,
+        "margin_buy": 215910647.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 0.88,
-        "financing_pressure_score": 60.07,
-        "incremental_financing_pressure_score": 75.09,
+        "turnover_rate": 1.71,
+        "financing_pressure_score": 40.77,
+        "incremental_financing_pressure_score": 50.96,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 7.04
+        "turnover_heat_score": 13.68
       },
-      "trap_score": 45.94
+      "trap_score": 38.58
     },
     {
       "code": "002463",
       "name": "沪电股份",
-      "margin_date": "20260918",
+      "margin_date": "20260917",
       "metrics": {
         "business_purity_score": 50,
-        "margin_balance": 4833865722.0,
-        "margin_buy": 572973191.0,
+        "margin_balance": 4825822481.0,
+        "margin_buy": 533067962.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 2.31,
-        "financing_pressure_score": 79.56,
-        "incremental_financing_pressure_score": 99.45,
+        "turnover_rate": 3.07,
+        "financing_pressure_score": 77.14,
+        "incremental_financing_pressure_score": 96.42,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 18.48
+        "turnover_heat_score": 24.56
       },
-      "trap_score": 57.0
+      "trap_score": 57.12
     },
     {
       "code": "002555",
       "name": "三七互娱",
-      "margin_date": "20260918",
+      "margin_date": "20260917",
       "metrics": {
         "business_purity_score": 50,
-        "margin_balance": 1640555222.0,
-        "margin_buy": 32285290.0,
+        "margin_balance": 1636768157.0,
+        "margin_buy": 15253598.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 0.95,
-        "financing_pressure_score": 27.55,
-        "incremental_financing_pressure_score": 34.44,
+        "turnover_rate": 1.14,
+        "financing_pressure_score": 13.05,
+        "incremental_financing_pressure_score": 16.31,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 7.6
+        "turnover_heat_score": 9.12
       },
-      "trap_score": 31.42
+      "trap_score": 25.2
     },
     {
       "code": "002236",
       "name": "大华股份",
-      "margin_date": "20260918",
+      "margin_date": "20260917",
       "metrics": {
         "business_purity_score": 50,
-        "margin_balance": 1392927530.0,
-        "margin_buy": 26657025.0,
+        "margin_balance": 1395188413.0,
+        "margin_buy": 12516704.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
         "turnover_rate": 0.63,
-        "financing_pressure_score": 26.79,
-        "incremental_financing_pressure_score": 33.49,
+        "financing_pressure_score": 12.56,
+        "incremental_financing_pressure_score": 15.7,
         "margin_burden_score": 0.0,
         "turnover_heat_score": 5.04
       },
-      "trap_score": 30.56
+      "trap_score": 24.16
     },
     {
       "code": "002241",
       "name": "歌尔股份",
-      "margin_date": "20260918",
+      "margin_date": "20260917",
       "metrics": {
         "business_purity_score": 50,
-        "margin_balance": 3799387932.0,
-        "margin_buy": 209526433.0,
+        "margin_balance": 3895658271.0,
+        "margin_buy": 145031115.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 3.02,
-        "financing_pressure_score": 54.75,
-        "incremental_financing_pressure_score": 68.43,
+        "turnover_rate": 4.16,
+        "financing_pressure_score": 41.78,
+        "incremental_financing_pressure_score": 52.23,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 24.16
+        "turnover_heat_score": 33.28
       },
-      "trap_score": 46.97
+      "trap_score": 42.96
     },
     {
       "code": "600050",
@@ -7144,329 +7018,368 @@ window.__QUANT_DATA__ = {
         "margin_buy": 54344738.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 0.29,
+        "turnover_rate": 0.46,
         "financing_pressure_score": 28.53,
         "incremental_financing_pressure_score": 35.67,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 2.32
+        "turnover_heat_score": 3.68
       },
-      "trap_score": 30.8
+      "trap_score": 31.07
     },
     {
       "code": "002859",
       "name": "洁美科技",
-      "margin_date": "20260918",
+      "margin_date": "20260917",
       "metrics": {
         "business_purity_score": 50,
-        "margin_balance": 791752812.0,
-        "margin_buy": 86659219.0,
+        "margin_balance": 786614578.0,
+        "margin_buy": 64518827.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 4.28,
-        "financing_pressure_score": 76.84,
-        "incremental_financing_pressure_score": 96.04,
+        "turnover_rate": 3.24,
+        "financing_pressure_score": 68.61,
+        "incremental_financing_pressure_score": 85.76,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 34.24
+        "turnover_heat_score": 25.92
       },
-      "trap_score": 58.93
+      "trap_score": 53.56
     },
     {
       "code": "002920",
       "name": "德赛西威",
-      "margin_date": "20260918",
+      "margin_date": "20260917",
       "metrics": {
         "business_purity_score": 50,
-        "margin_balance": 1377122452.0,
-        "margin_buy": 29386828.0,
+        "margin_balance": 1389604250.0,
+        "margin_buy": 32295061.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 0.5,
-        "financing_pressure_score": 29.07,
-        "incremental_financing_pressure_score": 36.34,
+        "turnover_rate": 0.8,
+        "financing_pressure_score": 30.59,
+        "incremental_financing_pressure_score": 38.24,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 4.0
+        "turnover_heat_score": 6.4
       },
-      "trap_score": 31.38
+      "trap_score": 32.55
     },
     {
       "code": "002456",
       "name": "欧菲光",
-      "margin_date": "20260918",
+      "margin_date": "20260917",
       "metrics": {
         "business_purity_score": 50,
-        "margin_balance": 1476403526.0,
-        "margin_buy": 22169577.0,
+        "margin_balance": 1482300780.0,
+        "margin_buy": 32030298.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 1.71,
-        "financing_pressure_score": 21.02,
-        "incremental_financing_pressure_score": 26.28,
+        "turnover_rate": 1.72,
+        "financing_pressure_score": 29.29,
+        "incremental_financing_pressure_score": 36.61,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 13.68
+        "turnover_heat_score": 13.76
       },
-      "trap_score": 29.7
+      "trap_score": 33.43
     },
     {
       "code": "002156",
       "name": "通富微电",
-      "margin_date": "20260918",
+      "margin_date": "20260917",
       "metrics": {
         "business_purity_score": 50,
-        "margin_balance": 4339525515.0,
-        "margin_buy": 820642716.0,
+        "margin_balance": 4320399390.0,
+        "margin_buy": 260498746.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 4.89,
-        "financing_pressure_score": 80.0,
-        "incremental_financing_pressure_score": 100.0,
+        "turnover_rate": 7.85,
+        "financing_pressure_score": 57.49,
+        "incremental_financing_pressure_score": 71.86,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 39.12
+        "turnover_heat_score": 62.8,
+        "turnover_z_score": 2.58
       },
-      "trap_score": 61.32
+      "trap_score": 55.93,
+      "trend": {
+        "available": true,
+        "down_streak": 0,
+        "return_3d_pct": 7.1,
+        "return_5d_pct": 5.83,
+        "return_8d_pct": 5.25,
+        "ma5_gap_pct": 4.75,
+        "ma10_gap_pct": 4.9,
+        "drawdown_8d_pct": 0.0,
+        "trend_penalty": 0.0,
+        "trend_label": "趋势中性"
+      }
     },
     {
       "code": "002261",
       "name": "拓维信息",
-      "margin_date": "20260918",
+      "margin_date": "20260917",
       "metrics": {
         "business_purity_score": 50,
-        "margin_balance": 1409487530.0,
-        "margin_buy": 125394772.0,
+        "margin_balance": 1381899627.0,
+        "margin_buy": 24419171.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 3.83,
-        "financing_pressure_score": 70.69,
-        "incremental_financing_pressure_score": 88.36,
+        "turnover_rate": 5.87,
+        "financing_pressure_score": 24.74,
+        "incremental_financing_pressure_score": 30.92,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 30.64
+        "turnover_heat_score": 46.96,
+        "turnover_z_score": 2.74
       },
-      "trap_score": 55.44
+      "trap_score": 38.02,
+      "trend": {
+        "available": true,
+        "down_streak": 0,
+        "return_3d_pct": 3.75,
+        "return_5d_pct": 2.77,
+        "return_8d_pct": 0.89,
+        "ma5_gap_pct": 2.83,
+        "ma10_gap_pct": 2.25,
+        "drawdown_8d_pct": 0.0,
+        "trend_penalty": 0.0,
+        "trend_label": "趋势中性"
+      }
     },
     {
       "code": "002273",
       "name": "水晶光电",
-      "margin_date": "20260918",
+      "margin_date": "20260917",
       "metrics": {
         "business_purity_score": 50,
-        "margin_balance": 2724747366.0,
-        "margin_buy": 79514867.0,
+        "margin_balance": 2715189511.0,
+        "margin_buy": 52042589.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 1.82,
-        "financing_pressure_score": 35.35,
-        "incremental_financing_pressure_score": 44.18,
+        "turnover_rate": 2.63,
+        "financing_pressure_score": 26.83,
+        "incremental_financing_pressure_score": 33.54,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 14.56
+        "turnover_heat_score": 21.04
       },
-      "trap_score": 36.32
+      "trap_score": 33.78
     },
     {
       "code": "002281",
       "name": "光迅科技",
-      "margin_date": "20260918",
+      "margin_date": "20260917",
       "metrics": {
         "business_purity_score": 50,
-        "margin_balance": 3804250892.0,
-        "margin_buy": 649326778.0,
+        "margin_balance": 3777424596.0,
+        "margin_buy": 857201863.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 3.47,
+        "turnover_rate": 5.53,
         "financing_pressure_score": 80.0,
         "incremental_financing_pressure_score": 100.0,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 27.76
+        "turnover_heat_score": 44.24
       },
-      "trap_score": 59.05
+      "trap_score": 62.35
     },
     {
       "code": "002415",
       "name": "海康威视",
-      "margin_date": "20260918",
+      "margin_date": "20260917",
       "metrics": {
         "business_purity_score": 50,
-        "margin_balance": 4034114011.0,
-        "margin_buy": 107506490.0,
+        "margin_balance": 4015899328.0,
+        "margin_buy": 104983754.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 0.64,
-        "financing_pressure_score": 33.32,
-        "incremental_financing_pressure_score": 41.65,
+        "turnover_rate": 0.5,
+        "financing_pressure_score": 32.91,
+        "incremental_financing_pressure_score": 41.14,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 5.12
+        "turnover_heat_score": 4.0
       },
-      "trap_score": 33.52
+      "trap_score": 33.11
     },
     {
       "code": "002916",
       "name": "深南电路",
-      "margin_date": "20260918",
+      "margin_date": "20260917",
       "metrics": {
         "business_purity_score": 50,
-        "margin_balance": 1432755053.0,
-        "margin_buy": 199108131.0,
+        "margin_balance": 1599685231.0,
+        "margin_buy": 163229714.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 1.17,
-        "financing_pressure_score": 80.0,
-        "incremental_financing_pressure_score": 100.0,
+        "turnover_rate": 1.47,
+        "financing_pressure_score": 74.61,
+        "incremental_financing_pressure_score": 93.26,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 9.36
+        "turnover_heat_score": 11.76
       },
-      "trap_score": 55.37
+      "trap_score": 53.43
     },
     {
       "code": "002517",
       "name": "恺英网络",
-      "margin_date": "20260918",
+      "margin_date": "20260917",
       "metrics": {
         "business_purity_score": 50,
-        "margin_balance": 1683702654.0,
-        "margin_buy": 84518932.0,
+        "margin_balance": 1660562283.0,
+        "margin_buy": 58196694.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 2.11,
-        "financing_pressure_score": 52.11,
-        "incremental_financing_pressure_score": 65.13,
+        "turnover_rate": 2.56,
+        "financing_pressure_score": 40.04,
+        "incremental_financing_pressure_score": 50.05,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 16.88
+        "turnover_heat_score": 20.48
       },
-      "trap_score": 44.33
+      "trap_score": 39.61
     },
     {
       "code": "002049",
       "name": "紫光国微",
-      "margin_date": "20260918",
+      "margin_date": "20260917",
       "metrics": {
         "business_purity_score": 50,
-        "margin_balance": 4157743790.0,
-        "margin_buy": 91736730.0,
+        "margin_balance": 4175238461.0,
+        "margin_buy": 57238112.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 1.28,
-        "financing_pressure_score": 29.65,
-        "incremental_financing_pressure_score": 37.06,
+        "turnover_rate": 1.63,
+        "financing_pressure_score": 19.19,
+        "incremental_financing_pressure_score": 23.99,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 10.24
+        "turnover_heat_score": 13.04
       },
-      "trap_score": 32.89
+      "trap_score": 28.74
     },
     {
       "code": "002138",
       "name": "顺络电子",
-      "margin_date": "20260918",
+      "margin_date": "20260917",
       "metrics": {
         "business_purity_score": 50,
-        "margin_balance": 1314202637.0,
-        "margin_buy": 105884274.0,
+        "margin_balance": 1364712427.0,
+        "margin_buy": 106831280.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 4.42,
-        "financing_pressure_score": 68.17,
-        "incremental_financing_pressure_score": 85.21,
+        "turnover_rate": 4.54,
+        "financing_pressure_score": 67.08,
+        "incremental_financing_pressure_score": 83.85,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 35.36
+        "turnover_heat_score": 36.32
       },
-      "trap_score": 55.25
+      "trap_score": 54.95
     },
     {
       "code": "002185",
       "name": "华天科技",
-      "margin_date": "20260918",
+      "margin_date": "20260917",
       "metrics": {
         "business_purity_score": 50,
-        "margin_balance": 2404688321.0,
-        "margin_buy": 784651127.0,
+        "margin_balance": 2344224206.0,
+        "margin_buy": 202267673.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 17.42,
-        "financing_pressure_score": 80.0,
-        "incremental_financing_pressure_score": 100.0,
+        "turnover_rate": 10.92,
+        "financing_pressure_score": 69.89,
+        "incremental_financing_pressure_score": 87.36,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 100.0
+        "turnover_heat_score": 87.36
       },
-      "trap_score": 73.5
+      "trap_score": 66.42
     },
     {
       "code": "000063",
       "name": "中兴通讯",
-      "margin_date": "20260918",
+      "margin_date": "20260917",
       "metrics": {
         "business_purity_score": 50,
-        "margin_balance": 9491847601.0,
-        "margin_buy": 269120119.0,
+        "margin_balance": 9478104333.0,
+        "margin_buy": 159876456.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 2.35,
-        "financing_pressure_score": 34.68,
-        "incremental_financing_pressure_score": 43.35,
+        "turnover_rate": 1.62,
+        "financing_pressure_score": 23.62,
+        "incremental_financing_pressure_score": 29.52,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 18.8
+        "turnover_heat_score": 12.96
       },
-      "trap_score": 36.87
+      "trap_score": 30.72
     },
     {
       "code": "000977",
       "name": "浪潮信息",
-      "margin_date": "20260918",
+      "margin_date": "20260917",
       "metrics": {
         "business_purity_score": 50,
-        "margin_balance": 4593889145.0,
-        "margin_buy": 457101498.0,
+        "margin_balance": 4689873005.0,
+        "margin_buy": 308732757.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 3.17,
-        "financing_pressure_score": 73.85,
-        "incremental_financing_pressure_score": 92.31,
+        "turnover_rate": 4.65,
+        "financing_pressure_score": 60.44,
+        "incremental_financing_pressure_score": 75.55,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 25.36
+        "turnover_heat_score": 37.2,
+        "turnover_z_score": -0.29
       },
-      "trap_score": 55.8
+      "trap_score": 52.14,
+      "trend": {
+        "available": true,
+        "down_streak": 0,
+        "return_3d_pct": 4.54,
+        "return_5d_pct": 1.9,
+        "return_8d_pct": -0.61,
+        "ma5_gap_pct": 2.56,
+        "ma10_gap_pct": 1.26,
+        "drawdown_8d_pct": 0.0,
+        "trend_penalty": 0.0,
+        "trend_label": "趋势中性"
+      }
     },
     {
       "code": "000938",
       "name": "紫光股份",
-      "margin_date": "20260918",
+      "margin_date": "20260917",
       "metrics": {
         "business_purity_score": 50,
-        "margin_balance": 4903847088.0,
-        "margin_buy": 677244230.0,
+        "margin_balance": 4834060453.0,
+        "margin_buy": 538253174.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 3.69,
-        "financing_pressure_score": 80.0,
-        "incremental_financing_pressure_score": 100.0,
+        "turnover_rate": 5.26,
+        "financing_pressure_score": 77.4,
+        "incremental_financing_pressure_score": 96.75,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 29.52
+        "turnover_heat_score": 42.08
       },
-      "trap_score": 59.4
+      "trap_score": 60.75
     },
     {
       "code": "000988",
       "name": "华工科技",
-      "margin_date": "20260918",
+      "margin_date": "20260917",
       "metrics": {
         "business_purity_score": 50,
-        "margin_balance": 7488475755.0,
-        "margin_buy": 653408244.0,
+        "margin_balance": 7431952585.0,
+        "margin_buy": 505367311.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 4.96,
-        "financing_pressure_score": 70.18,
-        "incremental_financing_pressure_score": 87.72,
+        "turnover_rate": 5.33,
+        "financing_pressure_score": 61.6,
+        "incremental_financing_pressure_score": 77.0,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 39.68,
-        "turnover_z_score": 0.12
+        "turnover_heat_score": 42.64,
+        "turnover_z_score": 0.36
       },
-      "trap_score": 57.02,
+      "trap_score": 53.75,
       "trend": {
         "available": true,
         "down_streak": 0,
-        "return_3d_pct": 3.33,
-        "return_5d_pct": 9.51,
-        "return_8d_pct": 0.66,
-        "ma5_gap_pct": 3.45,
-        "ma10_gap_pct": 4.47,
-        "drawdown_8d_pct": 0.0,
+        "return_3d_pct": 7.58,
+        "return_5d_pct": 3.77,
+        "return_8d_pct": 7.23,
+        "ma5_gap_pct": 3.7,
+        "ma10_gap_pct": 3.59,
+        "drawdown_8d_pct": -0.91,
         "trend_penalty": 0.0,
         "trend_label": "趋势中性"
       }
@@ -7474,87 +7387,74 @@ window.__QUANT_DATA__ = {
     {
       "code": "000034",
       "name": "神州数码",
-      "margin_date": "20260918",
+      "margin_date": "20260917",
       "metrics": {
         "business_purity_score": 50,
-        "margin_balance": 1706872422.0,
-        "margin_buy": 34006221.0,
+        "margin_balance": 1715218943.0,
+        "margin_buy": 19999129.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 1.63,
-        "financing_pressure_score": 27.89,
-        "incremental_financing_pressure_score": 34.87,
+        "turnover_rate": 2.24,
+        "financing_pressure_score": 16.32,
+        "incremental_financing_pressure_score": 20.4,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 13.04
+        "turnover_heat_score": 17.92
       },
-      "trap_score": 32.66
+      "trap_score": 28.43
     },
     {
       "code": "000066",
       "name": "中国长城",
-      "margin_date": "20260918",
+      "margin_date": "20260917",
       "metrics": {
         "business_purity_score": 50,
-        "margin_balance": 1738887789.0,
-        "margin_buy": 58328395.0,
+        "margin_balance": 1739503172.0,
+        "margin_buy": 41110374.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 4.45,
-        "financing_pressure_score": 38.83,
-        "incremental_financing_pressure_score": 48.54,
+        "turnover_rate": 1.87,
+        "financing_pressure_score": 30.91,
+        "incremental_financing_pressure_score": 38.63,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 35.6,
-        "turnover_z_score": 2.92
+        "turnover_heat_score": 14.96
       },
-      "trap_score": 42.09,
-      "trend": {
-        "available": true,
-        "down_streak": 0,
-        "return_3d_pct": 4.88,
-        "return_5d_pct": 6.61,
-        "return_8d_pct": 1.99,
-        "ma5_gap_pct": 4.74,
-        "ma10_gap_pct": 4.58,
-        "drawdown_8d_pct": 0.0,
-        "trend_penalty": 0.0,
-        "trend_label": "趋势中性"
-      }
+      "trap_score": 34.4
     },
     {
       "code": "000725",
       "name": "京东方Ａ",
-      "margin_date": "20260918",
+      "margin_date": "20260917",
       "metrics": {
         "business_purity_score": 50,
-        "margin_balance": 10658698073.0,
-        "margin_buy": 1076382949.0,
+        "margin_balance": 10970886986.0,
+        "margin_buy": 1499196169.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 5.06,
-        "financing_pressure_score": 74.3,
-        "incremental_financing_pressure_score": 92.87,
+        "turnover_rate": 5.97,
+        "financing_pressure_score": 80.0,
+        "incremental_financing_pressure_score": 100.0,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 40.48
+        "turnover_heat_score": 47.76
       },
-      "trap_score": 59.03
+      "trap_score": 63.05
     },
     {
       "code": "000100",
       "name": "TCL科技",
-      "margin_date": "20260918",
+      "margin_date": "20260917",
       "metrics": {
         "business_purity_score": 50,
-        "margin_balance": 4483052273.0,
-        "margin_buy": 353428957.0,
+        "margin_balance": 4459354026.0,
+        "margin_buy": 168428447.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 2.86,
-        "financing_pressure_score": 67.38,
-        "incremental_financing_pressure_score": 84.22,
+        "turnover_rate": 3.57,
+        "financing_pressure_score": 42.22,
+        "incremental_financing_pressure_score": 52.77,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 22.88
+        "turnover_heat_score": 28.56
       },
-      "trap_score": 52.4
+      "trap_score": 42.21
     },
     {
       "code": "600584",
@@ -7566,26 +7466,13 @@ window.__QUANT_DATA__ = {
         "margin_buy": 1281501442.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 6.45,
+        "turnover_rate": 9.0,
         "financing_pressure_score": 80.0,
         "incremental_financing_pressure_score": 100.0,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 51.6,
-        "turnover_z_score": 1.36
+        "turnover_heat_score": 72.0
       },
-      "trap_score": 63.82,
-      "trend": {
-        "available": true,
-        "down_streak": 1,
-        "return_3d_pct": 3.84,
-        "return_5d_pct": 8.88,
-        "return_8d_pct": 5.22,
-        "ma5_gap_pct": 3.35,
-        "ma10_gap_pct": 4.85,
-        "drawdown_8d_pct": -1.07,
-        "trend_penalty": 0.0,
-        "trend_label": "趋势中性"
-      }
+      "trap_score": 67.9
     },
     {
       "code": "600570",
@@ -7597,13 +7484,13 @@ window.__QUANT_DATA__ = {
         "margin_buy": 28998170.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 0.76,
+        "turnover_rate": 0.71,
         "financing_pressure_score": 16.04,
         "incremental_financing_pressure_score": 20.05,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 6.08
+        "turnover_heat_score": 5.68
       },
-      "trap_score": 25.93
+      "trap_score": 25.85
     },
     {
       "code": "600845",
@@ -7615,13 +7502,13 @@ window.__QUANT_DATA__ = {
         "margin_buy": 73083131.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 1.05,
+        "turnover_rate": 1.82,
         "financing_pressure_score": 79.61,
         "incremental_financing_pressure_score": 99.52,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 8.4
+        "turnover_heat_score": 14.56
       },
-      "trap_score": 55.0
+      "trap_score": 56.24
     },
     {
       "code": "600536",
@@ -7633,13 +7520,13 @@ window.__QUANT_DATA__ = {
         "margin_buy": 24643432.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 1.23,
+        "turnover_rate": 1.46,
         "financing_pressure_score": 22.77,
         "incremental_financing_pressure_score": 28.47,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 9.84
+        "turnover_heat_score": 11.68
       },
-      "trap_score": 29.71
+      "trap_score": 30.08
     },
     {
       "code": "600588",
@@ -7651,13 +7538,13 @@ window.__QUANT_DATA__ = {
         "margin_buy": 23765653.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 0.94,
+        "turnover_rate": 1.0,
         "financing_pressure_score": 24.05,
         "incremental_financing_pressure_score": 30.06,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 7.52
+        "turnover_heat_score": 8.0
       },
-      "trap_score": 29.83
+      "trap_score": 29.92
     },
     {
       "code": "600602",
@@ -7669,13 +7556,13 @@ window.__QUANT_DATA__ = {
         "margin_buy": 22925773.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 1.41,
+        "turnover_rate": 1.48,
         "financing_pressure_score": 37.09,
         "incremental_financing_pressure_score": 46.36,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 11.28
+        "turnover_heat_score": 11.84
       },
-      "trap_score": 36.45
+      "trap_score": 36.56
     },
     {
       "code": "600171",
@@ -7687,13 +7574,13 @@ window.__QUANT_DATA__ = {
         "margin_buy": 27612679.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 1.37,
+        "turnover_rate": 2.23,
         "financing_pressure_score": 38.59,
         "incremental_financing_pressure_score": 48.24,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 10.96
+        "turnover_heat_score": 17.84
       },
-      "trap_score": 37.06
+      "trap_score": 38.43
     },
     {
       "code": "600498",
@@ -7705,26 +7592,13 @@ window.__QUANT_DATA__ = {
         "margin_buy": 427534761.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 6.71,
+        "turnover_rate": 9.45,
         "financing_pressure_score": 80.0,
         "incremental_financing_pressure_score": 100.0,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 53.68,
-        "turnover_z_score": -0.44
+        "turnover_heat_score": 75.6
       },
-      "trap_score": 64.24,
-      "trend": {
-        "available": true,
-        "down_streak": 0,
-        "return_3d_pct": 4.42,
-        "return_5d_pct": 8.66,
-        "return_8d_pct": 7.58,
-        "ma5_gap_pct": 3.1,
-        "ma10_gap_pct": 5.9,
-        "drawdown_8d_pct": 0.0,
-        "trend_penalty": 0.0,
-        "trend_label": "趋势中性"
-      }
+      "trap_score": 68.62
     },
     {
       "code": "600183",
@@ -7736,13 +7610,13 @@ window.__QUANT_DATA__ = {
         "margin_buy": 1277721814.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 2.78,
+        "turnover_rate": 3.63,
         "financing_pressure_score": 80.0,
         "incremental_financing_pressure_score": 100.0,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 22.24
+        "turnover_heat_score": 29.04
       },
-      "trap_score": 57.95
+      "trap_score": 59.31
     },
     {
       "code": "600460",
@@ -7754,26 +7628,13 @@ window.__QUANT_DATA__ = {
         "margin_buy": 325751555.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 6.13,
+        "turnover_rate": 6.68,
         "financing_pressure_score": 80.0,
         "incremental_financing_pressure_score": 100.0,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 49.04,
-        "turnover_z_score": 0.32
+        "turnover_heat_score": 53.44
       },
-      "trap_score": 63.31,
-      "trend": {
-        "available": true,
-        "down_streak": 0,
-        "return_3d_pct": 6.16,
-        "return_5d_pct": 11.46,
-        "return_8d_pct": 9.91,
-        "ma5_gap_pct": 4.35,
-        "ma10_gap_pct": 7.25,
-        "drawdown_8d_pct": 0.0,
-        "trend_penalty": 0.0,
-        "trend_label": "趋势中性"
-      }
+      "trap_score": 64.19
     },
     {
       "code": "600703",
@@ -7785,13 +7646,13 @@ window.__QUANT_DATA__ = {
         "margin_buy": 124281397.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 1.94,
+        "turnover_rate": 2.1,
         "financing_pressure_score": 36.43,
         "incremental_financing_pressure_score": 45.53,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 15.52
+        "turnover_heat_score": 16.8
       },
-      "trap_score": 37.0
+      "trap_score": 37.25
     },
     {
       "code": "601138",
@@ -7803,13 +7664,13 @@ window.__QUANT_DATA__ = {
         "margin_buy": 427081027.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 0.48,
+        "turnover_rate": 0.56,
         "financing_pressure_score": 57.34,
         "incremental_financing_pressure_score": 71.68,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 3.84
+        "turnover_heat_score": 4.48
       },
-      "trap_score": 44.07
+      "trap_score": 44.2
     },
     {
       "code": "601360",
@@ -7821,13 +7682,13 @@ window.__QUANT_DATA__ = {
         "margin_buy": 118877874.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 1.67,
+        "turnover_rate": 1.29,
         "financing_pressure_score": 55.45,
         "incremental_financing_pressure_score": 69.31,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 13.36
+        "turnover_heat_score": 10.32
       },
-      "trap_score": 45.12
+      "trap_score": 44.52
     },
     {
       "code": "603000",
@@ -7839,59 +7700,59 @@ window.__QUANT_DATA__ = {
         "margin_buy": 61790225.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 3.14,
+        "turnover_rate": 3.16,
         "financing_pressure_score": 80.0,
         "incremental_financing_pressure_score": 100.0,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 25.12
+        "turnover_heat_score": 25.28
       },
-      "trap_score": 58.52
+      "trap_score": 58.56
     },
     {
       "code": "300054",
       "name": "鼎龙股份",
-      "margin_date": "20260918",
+      "margin_date": "20260917",
       "metrics": {
         "business_purity_score": 50,
-        "margin_balance": 2049990817.0,
-        "margin_buy": 220596071.0,
+        "margin_balance": 2064029393.0,
+        "margin_buy": 221925236.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 2.71,
-        "financing_pressure_score": 76.28,
-        "incremental_financing_pressure_score": 95.35,
+        "turnover_rate": 4.04,
+        "financing_pressure_score": 76.26,
+        "incremental_financing_pressure_score": 95.32,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 21.68
+        "turnover_heat_score": 32.32
       },
-      "trap_score": 56.16
+      "trap_score": 58.28
     },
     {
       "code": "002192",
       "name": "融捷股份",
-      "margin_date": "20260918",
+      "margin_date": "20260917",
       "metrics": {
         "business_purity_score": 50,
-        "margin_balance": 1228116074.0,
-        "margin_buy": 75836628.0,
+        "margin_balance": 1247101451.0,
+        "margin_buy": 88929040.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 5.62,
-        "financing_pressure_score": 58.27,
-        "incremental_financing_pressure_score": 72.83,
+        "turnover_rate": 4.82,
+        "financing_pressure_score": 63.36,
+        "incremental_financing_pressure_score": 79.21,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 44.96,
-        "turnover_z_score": -0.18
+        "turnover_heat_score": 38.56,
+        "turnover_z_score": -0.5
       },
-      "trap_score": 52.71,
+      "trap_score": 53.72,
       "trend": {
         "available": true,
-        "down_streak": 0,
-        "return_3d_pct": 4.18,
-        "return_5d_pct": 2.55,
-        "return_8d_pct": -4.86,
-        "ma5_gap_pct": 2.69,
-        "ma10_gap_pct": 0.56,
-        "drawdown_8d_pct": -2.87,
+        "down_streak": 1,
+        "return_3d_pct": 2.24,
+        "return_5d_pct": -0.25,
+        "return_8d_pct": -6.28,
+        "ma5_gap_pct": 0.75,
+        "ma10_gap_pct": -2.26,
+        "drawdown_8d_pct": -7.13,
         "trend_penalty": 0.0,
         "trend_label": "趋势中性"
       }
@@ -7899,38 +7760,38 @@ window.__QUANT_DATA__ = {
     {
       "code": "002466",
       "name": "天齐锂业",
-      "margin_date": "20260918",
+      "margin_date": "20260917",
       "metrics": {
         "business_purity_score": 50,
-        "margin_balance": 3183253170.0,
-        "margin_buy": 116370232.0,
+        "margin_balance": 3171788353.0,
+        "margin_buy": 90518136.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 2.07,
-        "financing_pressure_score": 41.25,
-        "incremental_financing_pressure_score": 51.56,
+        "turnover_rate": 1.76,
+        "financing_pressure_score": 34.83,
+        "incremental_financing_pressure_score": 43.54,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 16.56
+        "turnover_heat_score": 14.08
       },
-      "trap_score": 39.37
+      "trap_score": 35.99
     },
     {
       "code": "002837",
       "name": "英维克",
-      "margin_date": "20260918",
+      "margin_date": "20260917",
       "metrics": {
         "business_purity_score": 50,
-        "margin_balance": 3847879059.0,
-        "margin_buy": 264749755.0,
+        "margin_balance": 3846710880.0,
+        "margin_buy": 180471451.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 3.04,
-        "financing_pressure_score": 62.03,
-        "incremental_financing_pressure_score": 77.54,
+        "turnover_rate": 3.67,
+        "financing_pressure_score": 49.53,
+        "incremental_financing_pressure_score": 61.92,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 24.32
+        "turnover_heat_score": 29.36
       },
-      "trap_score": 50.28
+      "trap_score": 45.66
     },
     {
       "code": "601869",
@@ -7942,67 +7803,67 @@ window.__QUANT_DATA__ = {
         "margin_buy": 684655682.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 2.37,
+        "turnover_rate": 3.47,
         "financing_pressure_score": 80.0,
         "incremental_financing_pressure_score": 100.0,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 18.96
+        "turnover_heat_score": 27.76
       },
-      "trap_score": 57.29
+      "trap_score": 59.05
     },
     {
       "code": "002938",
       "name": "鹏鼎控股",
-      "margin_date": "20260918",
+      "margin_date": "20260917",
       "metrics": {
         "business_purity_score": 50,
-        "margin_balance": 1531050390.0,
-        "margin_buy": 140069296.0,
+        "margin_balance": 1549374988.0,
+        "margin_buy": 244452426.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 0.97,
-        "financing_pressure_score": 71.45,
-        "incremental_financing_pressure_score": 89.31,
+        "turnover_rate": 1.03,
+        "financing_pressure_score": 80.0,
+        "incremental_financing_pressure_score": 100.0,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 7.76
+        "turnover_heat_score": 8.24
       },
-      "trap_score": 51.2
+      "trap_score": 55.15
     },
     {
       "code": "000878",
       "name": "云南铜业",
-      "margin_date": "20260918",
+      "margin_date": "20260917",
       "metrics": {
         "business_purity_score": 50,
-        "margin_balance": 1892862212.0,
-        "margin_buy": 47142378.0,
+        "margin_balance": 1938321678.0,
+        "margin_buy": 74981523.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 1.45,
-        "financing_pressure_score": 31.92,
-        "incremental_financing_pressure_score": 39.91,
+        "turnover_rate": 1.95,
+        "financing_pressure_score": 42.95,
+        "incremental_financing_pressure_score": 53.68,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 11.6
+        "turnover_heat_score": 15.6
       },
-      "trap_score": 34.18
+      "trap_score": 39.95
     },
     {
       "code": "002155",
       "name": "湖南黄金",
-      "margin_date": "20260918",
+      "margin_date": "20260917",
       "metrics": {
         "business_purity_score": 50,
-        "margin_balance": 2129650052.0,
-        "margin_buy": 190874780.0,
+        "margin_balance": 2137528241.0,
+        "margin_buy": 225298841.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 2.93,
-        "financing_pressure_score": 70.89,
-        "incremental_financing_pressure_score": 88.61,
+        "turnover_rate": 3.85,
+        "financing_pressure_score": 75.62,
+        "incremental_financing_pressure_score": 94.53,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 23.44
+        "turnover_heat_score": 30.8
       },
-      "trap_score": 54.09
+      "trap_score": 57.69
     },
     {
       "code": "600378",
@@ -8014,121 +7875,134 @@ window.__QUANT_DATA__ = {
         "margin_buy": 246431993.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 4.26,
+        "turnover_rate": 5.36,
         "financing_pressure_score": 80.0,
         "incremental_financing_pressure_score": 100.0,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 34.08
+        "turnover_heat_score": 42.88
       },
-      "trap_score": 60.32
+      "trap_score": 62.08
     },
     {
       "code": "300418",
       "name": "昆仑万维",
-      "margin_date": "20260918",
+      "margin_date": "20260917",
       "metrics": {
         "business_purity_score": 50,
-        "margin_balance": 3247488181.0,
-        "margin_buy": 248749959.0,
+        "margin_balance": 3186765451.0,
+        "margin_buy": 215861425.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 4.05,
-        "financing_pressure_score": 66.19,
-        "incremental_financing_pressure_score": 82.73,
+        "turnover_rate": 4.03,
+        "financing_pressure_score": 61.46,
+        "incremental_financing_pressure_score": 76.82,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 32.4
+        "turnover_heat_score": 32.24
       },
-      "trap_score": 53.77
+      "trap_score": 51.6
     },
     {
       "code": "002218",
       "name": "拓日新能",
-      "margin_date": "20260918",
+      "margin_date": "20260917",
       "metrics": {
         "business_purity_score": 50,
-        "margin_balance": 154335263.0,
-        "margin_buy": 34744549.0,
+        "margin_balance": 144674811.0,
+        "margin_buy": 39821800.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 4.48,
+        "turnover_rate": 6.43,
         "financing_pressure_score": 80.0,
         "incremental_financing_pressure_score": 100.0,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 35.84
+        "turnover_heat_score": 51.44,
+        "turnover_z_score": 0.46
       },
-      "trap_score": 60.67
+      "trap_score": 63.79,
+      "trend": {
+        "available": true,
+        "down_streak": 0,
+        "return_3d_pct": 2.87,
+        "return_5d_pct": -2.49,
+        "return_8d_pct": 6.17,
+        "ma5_gap_pct": -0.05,
+        "ma10_gap_pct": 2.33,
+        "drawdown_8d_pct": -2.71,
+        "trend_penalty": 0.0,
+        "trend_label": "趋势中性"
+      }
     },
     {
       "code": "300617",
       "name": "安靠智电",
-      "margin_date": "20260918",
+      "margin_date": "20260917",
       "metrics": {
         "business_purity_score": 50,
         "margin_balance": null,
         "margin_buy": null,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 1.7,
+        "turnover_rate": 2.53,
         "financing_pressure_score": 0.0,
         "incremental_financing_pressure_score": 0.0,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 13.6
+        "turnover_heat_score": 20.24
       },
-      "trap_score": 20.22
+      "trap_score": 21.55
     },
     {
       "code": "300738",
       "name": "奥飞数据",
-      "margin_date": "20260918",
+      "margin_date": "20260917",
       "metrics": {
         "business_purity_score": 50,
-        "margin_balance": 1423723092.0,
-        "margin_buy": 57140839.0,
+        "margin_balance": 1414730165.0,
+        "margin_buy": 46839746.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 2.56,
-        "financing_pressure_score": 44.11,
-        "incremental_financing_pressure_score": 55.13,
+        "turnover_rate": 2.9,
+        "financing_pressure_score": 38.49,
+        "incremental_financing_pressure_score": 48.11,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 20.48
+        "turnover_heat_score": 23.2
       },
-      "trap_score": 41.45
+      "trap_score": 39.46
     },
     {
       "code": "002126",
       "name": "银轮股份",
-      "margin_date": "20260918",
+      "margin_date": "20260917",
       "metrics": {
         "business_purity_score": 50,
-        "margin_balance": 528386041.0,
-        "margin_buy": 27952767.0,
+        "margin_balance": 535869990.0,
+        "margin_buy": 27858051.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 1.49,
-        "financing_pressure_score": 53.55,
-        "incremental_financing_pressure_score": 66.93,
+        "turnover_rate": 1.63,
+        "financing_pressure_score": 53.06,
+        "incremental_financing_pressure_score": 66.32,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 11.92
+        "turnover_heat_score": 13.04
       },
       "trap_score": 43.98
     },
     {
       "code": "002050",
       "name": "三花智控",
-      "margin_date": "20260918",
+      "margin_date": "20260917",
       "metrics": {
         "business_purity_score": 50,
-        "margin_balance": 5229086068.0,
-        "margin_buy": 163242579.0,
+        "margin_balance": 5268053742.0,
+        "margin_buy": 186474695.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 1.76,
-        "financing_pressure_score": 36.97,
-        "incremental_financing_pressure_score": 46.22,
+        "turnover_rate": 1.42,
+        "financing_pressure_score": 40.32,
+        "incremental_financing_pressure_score": 50.4,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 14.08
+        "turnover_heat_score": 11.36
       },
-      "trap_score": 36.95
+      "trap_score": 37.92
     },
     {
       "code": "603075",
@@ -8140,23 +8014,23 @@ window.__QUANT_DATA__ = {
         "margin_buy": 5760474.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 6.48,
+        "turnover_rate": 6.36,
         "financing_pressure_score": 80.0,
         "incremental_financing_pressure_score": 100.0,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 51.84,
-        "turnover_z_score": -0.2
+        "turnover_heat_score": 50.88,
+        "turnover_z_score": -0.19
       },
-      "trap_score": 63.87,
+      "trap_score": 63.68,
       "trend": {
         "available": true,
         "down_streak": 0,
-        "return_3d_pct": 1.68,
-        "return_5d_pct": -1.53,
-        "return_8d_pct": -1.53,
-        "ma5_gap_pct": 1.06,
-        "ma10_gap_pct": -0.12,
-        "drawdown_8d_pct": -1.53,
+        "return_3d_pct": -0.7,
+        "return_5d_pct": -0.1,
+        "return_8d_pct": -5.4,
+        "ma5_gap_pct": -0.21,
+        "ma10_gap_pct": -0.6,
+        "drawdown_8d_pct": -2.46,
         "trend_penalty": 0.0,
         "trend_label": "趋势中性"
       }
@@ -8171,13 +8045,13 @@ window.__QUANT_DATA__ = {
         "margin_buy": 61460985.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 2.96,
+        "turnover_rate": 4.14,
         "financing_pressure_score": 55.96,
         "incremental_financing_pressure_score": 69.95,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 23.68
+        "turnover_heat_score": 33.12
       },
-      "trap_score": 47.42
+      "trap_score": 49.31
     },
     {
       "code": "605020",
@@ -8189,13 +8063,13 @@ window.__QUANT_DATA__ = {
         "margin_buy": 12931482.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 1.46,
+        "turnover_rate": 1.29,
         "financing_pressure_score": 36.81,
         "incremental_financing_pressure_score": 46.01,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 11.68
+        "turnover_heat_score": 10.32
       },
-      "trap_score": 36.4
+      "trap_score": 36.13
     },
     {
       "code": "600160",
@@ -8207,13 +8081,13 @@ window.__QUANT_DATA__ = {
         "margin_buy": 96253069.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 0.98,
+        "turnover_rate": 1.2,
         "financing_pressure_score": 30.18,
         "incremental_financing_pressure_score": 37.73,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 7.84
+        "turnover_heat_score": 9.6
       },
-      "trap_score": 32.65
+      "trap_score": 33.0
     },
     {
       "code": "603379",
@@ -8225,13 +8099,13 @@ window.__QUANT_DATA__ = {
         "margin_buy": 22234016.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 1.15,
+        "turnover_rate": 1.07,
         "financing_pressure_score": 35.8,
         "incremental_financing_pressure_score": 44.75,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 9.2
+        "turnover_heat_score": 8.56
       },
-      "trap_score": 35.45
+      "trap_score": 35.32
     },
     {
       "code": "600988",
@@ -8243,31 +8117,31 @@ window.__QUANT_DATA__ = {
         "margin_buy": 147459344.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 2.28,
+        "turnover_rate": 3.33,
         "financing_pressure_score": 78.95,
         "incremental_financing_pressure_score": 98.69,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 18.24
+        "turnover_heat_score": 26.64
       },
-      "trap_score": 56.68
+      "trap_score": 58.36
     },
     {
       "code": "000636",
       "name": "风华高科",
-      "margin_date": "20260918",
+      "margin_date": "20260917",
       "metrics": {
         "business_purity_score": 50,
-        "margin_balance": 3606775214.0,
-        "margin_buy": 714135893.0,
+        "margin_balance": 3595472298.0,
+        "margin_buy": 568820986.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 14.04,
+        "turnover_rate": 11.37,
         "financing_pressure_score": 80.0,
         "incremental_financing_pressure_score": 100.0,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 100.0
+        "turnover_heat_score": 90.96
       },
-      "trap_score": 73.5
+      "trap_score": 71.69
     },
     {
       "code": "688825",
@@ -8279,13 +8153,13 @@ window.__QUANT_DATA__ = {
         "margin_buy": 1508489413.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 5.41,
+        "turnover_rate": 5.83,
         "financing_pressure_score": 80.0,
         "incremental_financing_pressure_score": 100.0,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 43.28
+        "turnover_heat_score": 46.64
       },
-      "trap_score": 62.16
+      "trap_score": 62.83
     },
     {
       "code": "600105",
@@ -8297,31 +8171,31 @@ window.__QUANT_DATA__ = {
         "margin_buy": 615794113.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 9.25,
+        "turnover_rate": 12.54,
         "financing_pressure_score": 80.0,
         "incremental_financing_pressure_score": 100.0,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 74.0
+        "turnover_heat_score": 100.0
       },
-      "trap_score": 68.3
+      "trap_score": 73.5
     },
     {
       "code": "300285",
       "name": "国瓷材料",
-      "margin_date": "20260918",
+      "margin_date": "20260917",
       "metrics": {
         "business_purity_score": 50,
-        "margin_balance": 4086964865.0,
-        "margin_buy": 462315532.0,
+        "margin_balance": 4110521530.0,
+        "margin_buy": 526520927.0,
         "float_market_cap": null,
         "margin_balance_ratio": null,
-        "turnover_rate": 10.57,
-        "financing_pressure_score": 77.94,
-        "incremental_financing_pressure_score": 97.42,
+        "turnover_rate": 7.86,
+        "financing_pressure_score": 80.0,
+        "incremental_financing_pressure_score": 100.0,
         "margin_burden_score": 0.0,
-        "turnover_heat_score": 84.56
+        "turnover_heat_score": 62.88
       },
-      "trap_score": 69.48
+      "trap_score": 66.08
     }
   ]
-};
+}
