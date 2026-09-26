@@ -1,14 +1,14 @@
 {
-  "generated_at": "2026-09-25T17:44:54+08:00",
+  "generated_at": "2026-09-26T17:42:03+08:00",
   "data_freshness": {
     "warning_target_date": "2026-09-28",
-    "spot_snapshot_at": "2026-09-25T17:44:54+08:00",
+    "spot_snapshot_at": "2026-09-26T17:42:03+08:00",
     "margin_data_as_of": "20260924",
     "margin_data_dates_by_market": {
       "szse": "20260923",
       "sse": "20260924"
     },
-    "market_phase": "post_close"
+    "market_phase": "weekend"
   },
   "run_source": "manual",
   "whitelist_size": 125,
