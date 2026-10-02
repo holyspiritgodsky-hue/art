@@ -1,8 +1,8 @@
 window.__QUANT_DATA__ = {
-  "generated_at": "2026-10-01T17:48:49+08:00",
+  "generated_at": "2026-10-02T17:47:15+08:00",
   "data_freshness": {
-    "warning_target_date": "2026-10-02",
-    "spot_snapshot_at": "2026-10-01T17:48:49+08:00",
+    "warning_target_date": "2026-10-05",
+    "spot_snapshot_at": "2026-10-02T17:47:15+08:00",
     "margin_data_as_of": "20260930",
     "margin_data_dates_by_market": {
       "szse": "20260929",
@@ -292,7 +292,7 @@ window.__QUANT_DATA__ = {
     "float_market_cap_missing_ratio": 1.0
   },
   "daily_warning": {
-    "date": "2026-10-02",
+    "date": "2026-10-05",
     "title": "量化偏稳区，可优先观察低吸确认。",
     "gauge_score": 42,
     "summary": {
@@ -413,7 +413,7 @@ window.__QUANT_DATA__ = {
   },
   "warning_history": [
     {
-      "date": "2026-10-02",
+      "date": "2026-10-05",
       "title": "量化偏稳区，可优先观察低吸确认。",
       "gauge_score": 42,
       "summary": {
@@ -479,6 +479,132 @@ window.__QUANT_DATA__ = {
       "review": {
         "status": "待复盘",
         "note": ""
+      },
+      "rankings": {
+        "logic_version": "breakout-aware-v3",
+        "trend_candidate_count": 12,
+        "environment_state": "tight",
+        "avoid_list": [
+          {
+            "code": "300570",
+            "name": "太辰光",
+            "score": 63,
+            "reason": "前排拥挤度偏高"
+          },
+          {
+            "code": "300285",
+            "name": "国瓷材料",
+            "score": 62,
+            "reason": "前排拥挤度偏高"
+          },
+          {
+            "code": "603075",
+            "name": "热威股份",
+            "score": 61,
+            "reason": "前排拥挤度偏高"
+          }
+        ],
+        "watch_list": [
+          {
+            "code": "603667",
+            "name": "五洲新春",
+            "score": 45,
+            "trap_score": 46,
+            "reason": "环境偏弱，只看最强修复票",
+            "trend_label": "趋势中性"
+          },
+          {
+            "code": "301171",
+            "name": "易点天下",
+            "score": 30,
+            "trap_score": 56,
+            "reason": "环境偏弱，只看最强修复票",
+            "trend_label": "近 5 日明显回撤"
+          },
+          {
+            "code": "300364",
+            "name": "中文在线",
+            "score": 30,
+            "trap_score": 60,
+            "reason": "环境偏弱，只看最强修复票",
+            "trend_label": "近 5 日明显回撤"
+          }
+        ]
+      }
+    },
+    {
+      "date": "2026-10-02",
+      "title": "量化偏稳区，可优先观察低吸确认。",
+      "gauge_score": 42,
+      "summary": {
+        "sample_size": 125,
+        "avg_trap_score": 38.64,
+        "high_risk_count": 0,
+        "high_risk_ratio": 0.0,
+        "watch_count": 4,
+        "watch_ratio": 0.032,
+        "top_cohort_size": 12,
+        "top_cohort_avg_trap_score": 58.1,
+        "concentration_spread": 19.46,
+        "gauge_score": 42,
+        "window_risk": "high",
+        "window_value": "10:05 - 10:40 是明天最容易冲高回落的时段",
+        "window_basis": "高风险票数量多，前排平均分也偏高。",
+        "top_stock_code": "300570",
+        "top_stock_name": "太辰光",
+        "top_financing_pressure_score": 80.0,
+        "breakout_environment": {
+          "state": "tight",
+          "score_multiplier": 0.88,
+          "min_return_3d_pct": 1.0,
+          "max_ma5_gap_pct": -1.0,
+          "note": "当前环境偏弱，缩量修复需要更强确认。",
+          "positive_ratio": 0.0,
+          "weak_ratio": 0.917
+        }
+      },
+      "prompt": "当前高风险样本集中在 太辰光 等标的，前排样本平均陷阱分约 58.1，高风险票 0 只，优先防范一致性追高后的回撤兑现。",
+      "signals": [
+        {
+          "label": "高风险个股数量",
+          "value": "0",
+          "note": "陷阱分大于等于 70 的样本数"
+        },
+        {
+          "label": "整体追高热度",
+          "value": "58%",
+          "note": "前 12 只高分样本的平均陷阱分"
+        },
+        {
+          "label": "杠杆资金压力",
+          "value": "80%",
+          "note": "太辰光 的融资压力得分"
+        }
+      ],
+      "warnings": [
+        {
+          "label": "风格漂移预警",
+          "value": "整体拥挤度不高，但仍需警惕放量假突破。"
+        },
+        {
+          "label": "量化踩踏窗口",
+          "value": "10:05 - 10:40 是明天最容易冲高回落的时段"
+        },
+        {
+          "label": "执行纪律",
+          "value": "分批验证，不做无量上冲时的追价动作。"
+        }
+      ],
+      "strategy": "当板块一致性预期过满时，陷阱往往不是来自逻辑错误，而是来自交易位置错误。先审视筹码，再决定出手。",
+      "review": {
+        "status": "方向对了",
+        "note": "方向判断对了。次日前排样本平均陷阱分 58.1，高风险样本 0 只，风险没有明显失控。",
+        "window_review": {
+          "status": "时段待补",
+          "note": "分钟级市场代理数据暂时不可用，先保留主方向复盘，时段结果后补。",
+          "proxies": [],
+          "source_state": "unavailable"
+        }
       },
       "rankings": {
         "logic_version": "breakout-aware-v3",
