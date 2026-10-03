@@ -1,14 +1,14 @@
-window.__QUANT_DATA__ = {
-  "generated_at": "2026-10-03T17:43:35+08:00",
+{
+  "generated_at": "2026-10-02T17:47:15+08:00",
   "data_freshness": {
     "warning_target_date": "2026-10-05",
-    "spot_snapshot_at": "2026-10-03T17:43:35+08:00",
+    "spot_snapshot_at": "2026-10-02T17:47:15+08:00",
     "margin_data_as_of": "20260930",
     "margin_data_dates_by_market": {
       "szse": "20260929",
       "sse": "20260930"
     },
-    "market_phase": "weekend"
+    "market_phase": "post_close"
   },
   "run_source": "manual",
   "whitelist_size": 125,
@@ -9458,4 +9458,4 @@ window.__QUANT_DATA__ = {
       }
     }
   ]
-};
+}
