@@ -1,0 +1,440 @@
+{
+  "forecasts": [],
+  "backtests": [
+    {
+      "trading_date": "2026-09-30",
+      "market_date": "2026-09-29",
+      "exit_date": "2026-10-08",
+      "mode": "market_only_backtest",
+      "ranked_sectors": [
+        "房地产",
+        "银行",
+        "煤炭"
+      ],
+      "ranked_sector_details": [
+        {
+          "name": "房地产",
+          "score": 100.0,
+          "components": {
+            "news": null,
+            "momentum": 100.0,
+            "fund_flow": null,
+            "volume": 100.0,
+            "overnight": null
+          },
+          "rationale": "5日涨跌 +1.18%；成交额为5日均值 1.12 倍",
+          "market": {
+            "name": "房地产",
+            "date": "2026-09-29",
+            "open": 1928.85,
+            "close": 1994.39,
+            "return_5d_pct": 1.1836,
+            "volume_ratio_5d": 1.1184
+          }
+        },
+        {
+          "name": "银行",
+          "score": 93.5,
+          "components": {
+            "news": null,
+            "momentum": 93.5,
+            "fund_flow": null,
+            "volume": 93.5,
+            "overnight": null
+          },
+          "rationale": "5日涨跌 -0.20%；成交额为5日均值 1.02 倍",
+          "market": {
+            "name": "银行",
+            "date": "2026-09-29",
+            "open": 4134.17,
+            "close": 4142.94,
+            "return_5d_pct": -0.1963,
+            "volume_ratio_5d": 1.0165
+          }
+        },
+        {
+          "name": "煤炭",
+          "score": 92.5,
+          "components": {
+            "news": null,
+            "momentum": 90.3,
+            "fund_flow": null,
+            "volume": 96.8,
+            "overnight": null
+          },
+          "rationale": "5日涨跌 -1.20%；成交额为5日均值 1.03 倍",
+          "market": {
+            "name": "煤炭",
+            "date": "2026-09-29",
+            "open": 3340.83,
+            "close": 3301.28,
+            "return_5d_pct": -1.1983,
+            "volume_ratio_5d": 1.0292
+          }
+        }
+      ],
+      "outcome": {
+        "exit_date": "2026-10-08",
+        "top3_avg_return_pct": 2.106,
+        "csi300_return_pct": -1.0677,
+        "excess_return_pct": 3.1737,
+        "top1_return_pct": 1.5279,
+        "top1_excess_return_pct": 2.5957,
+        "sector_returns_pct": [
+          1.5279,
+          2.4726,
+          2.3175
+        ],
+        "basis": "回溯重建排名；申万行业指数预测日开盘至下一交易日收盘，对比沪深300同区间；排名仅用行情与隔夜信号，不含新闻；不含交易成本，不是当时锁定的预测。"
+      }
+    },
+    {
+      "trading_date": "2026-10-08",
+      "market_date": "2026-09-30",
+      "exit_date": "2026-10-09",
+      "mode": "market_only_backtest",
+      "ranked_sectors": [
+        "房地产",
+        "银行",
+        "医药生物"
+      ],
+      "ranked_sector_details": [
+        {
+          "name": "房地产",
+          "score": 97.9,
+          "components": {
+            "news": null,
+            "momentum": 96.8,
+            "fund_flow": null,
+            "volume": 100.0,
+            "overnight": null
+          },
+          "rationale": "5日涨跌 +1.16%；成交额为5日均值 1.47 倍",
+          "market": {
+            "name": "房地产",
+            "date": "2026-09-30",
+            "open": 1954.27,
+            "close": 2007.7,
+            "return_5d_pct": 1.1558,
+            "volume_ratio_5d": 1.4693
+          }
+        },
+        {
+          "name": "银行",
+          "score": 97.8,
+          "components": {
+            "news": null,
+            "momentum": 100.0,
+            "fund_flow": null,
+            "volume": 93.5,
+            "overnight": null
+          },
+          "rationale": "5日涨跌 +1.37%；成交额为5日均值 1.14 倍",
+          "market": {
+            "name": "银行",
+            "date": "2026-09-30",
+            "open": 4144.67,
+            "close": 4203.77,
+            "return_5d_pct": 1.3743,
+            "volume_ratio_5d": 1.139
+          }
+        },
+        {
+          "name": "医药生物",
+          "score": 94.6,
+          "components": {
+            "news": null,
+            "momentum": 93.5,
+            "fund_flow": null,
+            "volume": 96.8,
+            "overnight": null
+          },
+          "rationale": "5日涨跌 -0.13%；成交额为5日均值 1.14 倍",
+          "market": {
+            "name": "医药生物",
+            "date": "2026-09-30",
+            "open": 7783.46,
+            "close": 7989.13,
+            "return_5d_pct": -0.1301,
+            "volume_ratio_5d": 1.1415
+          }
+        }
+      ],
+      "outcome": {
+        "exit_date": "2026-10-09",
+        "top3_avg_return_pct": -0.8059,
+        "csi300_return_pct": -0.8651,
+        "excess_return_pct": 0.0592,
+        "top1_return_pct": -0.3915,
+        "top1_excess_return_pct": 0.4736,
+        "sector_returns_pct": [
+          -0.3915,
+          0.1241,
+          -2.1504
+        ],
+        "basis": "回溯重建排名；申万行业指数预测日开盘至下一交易日收盘，对比沪深300同区间；排名仅用行情与隔夜信号，不含新闻；不含交易成本，不是当时锁定的预测。"
+      }
+    },
+    {
+      "trading_date": "2026-10-09",
+      "market_date": "2026-10-08",
+      "exit_date": "2026-10-12",
+      "mode": "market_only_backtest",
+      "ranked_sectors": [
+        "公用事业",
+        "银行",
+        "石油石化"
+      ],
+      "ranked_sector_details": [
+        {
+          "name": "公用事业",
+          "score": 93.6,
+          "components": {
+            "news": null,
+            "momentum": 96.8,
+            "fund_flow": null,
+            "volume": 87.1,
+            "overnight": null
+          },
+          "rationale": "5日涨跌 +2.09%；成交额为5日均值 1.33 倍",
+          "market": {
+            "name": "公用事业",
+            "date": "2026-10-08",
+            "open": 2444.26,
+            "close": 2483.09,
+            "return_5d_pct": 2.0869,
+            "volume_ratio_5d": 1.3311
+          }
+        },
+        {
+          "name": "银行",
+          "score": 93.5,
+          "components": {
+            "news": null,
+            "momentum": 100.0,
+            "fund_flow": null,
+            "volume": 80.6,
+            "overnight": null
+          },
+          "rationale": "5日涨跌 +2.91%；成交额为5日均值 1.24 倍",
+          "market": {
+            "name": "银行",
+            "date": "2026-10-08",
+            "open": 4196.65,
+            "close": 4247.15,
+            "return_5d_pct": 2.9066,
+            "volume_ratio_5d": 1.2382
+          }
+        },
+        {
+          "name": "石油石化",
+          "score": 93.5,
+          "components": {
+            "news": null,
+            "momentum": 93.5,
+            "fund_flow": null,
+            "volume": 93.5,
+            "overnight": null
+          },
+          "rationale": "5日涨跌 +1.94%；成交额为5日均值 1.38 倍",
+          "market": {
+            "name": "石油石化",
+            "date": "2026-10-08",
+            "open": 2687.56,
+            "close": 2743.03,
+            "return_5d_pct": 1.9369,
+            "volume_ratio_5d": 1.3804
+          }
+        }
+      ],
+      "outcome": {
+        "exit_date": "2026-10-12",
+        "top3_avg_return_pct": -0.3266,
+        "csi300_return_pct": -0.2157,
+        "excess_return_pct": -0.1109,
+        "top1_return_pct": -0.1539,
+        "top1_excess_return_pct": 0.0619,
+        "sector_returns_pct": [
+          -0.1539,
+          1.1395,
+          -1.9654
+        ],
+        "basis": "回溯重建排名；申万行业指数预测日开盘至下一交易日收盘，对比沪深300同区间；排名仅用行情与隔夜信号，不含新闻；不含交易成本，不是当时锁定的预测。"
+      }
+    },
+    {
+      "trading_date": "2026-10-12",
+      "market_date": "2026-10-09",
+      "exit_date": "2026-10-13",
+      "mode": "market_only_backtest",
+      "ranked_sectors": [
+        "交通运输",
+        "煤炭",
+        "公用事业"
+      ],
+      "ranked_sector_details": [
+        {
+          "name": "交通运输",
+          "score": 92.4,
+          "components": {
+            "news": null,
+            "momentum": 93.5,
+            "fund_flow": null,
+            "volume": 90.3,
+            "overnight": null
+          },
+          "rationale": "5日涨跌 +2.18%；成交额为5日均值 1.43 倍",
+          "market": {
+            "name": "交通运输",
+            "date": "2026-10-09",
+            "open": 2105.11,
+            "close": 2113.66,
+            "return_5d_pct": 2.1798,
+            "volume_ratio_5d": 1.4275
+          }
+        },
+        {
+          "name": "煤炭",
+          "score": 91.4,
+          "components": {
+            "news": null,
+            "momentum": 96.8,
+            "fund_flow": null,
+            "volume": 80.6,
+            "overnight": null
+          },
+          "rationale": "5日涨跌 +2.25%；成交额为5日均值 1.36 倍",
+          "market": {
+            "name": "煤炭",
+            "date": "2026-10-09",
+            "open": 3370.58,
+            "close": 3420.52,
+            "return_5d_pct": 2.2494,
+            "volume_ratio_5d": 1.3618
+          }
+        },
+        {
+          "name": "公用事业",
+          "score": 87.1,
+          "components": {
+            "news": null,
+            "momentum": 100.0,
+            "fund_flow": null,
+            "volume": 61.3,
+            "overnight": null
+          },
+          "rationale": "5日涨跌 +2.26%；成交额为5日均值 1.30 倍",
+          "market": {
+            "name": "公用事业",
+            "date": "2026-10-09",
+            "open": 2482.49,
+            "close": 2484.66,
+            "return_5d_pct": 2.2591,
+            "volume_ratio_5d": 1.3005
+          }
+        }
+      ],
+      "outcome": {
+        "exit_date": "2026-10-13",
+        "top3_avg_return_pct": -0.3469,
+        "csi300_return_pct": -0.7022,
+        "excess_return_pct": 0.3552,
+        "top1_return_pct": -0.0865,
+        "top1_excess_return_pct": 0.6157,
+        "sector_returns_pct": [
+          -0.0865,
+          -0.2167,
+          -0.7376
+        ],
+        "basis": "回溯重建排名；申万行业指数预测日开盘至下一交易日收盘，对比沪深300同区间；排名仅用行情与隔夜信号，不含新闻；不含交易成本，不是当时锁定的预测。"
+      }
+    },
+    {
+      "trading_date": "2026-10-13",
+      "market_date": "2026-10-12",
+      "exit_date": "2026-10-14",
+      "mode": "market_only_backtest",
+      "ranked_sectors": [
+        "传媒",
+        "银行",
+        "交通运输"
+      ],
+      "ranked_sector_details": [
+        {
+          "name": "传媒",
+          "score": 100.0,
+          "components": {
+            "news": null,
+            "momentum": 100.0,
+            "fund_flow": null,
+            "volume": 100.0,
+            "overnight": null
+          },
+          "rationale": "5日涨跌 +5.57%；成交额为5日均值 1.77 倍",
+          "market": {
+            "name": "传媒",
+            "date": "2026-10-12",
+            "open": 684.62,
+            "close": 692.46,
+            "return_5d_pct": 5.566,
+            "volume_ratio_5d": 1.7679
+          }
+        },
+        {
+          "name": "银行",
+          "score": 95.7,
+          "components": {
+            "news": null,
+            "momentum": 96.8,
+            "fund_flow": null,
+            "volume": 93.5,
+            "overnight": null
+          },
+          "rationale": "5日涨跌 +4.02%；成交额为5日均值 1.30 倍",
+          "market": {
+            "name": "银行",
+            "date": "2026-10-12",
+            "open": 4211.64,
+            "close": 4299.51,
+            "return_5d_pct": 4.0187,
+            "volume_ratio_5d": 1.2969
+          }
+        },
+        {
+          "name": "交通运输",
+          "score": 81.7,
+          "components": {
+            "news": null,
+            "momentum": 80.6,
+            "fund_flow": null,
+            "volume": 83.9,
+            "overnight": null
+          },
+          "rationale": "5日涨跌 +1.67%；成交额为5日均值 1.14 倍",
+          "market": {
+            "name": "交通运输",
+            "date": "2026-10-12",
+            "open": 2115.46,
+            "close": 2095.02,
+            "return_5d_pct": 1.665,
+            "volume_ratio_5d": 1.1408
+          }
+        }
+      ],
+      "outcome": {
+        "exit_date": "2026-10-14",
+        "top3_avg_return_pct": 1.2625,
+        "csi300_return_pct": -0.4548,
+        "excess_return_pct": 1.7173,
+        "top1_return_pct": 2.8884,
+        "top1_excess_return_pct": 3.3432,
+        "sector_returns_pct": [
+          2.8884,
+          -0.5444,
+          1.4434
+        ],
+        "basis": "回溯重建排名；申万行业指数预测日开盘至下一交易日收盘，对比沪深300同区间；排名仅用行情与隔夜信号，不含新闻；不含交易成本，不是当时锁定的预测。"
+      }
+    }
+  ]
+}
