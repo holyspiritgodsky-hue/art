@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>每日新闻 · 行业预测</title>
+<title>每日量化预测</title>
 <style>
 :root{
   --bg:#f3f6fb;--panel:#ffffff;--panel2:#f1f4f9;--line:#e1e7f0;
@@ -84,6 +84,10 @@ aside{position:sticky;top:70px;display:flex;flex-direction:column;gap:14px}
 .note{font-size:12px;color:var(--muted);line-height:1.7}
 .note b{color:#334155}
 footer{max-width:1240px;margin:0 auto;padding:10px 20px 40px;color:var(--muted);font-size:12px}
+.signal-list{grid-column:2/4;display:flex;gap:5px;flex-wrap:wrap}
+.signal{padding:1px 6px;border-radius:4px;background:#eef2f7;color:#475569;font-size:11px}
+.news-link{color:inherit;text-decoration:none}
+.news-link:hover{color:var(--blue);text-decoration:underline}
 </style>
 </head>
 <body>
@@ -92,112 +96,100 @@ footer{max-width:1240px;margin:0 auto;padding:10px 20px 40px;color:var(--muted);
     <div class="logo">每日量化预测</div>
     <div class="date" id="date"></div>
     <div class="spacer"></div>
-    <span class="pill lock">🔒 08:40 发布并锁定 · 新闻截至 08:30</span>
+    <span class="pill lock" id="updateStatus">正在读取今日数据…</span>
   </div>
 </header>
 <svg id="wires"></svg>
 
 <main>
   <section>
-    <h2>今日要闻 <small id="count"></small></h2>
+    <h2 id="newsHeading">今日要闻 <small id="count"></small></h2>
     <div class="filters" id="filters"></div>
     <div class="news" id="news"></div>
   </section>
 
   <aside>
     <div class="card hero">
-      <h2>今日预测</h2>
+      <h2 id="forecastHeading">今日预测</h2>
       <div class="stance">
-        <div class="big">震荡偏多</div>
-        <div class="sub">大盘上涨概率 56%</div>
+        <div class="big" id="marketStance">—</div>
+        <div class="sub" id="marketDate">正在读取行情日期…</div>
       </div>
-      <p class="sum">隔夜美股科技走强、政策面偏暖，资金倾向科技与高端制造；权重板块动力不足。</p>
+      <p class="sum" id="marketSummary">正在读取市场概况…</p>
+      <p class="note" id="scoreMethod">综合信号分用于行业相对排序，不代表上涨概率。</p>
       <div class="rank" id="rank"></div>
     </div>
 
-    <div class="card avoid">
-      <h2>回避方向</h2>
-      <div class="r">
-        <div class="no" style="background:var(--down)">!</div>
-        <div class="nm">房地产</div>
-        <div class="pr" style="color:var(--down)">利好出尽</div>
-        <div class="bar2"><i style="width:62%"></i></div>
-        <div class="why">政策预期已提前反映，高开后回落概率较大</div>
-      </div>
-    </div>
-
     <div class="card">
-      <h2>近期战绩 <small>近 10 个交易日</small></h2>
+      <h2 id="historyHeading">近期复盘 <small>最近已完成周期</small></h2>
       <div class="stats">
-        <div><b>60%</b><span>Top3 超额为正</span></div>
-        <div><b>10%</b><span>Top1 命中</span></div>
-        <div><b>+0.42%</b><span>日均超额</span></div>
+        <div><b id="top3Rate">—</b><span>Top3 超额为正</span></div>
+        <div><b id="top1Rate">—</b><span>Top1 超额为正</span></div>
+        <div><b id="avgExcess">—</b><span>Top3 平均超额</span></div>
       </div>
       <div class="hist" id="hist"></div>
-      <p class="note" style="margin-top:10px">红=命中 绿=未命中 灰=观望。样本不足时不代表真实水平，请以长期前向记录为准。</p>
+      <p class="note" id="historyNote" style="margin-top:10px">等待真实预测完成复盘。</p>
     </div>
 
     <div class="card note">
-      <b>口径说明：</b>预测在 08:40 发布并锁定；命中 = Top3 行业等权，今日开盘买入、次日收盘卖出，收益高于沪深300。
+      <b>复盘口径：</b>Top3 行业等权，以申万行业指数预测日开盘至下一交易日收盘收益，与沪深300同区间比较；这是指数模拟收益，不含成本，也不等于实际成交。
       <br>仅作信息参考，不构成投资建议。
     </div>
   </aside>
 </main>
-<footer>数据源（规划）：财联社 / 东方财富 / 证监会公告 / 隔夜外盘行情</footer>
+<footer id="dataFooter">新闻：东方财富快讯；行业行情：申万指数；行业资金流：东方财富；海外指数与商品：新浪财经。以页面显示的数据日期为准。</footer>
 
 <script>
-const news=[
- {t:"08:12",s:"财联社",h:"h",title:"国常会：加快推进人工智能+制造业，设立专项扶持资金",ana:"政策直接点名，算力与工业软件受益最直接",tags:[["计算机","bull"],["电子","bull"],["机械设备","bull"]],cat:"政策"},
- {t:"07:50",s:"路透",h:"h",title:"费城半导体指数隔夜涨 2.3%，英伟达创历史新高",ana:"外盘映射 A股半导体链，开盘情绪偏强",tags:[["电子","bull"],["通信","bull"]],cat:"外盘"},
- {t:"07:30",s:"公告",h:"m",title:"多家锂电龙头发布三季报预增，业绩同比增长 40%–70%",ana:"业绩兑现，行业景气度回升",tags:[["电力设备","bull"]],cat:"业绩"},
- {t:"06:45",s:"新华社",h:"m",title:"国际油价隔夜下跌 3%，布伦特原油回落至 78 美元",ana:"成本端缓解利好航空，利空油气开采",tags:[["交通运输","bull"],["石油石化","bear"]],cat:"商品"},
- {t:"昨 21:10",s:"证监会",h:"m",title:"证监会发布提升上市公司分红回购指引",ana:"红利风格受益，但属中长期逻辑，次日影响有限",tags:[["银行","bull"],["煤炭","bull"]],cat:"政策"},
- {t:"昨 19:30",s:"央行",h:"l",title:"央行开展 2000 亿逆回购，利率维持不变",ana:"流动性中性，对行业无明显差异化影响",tags:[["非银金融","bull"]],cat:"资金"},
- {t:"昨 18:20",s:"统计局",h:"l",title:"9 月 CPI 同比 +0.4%，PPI 降幅收窄",ana:"通缩压力缓解，周期品情绪小幅改善",tags:[["有色金属","bull"],["钢铁","bull"]],cat:"宏观"}
-];
-const rank=[
- {n:"电子",p:68,w:"费城半导体大涨 + AI 政策双重催化，且昨日资金流入居前"},
- {n:"计算机",p:64,w:"国常会点名 AI+制造，工业软件、算力直接受益"},
- {n:"电力设备",p:57,w:"三季报预增兑现，板块短线动量延续"}
-];
-const hist=["w","w","l","w","n","w","l","w","w","l"];
-const cats=["全部",...new Set(news.map(n=>n.cat))];
+let news=[];
+let rank=[];
+let forecasts=[];
+let backtests=[];
 let cur="全部";
+let active=-1;
+let currentData=null;
+let cats=["全部"];
 const $=id=>document.getElementById(id);
-const d=new Date();
-$("date").textContent=d.toLocaleDateString("zh-CN",{year:"numeric",month:"long",day:"numeric",weekday:"long"});
+const RC=["var(--c0)","var(--c1)","var(--c2)"];
+const escapeHTML=value=>String(value??"").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
+const safeURL=value=>{try{const url=new URL(value,location.href);return url.protocol==="https:"?url.href:""}catch{return""}};
+const rankIdx=name=>rank.findIndex(item=>item.name===name);
+const formatPct=value=>value==null?"—":`${Number(value)>0?"+":""}${Number(value).toFixed(2)}%`;
+const formatTime=value=>{const d=new Date(value);return Number.isNaN(d.getTime())?String(value??""):d.toLocaleString("zh-CN",{timeZone:"Asia/Shanghai",hour:"2-digit",minute:"2-digit"})};
 
 function renderFilters(){
-  $("filters").innerHTML=cats.map(c=>`<span class="chip ${c===cur?"on":""}" data-c="${c}">${c}</span>`).join("");
+  $("filters").innerHTML=cats.map(c=>`<span class="chip ${c===cur?"on":""}" data-c="${escapeHTML(c)}">${escapeHTML(c)}</span>`).join("");
   $("filters").querySelectorAll(".chip").forEach(e=>e.onclick=()=>{cur=e.dataset.c;renderFilters();renderNews()});
 }
-const RC=["var(--c0)","var(--c1)","var(--c2)"];
-const rankIdx=n=>rank.findIndex(r=>r.n===n);
-let active=-1;
 function renderNews(){
-  const list=news.filter(n=>cur==="全部"||n.cat===cur);
+  const list=news.filter(item=>cur==="全部"||item.category===cur);
   $("count").textContent=`共 ${list.length} 条`;
-  const lv={h:"重要",m:"一般",l:"参考"};
-  $("news").innerHTML=list.map(n=>{
-    const rs=n.tags.filter(([a,b])=>b==="bull"&&rankIdx(a)>=0).map(([a])=>rankIdx(a));
-    return `
-    <div class="item" data-ranks="${rs.join(",")}">
-      <div class="imp ${n.h}"><div class="dot"></div><span>${lv[n.h]}</span></div>
-      <div class="t">${n.title}</div>
-      <div class="meta">${n.t} · ${n.s} · ${n.cat}</div>
-      <div class="ana">${n.ana}</div>
-      <div class="tags" style="grid-column:2">${n.tags.map(([a,b])=>{
-        const i=b==="bull"?rankIdx(a):-1;
-        return i>=0
-          ?`<span class="tag bull rk" data-i="${i}" style="--rc:${RC[i]}"><span class="bd" style="background:${RC[i]}">${i+1}</span>利好 ${a}</span>`
-          :`<span class="tag ${b}">${b==="bull"?"利好":"利空"} ${a}</span>`}).join("")}</div>
-    </div>`}).join("");
+  const importanceLabel={5:"重要",4:"重要",3:"一般",2:"参考",1:"参考"};
+  $("news").innerHTML=list.map(item=>{
+    const sectors=Array.isArray(item.sectors)?item.sectors:[];
+    const ranks=sectors.filter(tag=>Number(tag.impact)>0&&rankIdx(tag.name)>=0).map(tag=>rankIdx(tag.name));
+    const tags=sectors.map(tag=>{
+      const index=rankIdx(tag.name),positive=Number(tag.impact)>0,negative=Number(tag.impact)<0;
+      if(index>=0&&positive)return `<span class="tag bull rk" data-i="${index}" style="--rc:${RC[index]}"><span class="bd" style="background:${RC[index]}">${index+1}</span>利好 ${escapeHTML(tag.name)}</span>`;
+      if(positive||negative)return `<span class="tag ${positive?"bull":"bear"}">${positive?"利好":"利空"} ${escapeHTML(tag.name)}</span>`;
+      return "";
+    }).join("");
+    const url=safeURL(item.url);
+    const title=url?`<a class="news-link" href="${escapeHTML(url)}" target="_blank" rel="noopener noreferrer">${escapeHTML(item.title)}</a>`:escapeHTML(item.title);
+    const dateLabel=item.archive_date?item.archive_date:formatTime(item.published_at);
+    return `<div class="item" data-ranks="${ranks.join(",")}">
+      <div class="imp ${Number(item.importance)>=4?"h":Number(item.importance)===3?"m":""}"><div class="dot"></div><span>${importanceLabel[item.importance]||"参考"}</span></div>
+      <div class="t">${title}</div>
+      <div class="meta">${escapeHTML(dateLabel)} · ${escapeHTML(item.source)} · ${escapeHTML(item.category)}</div>
+      <div class="ana">${escapeHTML(item.analysis||item.brief||"")}</div>
+      <div class="tags" style="grid-column:2">${tags||'<span class="meta">未映射到申万一级行业</span>'}</div>
+    </div>`;
+  }).join("");
   applyFocus();
 }
 function applyFocus(){
   document.querySelectorAll(".item").forEach(el=>{
-    const rs=el.dataset.ranks?el.dataset.ranks.split(",").map(Number):[];
-    const hit=active>=0&&rs.includes(active);
+    const ranks=el.dataset.ranks?el.dataset.ranks.split(",").map(Number):[];
+    const hit=active>=0&&ranks.includes(active);
     el.classList.toggle("dim",active>=0&&!hit);
     el.classList.toggle("hit",hit);
     if(hit)el.style.setProperty("--hc",RC[active]);
@@ -206,39 +198,136 @@ function applyFocus(){
   drawWires();
 }
 function drawWires(){
-  const svg=$("wires");
-  svg.innerHTML="";
+  const svg=$("wires");svg.innerHTML="";
   if(window.innerWidth<=900)return;
   const top=64,bot=window.innerHeight;
   document.querySelectorAll(".r[data-i]").forEach(row=>{
-    const i=+row.dataset.i;
-    if(active>=0&&active!==i)return;
-    const rb=row.getBoundingClientRect();
-    const x2=rb.left-4,y2=rb.top+rb.height/2;
+    const i=+row.dataset.i;if(active>=0&&active!==i)return;
+    const rb=row.getBoundingClientRect(),x2=rb.left-4,y2=rb.top+rb.height/2;
     document.querySelectorAll(`.tag.rk[data-i="${i}"]`).forEach(tag=>{
-      const item=tag.closest(".item"),ib=item.getBoundingClientRect(),tb=tag.getBoundingClientRect();
-      const y1=tb.top+tb.height/2;
+      const item=tag.closest(".item"),ib=item.getBoundingClientRect(),tb=tag.getBoundingClientRect(),y1=tb.top+tb.height/2;
       if(y1<top||y1>bot)return;
-      const x1=ib.right+2,mx=(x1+x2)/2;
-      const strong=active===i;
-      svg.insertAdjacentHTML("beforeend",
-        `<path d="M${x1},${y1} C${mx},${y1} ${mx},${y2} ${x2},${y2}" fill="none" stroke="${RC[i]}" stroke-width="${strong?2.2:1.2}" stroke-opacity="${strong?.95:.4}" stroke-dasharray="${strong?"":"4 4"}"/>
-         <circle cx="${x1}" cy="${y1}" r="3.5" fill="${RC[i]}"/><circle cx="${x2}" cy="${y2}" r="3.5" fill="${RC[i]}"/>`);
+      const x1=ib.right+2,mx=(x1+x2)/2,strong=active===i;
+      svg.insertAdjacentHTML("beforeend",`<path d="M${x1},${y1} C${mx},${y1} ${mx},${y2} ${x2},${y2}" fill="none" stroke="${RC[i]}" stroke-width="${strong?2.2:1.2}" stroke-opacity="${strong?.95:.4}" stroke-dasharray="${strong?"":"4 4"}"/><circle cx="${x1}" cy="${y1}" r="3.5" fill="${RC[i]}"/><circle cx="${x2}" cy="${y2}" r="3.5" fill="${RC[i]}"/>`);
     });
   });
 }
-$("rank").innerHTML=rank.map((r,i)=>`
-  <div class="r" data-i="${i}" style="--rc:${RC[i]}"><div class="no">${i+1}</div><div class="nm">${r.n}</div><div class="pr">${r.p}%</div>
-  <div class="bar2"><i style="width:${r.p}%"></i></div><div class="why">${r.w}</div></div>`).join("");
-document.querySelectorAll(".r[data-i]").forEach(el=>{
-  const i=+el.dataset.i;
-  el.onmouseenter=()=>{active=i;applyFocus()};
-  el.onmouseleave=()=>{active=-1;applyFocus()};
-});
+function renderRank(){
+  if(!rank.length){
+    $("rank").innerHTML='<p class="note">暂无明确的偏正面行业线索。</p>';
+    return;
+  }
+  const scoreLabel=currentData.forecast?.score_label||"分";
+  $("rank").innerHTML=rank.map((item,i)=>`<div class="r" data-i="${i}" style="--rc:${RC[i]}">
+    <div class="no">${i+1}</div><div class="nm">${escapeHTML(item.name)}</div><div class="pr">${Number(item.score).toFixed(1)} ${escapeHTML(scoreLabel)}</div>
+    <div class="bar2"><i style="width:${Math.max(0,Math.min(100,Number(item.score)))}%"></i></div>
+    <div class="why">${escapeHTML(item.rationale)}</div>
+    <div class="signal-list">${Object.entries(item.components||{}).map(([name,value])=>`<span class="signal">${escapeHTML(({news:"新闻",momentum:"5日动量",fund_flow:"资金流",volume:"成交额",overnight:"隔夜映射"})[name]||name)} ${value==null?"—":Number(value).toFixed(0)}</span>`).join("")}</div>
+  </div>`).join("");
+  document.querySelectorAll(".r[data-i]").forEach(el=>{
+    const i=+el.dataset.i;
+    el.onmouseenter=()=>{active=i;applyFocus()};
+    el.onmouseleave=()=>{active=-1;applyFocus()};
+  });
+}
+function renderHistory(){
+  const completed=forecasts.filter(item=>item.outcome).slice(-10);
+  const completedBacktests=backtests.filter(item=>item.outcome).slice(-10);
+  const showingBacktests=completed.length===0&&completedBacktests.length>0;
+  const measured=showingBacktests?completedBacktests:completed;
+  const records=showingBacktests?completedBacktests:forecasts.slice(-10);
+  if(!measured.length){
+    $("top3Rate").textContent="—";$("top1Rate").textContent="—";$("avgExcess").textContent="—";
+    $("historyNote").textContent=`已有 ${forecasts.length} 条预测记录，待交易周期完成后统计。`;
+    $("hist").innerHTML=forecasts.slice(-10).map(item=>`<div class="h n" title="${escapeHTML(item.trading_date)} 待复盘">·</div>`).join("");
+    return;
+  }
+  const top3Hits=measured.filter(item=>Number(item.outcome.excess_return_pct)>0).length;
+  const top1Hits=measured.filter(item=>Number(item.outcome.top1_excess_return_pct)>0).length;
+  const average=measured.reduce((sum,item)=>sum+Number(item.outcome.excess_return_pct||0),0)/measured.length;
+  $("top3Rate").textContent=`${Math.round(top3Hits/measured.length*100)}%`;
+  $("top1Rate").textContent=`${Math.round(top1Hits/measured.length*100)}%`;
+  $("avgExcess").textContent=formatPct(average);
+  $("historyHeading").firstChild.textContent=showingBacktests?"历史回溯结果 ":"近期复盘 ";
+  $("historyNote").textContent=showingBacktests
+    ?`回溯重建 ${measured.length} 个完整周期；此处历史表现仅按行情与隔夜信号计算，不含新闻，也不是当时锁定预测。样本较少不代表未来。红=Top3跑赢沪深300，绿=未跑赢。`
+    :`根据 ${measured.length} 个已复盘的盘前预测；红=Top3跑赢沪深300，绿=未跑赢，灰=待复盘。${backtests.length?`另有 ${backtests.length} 个回溯周期，未与真实预测合并统计。`:""}`;
+  $("hist").innerHTML=records.map(item=>{
+    const value=item.outcome?.excess_return_pct,cls=value==null?"n":Number(value)>0?"w":"l";
+    const symbol=value==null?"·":Number(value)>0?"✓":"✕";
+    return `<div class="h ${cls}" title="${escapeHTML(item.trading_date)} ${value==null?"待复盘":`超额 ${formatPct(value)}`}">${symbol}</div>`;
+  }).join("");
+}
+async function loadData(){
+  let historyError="";
+  try{
+    const historyResponse=await fetch("./history.json",{cache:"no-store"});
+    if(historyResponse.ok){
+      const history=await historyResponse.json();
+      forecasts=Array.isArray(history.forecasts)?history.forecasts:[];
+      backtests=Array.isArray(history.backtests)?history.backtests:[];
+    }else if(historyResponse.status!==404){
+      historyError=`history.json HTTP ${historyResponse.status}`;
+    }
+  }catch(error){
+    historyError=`history.json: ${error.message}`;
+  }
+  try{
+    const response=await fetch("./data.json",{cache:"no-store"});
+    if(!response.ok)throw new Error(`data.json HTTP ${response.status}`);
+    currentData=await response.json();
+    news=Array.isArray(currentData.news)?currentData.news:[];
+    rank=Array.isArray(currentData.forecast?.ranked_sectors)?currentData.forecast.ranked_sectors:[];
+    cats=["全部",...new Set(news.map(item=>item.category).filter(Boolean))];
+    $("date").textContent=new Date().toLocaleDateString("zh-CN",{timeZone:"Asia/Shanghai",year:"numeric",month:"long",day:"numeric",weekday:"long"});
+    const isBackfill=currentData.data_mode==="backfill";
+    const isNewsArchive=currentData.forecast.ranking_basis==="seven_day_news_archive";
+    $("newsHeading").firstChild.textContent=isBackfill?"市场要闻 ":"今日要闻 ";
+    $("forecastHeading").textContent=isBackfill
+      ?isNewsArchive?"行业预测":"历史回溯排名"
+      :"今日预测";
+    $("updateStatus").textContent=isBackfill
+      ?`新闻数据截至 ${currentData.forecast.market_date}`
+      :`🔒 ${formatTime(currentData.generated_at)} 预测已锁定 · 新闻截至 08:30`;
+    $("marketStance").textContent=currentData.forecast.market_stance||"震荡";
+    $("marketDate").textContent=isBackfill
+      ?`预测日期 ${currentData.forecast.trading_date} · 新闻截至 ${currentData.forecast.market_date}`
+      :`预测交易日 ${currentData.forecast.trading_date} · 行情截至 ${currentData.forecast.market_date}`;
+    if(isBackfill&&isNewsArchive){
+      const archiveDates=news.map(item=>item.archive_date).filter(Boolean).sort();
+      $("marketSummary").textContent=archiveDates.length
+        ?`新闻数据：${archiveDates[0]} 至 ${archiveDates[archiveDates.length-1]}`
+        :"新闻数据暂不可用。";
+      $("scoreMethod").textContent="新闻线索仅用于行业相对排序，分数不代表上涨概率。";
+    }else{
+      $("marketSummary").textContent=currentData.forecast.market_summary||"市场概况暂无";
+    }
+    if(!(isBackfill&&isNewsArchive)){
+      $("scoreMethod").textContent=currentData.forecast.score_method||"综合信号分用于行业相对排序，不代表上涨概率。";
+    }
+    $("dataFooter").textContent=isBackfill
+      ?"新闻来源：央视《新闻联播》；按财经及行业关键词筛选。"
+      :"新闻：东方财富、财联社、新浪财经、同花顺；行业行情：申万指数；行业资金流：东方财富；海外指数与商品：新浪财经。以页面显示的数据日期为准。";
+    renderFilters();renderRank();renderNews();renderHistory();
+    if(historyError)$("historyNote").textContent=`历史记录加载失败：${historyError}`;
+    if(isBackfill&&!news.length){
+      $("news").innerHTML='<div class="card note">这个样例日期没有筛到相关市场新闻。</div>';
+    }
+  }catch(error){
+    $("updateStatus").textContent=backtests.length
+      ?"今日预测尚未生成 · 可查看下方历史回溯"
+      :"今日数据暂不可用";
+    $("marketStance").textContent="—";
+    $("marketDate").textContent="没有可展示的今日预测";
+    $("marketSummary").textContent=`数据加载失败：${error.message}${historyError?`；历史记录加载失败：${historyError}`:""}`;
+    $("news").innerHTML='<div class="card note">暂无已生成的新闻分析。</div>';
+    $("rank").innerHTML='<p class="note">暂无已生成的行业预测。</p>';
+    renderHistory();
+  }
+}
 addEventListener("scroll",()=>requestAnimationFrame(drawWires),{passive:true});
 addEventListener("resize",drawWires);
-$("hist").innerHTML=hist.map(x=>`<div class="h ${x}">${{w:"✓",l:"✗",n:"–"}[x]}</div>`).join("");
-renderFilters();renderNews();
+loadData();
 </script>
 </body>
 </html>
