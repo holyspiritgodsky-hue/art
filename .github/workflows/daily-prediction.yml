@@ -1,0 +1,50 @@
+name: Daily market update
+
+on:
+  schedule:
+    - cron: "40 0 * * 1-5"
+    - cron: "45 7 * * 1-5"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: daily-market-update
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out site
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install data dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Generate locked forecast
+        if: github.event_name == 'workflow_dispatch' || github.event.schedule == '40 0 * * 1-5'
+        env:
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+        run: python daily_update.py --mode forecast
+      - name: Review completed forecasts
+        if: github.event.schedule == '45 7 * * 1-5'
+        run: python daily_update.py --mode review
+      - name: Save snapshots to the site
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if [ -f data.json ]; then git add -- data.json; fi
+          if [ -f history.json ]; then git add -- history.json; fi
+          if git diff --cached --quiet; then
+            echo "No snapshot changes to commit."
+          else
+            git commit -m "Update daily market data"
+            git push
+          fi
