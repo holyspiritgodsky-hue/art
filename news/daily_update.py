@@ -1037,7 +1037,9 @@ def generate_forecast() -> None:
     if existing.get("forecast", {}).get("trading_date") == forecast_date.isoformat():
         print(f"{forecast_date} 的预测已经锁定，保留既有快照。")
         return
-    if not NEWS_CUTOFF <= generated_at.time() < time(9, 30):
+    # 手动运行可设置 ALLOW_OUTSIDE_WINDOW=1 跳过时间窗口检查（仅用于测试/补跑）
+    window_ok = NEWS_CUTOFF <= generated_at.time() < day_time(9, 30)
+    if not window_ok and os.environ.get("ALLOW_OUTSIDE_WINDOW") != "1":
         raise RuntimeError("预测须在新闻截止 08:30 后、A股开盘 09:30 前生成。")
     use_deepseek = bool(os.environ.get("DEEPSEEK_API_KEY"))
     news_analysis_mode = "deepseek" if use_deepseek else "keyword_rules"
