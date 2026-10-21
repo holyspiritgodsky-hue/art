@@ -1193,8 +1193,17 @@ def generate_forecast() -> None:
             "prediction_at": generated_at.isoformat(timespec="seconds"),
             "trading_date": forecast_date.isoformat(),
             "market_date": previous_date.isoformat(),
+            "mode": "live_forecast",
             "ranked_sectors": [
                 item["name"] for item in rankings[:TOP_N]
+            ],
+            "ranked_sector_details": [
+                {
+                    "name": item["name"],
+                    "score": item["score"],
+                    "up_probability": item.get("up_probability"),
+                }
+                for item in rankings[:TOP_N]
             ],
             "outcome": None,
         })
@@ -1213,6 +1222,18 @@ def parse_sws_history(symbol: str) -> pd.DataFrame:
     for column in ("开盘", "收盘"):
         frame[column] = pd.to_numeric(frame[column], errors="coerce")
     return frame.dropna(subset=["日期", "开盘", "收盘"]).sort_values("日期")
+
+
+def close_to_close_change(
+    frame: pd.DataFrame,
+    previous_date: date,
+    current_date: date,
+) -> float | None:
+    previous = frame[frame["日期"] == previous_date]
+    current = frame[frame["日期"] == current_date]
+    if previous.empty or current.empty or not previous.iloc[0]["收盘"]:
+        return None
+    return float(current.iloc[0]["收盘"] / previous.iloc[0]["收盘"] - 1)
 
 
 def csi300_open_to_close(
@@ -1390,6 +1411,16 @@ def backfill_forecasts() -> None:
             )
             continue
 
+        top1_close_change = close_to_close_change(
+            histories[ranked[0]["name"]],
+            market_date,
+            forecast_date,
+        )
+        if top1_close_change is None:
+            skipped.append(
+                f"{forecast_date}: 缺少 Top1 行业预测日收盘价或前一交易日收盘价"
+            )
+            continue
         avg_return = sum(sector_returns) / TOP_N
         outcome = {
             "exit_date": exit_date.isoformat(),
@@ -1397,6 +1428,8 @@ def backfill_forecasts() -> None:
             "csi300_return_pct": round(benchmark * 100, 4),
             "excess_return_pct": round((avg_return - benchmark) * 100, 4),
             "top1_return_pct": round(sector_returns[0] * 100, 4),
+            "top1_close_change_pct": round(top1_close_change * 100, 4),
+            "top1_correct": top1_close_change > 0,
             "top1_excess_return_pct": round(
                 (sector_returns[0] - benchmark) * 100, 4
             ),
@@ -1591,12 +1624,21 @@ def refresh_backfill_news() -> None:
 def review_forecasts() -> None:
     history = read_json(HISTORY_PATH, {"forecasts": []})
     forecasts = history.get("forecasts", [])
+    backtests = history.get("backtests", [])
     pending = [
         entry for entry in forecasts
         if entry.get("outcome") is None and entry.get("ranked_sectors")
     ]
-    if not pending:
-        print("没有待复盘预测。")
+    pending_backtests = [
+        entry for entry in backtests
+        if entry.get("ranked_sectors")
+        and (
+            not isinstance(entry.get("outcome"), dict)
+            or not isinstance(entry["outcome"].get("top1_correct"), bool)
+        )
+    ]
+    if not pending and not pending_backtests:
+        print("没有待复盘的预测或历史回溯。")
         return
     trading_dates = get_trade_dates()
     current_trading_date = max(
@@ -1611,65 +1653,96 @@ def review_forecasts() -> None:
     cache: dict[str, pd.DataFrame] = {}
     failures = []
     sector_info = ak.sw_index_first_info()
+    sector_names = {
+        str(row["行业名称"]): str(row["行业代码"]).split(".")[0]
+        for _, row in sector_info.iterrows()
+    }
+
+    def get_sector_change(
+        name: str,
+        previous_day: date,
+        forecast_day: date,
+    ) -> float | None:
+        code = sector_names.get(name)
+        if code is None:
+            raise RuntimeError("申万行业代码不存在")
+        if code not in cache:
+            cache[code] = parse_sws_history(code)
+        return close_to_close_change(cache[code], previous_day, forecast_day)
+
+    for entry in pending_backtests:
+        forecast_day = date.fromisoformat(entry["trading_date"])
+        previous_day = date.fromisoformat(entry["market_date"])
+        if current_trading_date < forecast_day:
+            continue
+        name = entry["ranked_sectors"][0]
+        try:
+            change = get_sector_change(name, previous_day, forecast_day)
+        except Exception as exc:
+            failures.append(
+                f"{entry['trading_date']} {name}: {type(exc).__name__}: {exc}"
+            )
+            continue
+        if change is None:
+            failures.append(
+                f"{entry['trading_date']} {name}: 缺少预测日或前一交易日收盘数据"
+            )
+            continue
+        if not isinstance(entry.get("outcome"), dict):
+            entry["outcome"] = {}
+        entry["outcome"]["top1_close_change_pct"] = round(change * 100, 4)
+        entry["outcome"]["top1_correct"] = change > 0
+        entry["outcome"]["direction_basis"] = (
+            "预测行业指数预测日收盘价高于前一交易日收盘价记为正确。"
+        )
+        changed = True
+
     for entry in pending:
         forecast_day = date.fromisoformat(entry["trading_date"])
-        exits = [item for item in trading_dates if item > forecast_day]
-        if not exits:
+        if current_trading_date < forecast_day:
             continue
-        exit_day = exits[0]
-        if current_trading_date < exit_day:
-            continue
-        sector_returns = []
+        previous_day = date.fromisoformat(
+            entry.get("market_date")
+            or previous_trade_date(forecast_day, trading_dates).isoformat()
+        )
+        sector_results = []
         for name in entry["ranked_sectors"]:
-            found = sector_info[sector_info["行业名称"].astype(str) == name]
-            if found.empty:
-                failures.append(f"{name}: 申万行业代码不存在")
+            try:
+                change = get_sector_change(name, previous_day, forecast_day)
+            except Exception as exc:
+                failures.append(
+                    f"{entry['trading_date']} {name}: {type(exc).__name__}: {exc}"
+                )
                 continue
-            code = str(found.iloc[0]["行业代码"]).split(".")[0]
-            if code not in cache:
-                try:
-                    cache[code] = parse_sws_history(code)
-                except Exception as exc:
-                    failures.append(f"{name}: {type(exc).__name__}: {exc}")
-                    continue
-            frame = cache[code]
-            start = frame[frame["日期"] == forecast_day]
-            end = frame[frame["日期"] == exit_day]
-            if start.empty or end.empty or not start.iloc[0]["开盘"]:
+            if change is None:
                 continue
-            sector_returns.append(
-                float(end.iloc[0]["收盘"] / start.iloc[0]["开盘"] - 1)
-            )
-        if len(sector_returns) < len(entry["ranked_sectors"]):
+            sector_results.append({
+                "name": name,
+                "close_change_pct": round(change * 100, 4),
+                "up": change > 0,
+            })
+        if len(sector_results) < len(entry["ranked_sectors"]):
             failures.append(
-                f"{entry['trading_date']}: 尚未取得完整的预测日开盘和下一交易日收盘数据"
+                f"{entry['trading_date']}: 尚未取得预测日及前一交易日的行业收盘数据"
             )
             continue
-        benchmark = csi300_open_to_close(forecast_day, exit_day)
-        if benchmark is None:
-            failures.append(f"{entry['trading_date']}: 沪深300复盘数据缺失")
-            continue
-        avg_return = sum(sector_returns) / len(sector_returns)
-        excess = avg_return - benchmark
+        top1 = sector_results[0]
         entry["outcome"] = {
             "reviewed_at": now_shanghai().isoformat(timespec="seconds"),
-            "exit_date": exit_day.isoformat(),
-            "top3_avg_return_pct": round(avg_return * 100, 4),
-            "csi300_return_pct": round(benchmark * 100, 4),
-            "excess_return_pct": round(excess * 100, 4),
-            "top1_return_pct": round(sector_returns[0] * 100, 4),
-            "top1_excess_return_pct": round(
-                (sector_returns[0] - benchmark) * 100, 4
+            "top1_sector": top1["name"],
+            "top1_close_change_pct": top1["close_change_pct"],
+            "top1_correct": top1["up"],
+            "top3_up_count": sum(item["up"] for item in sector_results),
+            "ranked_sector_results": sector_results,
+            "basis": (
+                "按预测行业指数预测日收盘价是否高于前一交易日收盘价判定；"
+                "不代表个股或实际交易收益。"
             ),
-            "sector_returns_pct": [
-                round(value * 100, 4) for value in sector_returns
-            ],
-            "basis": "申万行业指数：预测日开盘至下一交易日收盘；相对沪深300同区间；不含交易成本，不等同于实际交易收益。",
         }
         changed = True
     if changed:
         write_json(HISTORY_PATH, history)
-        print("已写入可复核的行业指数实际表现。")
+        print("已按预测行业指数收盘涨跌写入预测及历史回溯结果。")
     else:
         print("收盘行情尚未完整或复盘周期未结束，保留待复盘记录。")
     for failure in failures[-10:]:
