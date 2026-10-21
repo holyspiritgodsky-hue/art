@@ -87,11 +87,18 @@ NEWS_RELEVANCE_TERMS = set(NEWS_MARKET_TERMS).union(
 NEWS_POSITIVE_TERMS = (
     "增长", "提升", "扩大", "加快", "建成", "投产", "落地", "突破",
     "创新高", "支持", "推进", "推动", "加速", "改善", "增加", "上涨",
-    "上升", "恢复",
+    "上升", "恢复", "飙升", "大涨", "涨价", "订单", "量产", "中标",
+    "补贴", "放宽", "利好", "回购", "增持", "降息", "降准",
 )
 NEWS_NEGATIVE_TERMS = (
     "下降", "下滑", "回落", "收缩", "减少", "亏损", "下跌", "下调",
-    "限制", "暂停", "受阻", "收紧", "削减", "中断",
+    "限制", "暂停", "受阻", "收紧", "削减", "中断", "暴跌", "大跌",
+    "处罚", "立案", "减持", "制裁", "关税", "召回", "违约", "退市",
+)
+NEWS_POLICY_TERMS = (
+    "国务院", "央行", "证监会", "发改委", "工信部", "财政部", "商务部",
+    "国家能源局", "国家药监局", "金融监管总局", "住建部", "政策", "规划",
+    "意见", "方案", "补贴", "降准", "降息", "新规",
 )
 
 
@@ -488,24 +495,44 @@ def analyze_news_by_rules(news: list[dict], sectors: list[str]) -> list[dict]:
         if not title or not any(term in title for term in NEWS_RELEVANCE_TERMS):
             continue
         summary = text_value(original.get("summary"))
-        text = f"{title} {summary}"
-        positive = sum(text.count(term) for term in NEWS_POSITIVE_TERMS)
-        negative = sum(text.count(term) for term in NEWS_NEGATIVE_TERMS)
+        # 标题权重高于正文，避免正文里的泛化词稀释方向判断
+        positive = (
+            sum(title.count(term) for term in NEWS_POSITIVE_TERMS) * 3
+            + sum(summary.count(term) for term in NEWS_POSITIVE_TERMS)
+        )
+        negative = (
+            sum(title.count(term) for term in NEWS_NEGATIVE_TERMS) * 3
+            + sum(summary.count(term) for term in NEWS_NEGATIVE_TERMS)
+        )
         impact = 1 if positive > negative else -1 if negative > positive else 0
         mapped_sectors = [
             {"name": name, "impact": impact}
             for name, terms in NEWS_SECTOR_RULES
             if name in allowed and any(term in title for term in terms)
         ][:2]
+        is_policy = any(term in title for term in NEWS_POLICY_TERMS)
+        # 重要性：政策/权威部门信号最高；仅个股股价类消息封顶为一般
+        if mapped_sectors and is_policy:
+            importance = 5
+        elif mapped_sectors and impact:
+            importance = 4
+        elif mapped_sectors or is_policy:
+            importance = 3
+        else:
+            importance = 2
+        if "股价" in title and not is_policy:
+            importance = min(importance, 3)
         brief = summary.split("。", 1)[0].strip() or title
+        direction = {1: "偏利好", -1: "偏利空", 0: "方向不明"}[impact]
         analyzed.append({
             **original,
-            "importance": 4 if mapped_sectors else 3,
+            "importance": importance,
             "brief": brief[:180],
             "analysis": (
-                f"标题关键词映射至{'、'.join(item['name'] for item in mapped_sectors)}。"
+                f"{'政策信号，' if is_policy else ''}标题关键词指向"
+                f"{'、'.join(item['name'] for item in mapped_sectors)}，{direction}。"
                 if mapped_sectors
-                else "市场相关标题，未映射到明确行业。"
+                else "市场相关标题，未识别到明确行业。"
             ),
             "category": (
                 "产业" if mapped_sectors
