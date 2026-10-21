@@ -65,8 +65,13 @@ aside{position:sticky;top:70px;display:flex;flex-direction:column;gap:14px}
 .stats div{background:var(--panel2);border-radius:8px;padding:8px 4px}
 .stats b{display:block;font-size:18px}
 .stats span{font-size:11px;color:var(--muted)}
+.history-controls{display:flex;align-items:center;gap:8px;margin-top:10px}
+.history-controls label{font-size:12px;color:var(--muted);white-space:nowrap}
+.history-controls select{max-width:140px;padding:5px 8px;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--text)}
+.history-controls .note{min-width:0}
 .hist{display:flex;gap:4px;margin-top:12px;flex-wrap:wrap}
 .h{width:22px;height:22px;border-radius:5px;display:grid;place-items:center;font-size:11px;font-weight:700;color:#111}
+.h[data-date]{cursor:pointer}
 .h.w{background:var(--up)}.h.l{background:var(--down)}.h.n{background:#dce2eb;color:#475569}
 :root{--c0:#f5b942;--c1:#5b9cff;--c2:#b084ff}
 .item{transition:opacity .2s,border-color .2s}
@@ -121,18 +126,23 @@ footer{max-width:1240px;margin:0 auto;padding:10px 20px 40px;color:var(--muted);
     </div>
 
     <div class="card">
-      <h2 id="historyHeading">近期复盘 <small>最近已完成周期</small></h2>
+      <h2 id="historyHeading">历史回顾 <small>预测行业当日涨跌</small></h2>
       <div class="stats">
-        <div><b id="top3Rate">—</b><span>Top3 超额为正</span></div>
-        <div><b id="top1Rate">—</b><span>Top1 超额为正</span></div>
-        <div><b id="avgExcess">—</b><span>Top3 平均超额</span></div>
+        <div><b id="reviewedCount">0</b><span>已复盘</span></div>
+        <div><b id="correctCount">0</b><span>判断正确</span></div>
+        <div><b id="wrongCount">0</b><span>判断错误</span></div>
+      </div>
+      <div class="history-controls">
+        <label for="historyDate">查看日期</label>
+        <select id="historyDate" aria-label="选择历史预测日期"></select>
+        <span id="historyDetail" class="note"></span>
       </div>
       <div class="hist" id="hist"></div>
-      <p class="note" id="historyNote" style="margin-top:10px">等待真实预测完成复盘。</p>
+      <p class="note" id="historyNote" style="margin-top:10px">等待数据加载。</p>
     </div>
 
     <div class="card note">
-      <b>复盘口径：</b>Top3 行业等权，以申万行业指数预测日开盘至下一交易日收盘收益，与沪深300同区间比较；这是指数模拟收益，不含成本，也不等于实际成交。
+      <b>复盘口径：</b>预测行业指数收盘价高于前一交易日收盘价记为正确，否则记为错误。
       <br>仅作信息参考，不构成投资建议。
     </div>
   </aside>
@@ -231,32 +241,60 @@ function renderRank(){
   });
 }
 function renderHistory(){
-  const completed=forecasts.filter(item=>item.outcome).slice(-10);
-  const completedBacktests=backtests.filter(item=>item.outcome).slice(-10);
-  const showingBacktests=completed.length===0&&completedBacktests.length>0;
-  const measured=showingBacktests?completedBacktests:completed;
-  const records=showingBacktests?completedBacktests:forecasts.slice(-10);
-  if(!measured.length){
-    $("top3Rate").textContent="—";$("top1Rate").textContent="—";$("avgExcess").textContent="—";
-    $("historyNote").textContent=`已有 ${forecasts.length} 条预测记录，待交易周期完成后统计。`;
-    $("hist").innerHTML=forecasts.slice(-10).map(item=>`<div class="h n" title="${escapeHTML(item.trading_date)} 待复盘">·</div>`).join("");
-    return;
+  const byDate=new Map();
+  for(const item of backtests)byDate.set(item.trading_date,item);
+  for(const item of forecasts)byDate.set(item.trading_date,item);
+  const records=[...byDate.values()].sort((a,b)=>a.trading_date.localeCompare(b.trading_date));
+  const reviewed=records.filter(item=>typeof item.outcome?.top1_correct==="boolean");
+  const correct=reviewed.filter(item=>item.outcome.top1_correct).length;
+  const wrong=reviewed.length-correct;
+  $("reviewedCount").textContent=String(reviewed.length);
+  $("correctCount").textContent=String(correct);
+  $("wrongCount").textContent=String(wrong);
+  $("historyHeading").firstChild.textContent="历史回顾 ";
+  $("historyNote").textContent=
+    "历史回溯和盘前预测合并统计；按预测行业指数收盘价是否高于前一交易日收盘判断。";
+
+  const selector=$("historyDate");
+  const previousSelection=selector.value;
+  selector.innerHTML=records.length
+    ?records.slice().reverse().map(item=>`<option value="${escapeHTML(item.trading_date)}">${escapeHTML(item.trading_date)}</option>`).join("")
+    :'<option value="">暂无记录</option>';
+  const selectedDate=records.some(item=>item.trading_date===previousSelection)
+    ?previousSelection
+    :records.length?records[records.length-1].trading_date:"";
+  selector.value=selectedDate;
+  selector.onchange=renderHistory;
+
+  const selected=records.find(item=>item.trading_date===selectedDate);
+  if(!selected){
+    $("historyDetail").textContent="尚无可查看的预测记录。";
+  }else{
+    const top1=selected.ranked_sectors?.[0]||selected.ranked_sector_details?.[0]?.name||"未记录行业";
+    const outcome=selected.outcome;
+    const origin=selected.mode==="market_only_backtest"?"历史回溯":"盘前预测";
+    const probability=selected.ranked_sector_details?.[0]?.up_probability;
+    const probabilityText=probability==null?"":` · 预测上涨概率 ${Number(probability).toFixed(1)}%`;
+    const resultText=typeof outcome?.top1_correct==="boolean"
+      ?` · 实际 ${formatPct(outcome.top1_close_change_pct)} · ${outcome.top1_correct?"判断正确":"判断错误"}`
+      :" · 待复盘";
+    $("historyDetail").textContent=`${origin} · ${top1}${probabilityText}${resultText}`;
   }
-  const top3Hits=measured.filter(item=>Number(item.outcome.excess_return_pct)>0).length;
-  const top1Hits=measured.filter(item=>Number(item.outcome.top1_excess_return_pct)>0).length;
-  const average=measured.reduce((sum,item)=>sum+Number(item.outcome.excess_return_pct||0),0)/measured.length;
-  $("top3Rate").textContent=`${Math.round(top3Hits/measured.length*100)}%`;
-  $("top1Rate").textContent=`${Math.round(top1Hits/measured.length*100)}%`;
-  $("avgExcess").textContent=formatPct(average);
-  $("historyHeading").firstChild.textContent=showingBacktests?"历史回溯结果 ":"近期复盘 ";
-  $("historyNote").textContent=showingBacktests
-    ?`回溯重建 ${measured.length} 个完整周期；此处历史表现仅按行情与隔夜信号计算，不含新闻，也不是当时锁定预测。样本较少不代表未来。红=Top3跑赢沪深300，绿=未跑赢。`
-    :`根据 ${measured.length} 个已复盘的盘前预测；红=Top3跑赢沪深300，绿=未跑赢，灰=待复盘。${backtests.length?`另有 ${backtests.length} 个回溯周期，未与真实预测合并统计。`:""}`;
-  $("hist").innerHTML=records.map(item=>{
-    const value=item.outcome?.excess_return_pct,cls=value==null?"n":Number(value)>0?"w":"l";
-    const symbol=value==null?"·":Number(value)>0?"✓":"✕";
-    return `<div class="h ${cls}" title="${escapeHTML(item.trading_date)} ${value==null?"待复盘":`超额 ${formatPct(value)}`}">${symbol}</div>`;
+  $("hist").innerHTML=records.slice(-30).map(item=>{
+    const outcome=item.outcome;
+    const correct=typeof outcome?.top1_correct==="boolean"?outcome.top1_correct:null;
+    const cls=correct===null?"n":correct?"w":"l";
+    const symbol=correct===null?"·":correct?"✓":"✕";
+    const top1=item.ranked_sectors?.[0]||item.ranked_sector_details?.[0]?.name||"未记录行业";
+    const result=correct===null?"待复盘":`${top1} ${correct?"正确":"错误"} ${formatPct(outcome.top1_close_change_pct)}`;
+    return `<div class="h ${cls}" data-date="${escapeHTML(item.trading_date)}" title="${escapeHTML(item.trading_date)} ${escapeHTML(result)}">${symbol}</div>`;
   }).join("");
+  document.querySelectorAll("#hist .h[data-date]").forEach(el=>{
+    el.onclick=()=>{
+      selector.value=el.dataset.date;
+      renderHistory();
+    };
+  });
 }
 async function loadData(){
   let historyError="";
