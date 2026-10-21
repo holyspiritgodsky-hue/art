@@ -7,6 +7,7 @@ import argparse
 import json
 import math
 import os
+import socket
 import sys
 import time
 from datetime import date, datetime, time as day_time, timedelta
@@ -1764,6 +1765,8 @@ def main() -> int:
         ),
     )
     args = parser.parse_args()
+    # 单个网络请求最多等 30 秒，避免接口卡住导致整个任务无限等待
+    socket.setdefaulttimeout(30)
     try:
         if args.mode == "forecast":
             generate_forecast()
