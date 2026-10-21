@@ -1,5 +1,35 @@
 {
-  "forecasts": [],
+  "forecasts": [
+    {
+      "prediction_at": "2026-10-21T10:23:59+08:00",
+      "trading_date": "2026-10-21",
+      "market_date": "2026-10-20",
+      "mode": "live_forecast",
+      "ranked_sectors": [
+        "机械设备",
+        "医药生物",
+        "国防军工"
+      ],
+      "ranked_sector_details": [
+        {
+          "name": "机械设备",
+          "score": 81.6,
+          "up_probability": null
+        },
+        {
+          "name": "医药生物",
+          "score": 76.0,
+          "up_probability": null
+        },
+        {
+          "name": "国防军工",
+          "score": 69.0,
+          "up_probability": null
+        }
+      ],
+      "outcome": null
+    }
+  ],
   "backtests": [
     {
       "trading_date": "2026-09-30",
