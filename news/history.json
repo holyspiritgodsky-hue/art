@@ -80,7 +80,31 @@
           "up_probability": null
         }
       ],
-      "outcome": null
+      "outcome": {
+        "reviewed_at": "2026-10-23T15:54:17+08:00",
+        "top1_sector": "计算机",
+        "top1_close_change_pct": -2.7901,
+        "top1_correct": false,
+        "top3_up_count": 0,
+        "ranked_sector_results": [
+          {
+            "name": "计算机",
+            "close_change_pct": -2.7901,
+            "up": false
+          },
+          {
+            "name": "医药生物",
+            "close_change_pct": -2.6885,
+            "up": false
+          },
+          {
+            "name": "机械设备",
+            "close_change_pct": -2.4448,
+            "up": false
+          }
+        ],
+        "basis": "按预测行业指数预测日收盘价是否高于前一交易日收盘价判定；不代表个股或实际交易收益。"
+      }
     },
     {
       "prediction_at": "2026-10-23T09:11:45+08:00",
