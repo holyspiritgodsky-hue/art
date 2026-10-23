@@ -81,6 +81,35 @@
         }
       ],
       "outcome": null
+    },
+    {
+      "prediction_at": "2026-10-23T09:11:45+08:00",
+      "trading_date": "2026-10-23",
+      "market_date": "2026-10-22",
+      "mode": "live_forecast",
+      "ranked_sectors": [
+        "计算机",
+        "非银金融",
+        "食品饮料"
+      ],
+      "ranked_sector_details": [
+        {
+          "name": "计算机",
+          "score": 93.4,
+          "up_probability": null
+        },
+        {
+          "name": "非银金融",
+          "score": 87.4,
+          "up_probability": null
+        },
+        {
+          "name": "食品饮料",
+          "score": 79.9,
+          "up_probability": null
+        }
+      ],
+      "outcome": null
     }
   ],
   "backtests": [
