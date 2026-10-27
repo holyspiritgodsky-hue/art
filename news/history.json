@@ -133,7 +133,31 @@
           "up_probability": null
         }
       ],
-      "outcome": null
+      "outcome": {
+        "reviewed_at": "2026-10-27T15:56:31+08:00",
+        "top1_sector": "计算机",
+        "top1_close_change_pct": 4.6681,
+        "top1_correct": true,
+        "top3_up_count": 3,
+        "ranked_sector_results": [
+          {
+            "name": "计算机",
+            "close_change_pct": 4.6681,
+            "up": true
+          },
+          {
+            "name": "非银金融",
+            "close_change_pct": 1.5172,
+            "up": true
+          },
+          {
+            "name": "食品饮料",
+            "close_change_pct": 1.7217,
+            "up": true
+          }
+        ],
+        "basis": "按预测行业指数预测日收盘价是否高于前一交易日收盘价判定；不代表个股或实际交易收益。"
+      }
     }
   ],
   "backtests": [
