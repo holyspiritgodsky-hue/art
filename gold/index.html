@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>每日黄金量化预测</title>
+<style>
+:root{--bg:#0b0f17;--panel:#121826;--panel2:#182033;--line:#243049;--text:#eef2f9;--muted:#8d9ab3;--up:#ff5a5f;--down:#26c281;--gold:#f5b942;--gold2:#ffdf8a;--gold3:#b8791a}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font:14px/1.6 -apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;min-height:100vh;
+ background-image:radial-gradient(900px 500px at 15% -5%,rgba(245,185,66,.16),transparent 60%),radial-gradient(700px 400px at 95% 10%,rgba(245,185,66,.08),transparent 60%)}
+header{position:sticky;top:0;z-index:10;background:rgba(11,15,23,.8);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.bar{max-width:1280px;margin:0 auto;padding:12px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.logo{font-weight:800;font-size:18px;letter-spacing:.5px;display:flex;align-items:center;gap:10px}
+.logo i{width:26px;height:26px;border-radius:50%;background:radial-gradient(circle at 30% 30%,var(--gold2),var(--gold) 55%,var(--gold3));box-shadow:0 0 16px rgba(245,185,66,.6)}
+.spacer{flex:1}
+.muted,.note{color:var(--muted);font-size:12px;line-height:1.7}
+.pill{padding:3px 12px;border-radius:999px;border:1px solid rgba(245,185,66,.4);font-size:12px;color:var(--gold);background:rgba(245,185,66,.08)}
+.live{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
+.live::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--down);box-shadow:0 0 8px var(--down);animation:pulse 1.6s infinite}
+@keyframes pulse{50%{opacity:.3}}
+main{max-width:1280px;margin:0 auto;padding:24px;display:grid;grid-template-columns:repeat(12,1fr);gap:18px}
+.card{background:linear-gradient(180deg,var(--panel),#0f1420);border:1px solid var(--line);border-radius:16px;padding:18px;animation:rise .6s both}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}}
+.c12{grid-column:span 12}
+.acc{border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.02);margin-bottom:10px;overflow:hidden}
+.acc.teal{border-color:rgba(60,190,200,.35);background:rgba(40,150,160,.08)}
+.acc summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:14px;padding:14px 18px}
+.acc summary::-webkit-details-marker{display:none}
+.acc summary>div:first-child{flex:1}
+.acc-t{font-weight:800;font-size:15px}
+.teal .acc-t{color:#e6fbff}
+.acc-s{color:var(--muted);font-size:12px;margin-top:2px}
+.acc-s b{color:var(--text)}
+.acc select{background:#0b0f17;color:var(--text);border:1px solid var(--line);border-radius:999px;padding:6px 14px;font-size:13px}
+.chev{width:8px;height:8px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(45deg);transition:.2s;margin:0 4px}
+.acc[open] .chev{transform:rotate(-135deg)}
+.acc-b{padding:4px 18px 18px}
+.hist{display:flex;gap:5px;flex-wrap:wrap}
+.hist i{width:24px;height:24px;border-radius:6px;display:grid;place-items:center;font-style:normal;font-size:12px;font-weight:800;cursor:pointer;color:#fff}
+.hist i.w{background:var(--up)}.hist i.l{background:var(--down)}
+.hist i.sel{outline:2px solid var(--gold);outline-offset:1px}
+.theory{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+.theory div{background:rgba(255,255,255,.04);border-radius:10px;padding:10px 12px}
+.theory b{display:block;margin-bottom:2px}
+.theory span{color:var(--muted);font-size:12px;line-height:1.6}
+.c4{grid-column:span 4}.c5{grid-column:span 5}.c7{grid-column:span 7}.c8{grid-column:span 8}
+@media(max-width:900px){.c4,.c5,.c7,.c8{grid-column:span 12}}
+h2{font-size:15px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+h2::before{content:"";width:4px;height:15px;border-radius:2px;background:linear-gradient(var(--gold2),var(--gold3))}
+h2 small{color:var(--muted);font-weight:400;font-size:12px}
+
+.hero{grid-column:span 12;padding:0;overflow:hidden;border-color:rgba(245,185,66,.35);box-shadow:0 0 60px rgba(245,185,66,.08);display:grid;grid-template-columns:minmax(340px,5fr) 7fr}
+@media(max-width:900px){.hero{grid-template-columns:1fr}}
+.hl{padding:26px 28px;border-right:1px solid var(--line);background:radial-gradient(500px 300px at 0% 0%,rgba(245,185,66,.14),transparent 70%)}
+.hr{padding:20px 22px 12px}
+.sym{color:var(--muted);font-size:13px}
+.price{display:flex;align-items:baseline;gap:12px;margin-top:4px}
+.price b{font-size:44px;font-weight:800;letter-spacing:-1px}
+.price span{font-size:16px;font-weight:700}
+.up{color:var(--up)}.down{color:var(--down)}
+.tabs{display:inline-flex;gap:4px;margin:18px 0;padding:4px;border-radius:999px;background:var(--panel2);border:1px solid var(--line)}
+.chip{cursor:pointer;padding:5px 18px;border-radius:999px;color:var(--muted);font-size:13px;user-select:none;transition:.2s}
+.chip:hover{color:var(--text)}
+.chip.on{color:#2a1a00;background:linear-gradient(135deg,var(--gold2),var(--gold));font-weight:700;box-shadow:0 2px 14px rgba(245,185,66,.5)}
+.verdict{display:flex;align-items:center;gap:22px}
+.ring{position:relative;width:150px;height:150px;flex:none}
+.ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.ring .t{fill:none;stroke:#222c42;stroke-width:12}
+.ring .a{fill:none;stroke:url(#gg);stroke-width:12;stroke-linecap:round;filter:drop-shadow(0 0 8px rgba(245,185,66,.6));transition:stroke-dashoffset 1s cubic-bezier(.2,.8,.2,1)}
+.ring .c{position:absolute;inset:0;display:grid;place-content:center;text-align:center}
+.ring .c b{font-size:36px;font-weight:800;line-height:1}
+.ring .c span{font-size:11px;color:var(--muted);margin-top:4px}
+.vt small{color:var(--muted);font-size:12px}
+.big{font-size:56px;font-weight:900;line-height:1.1;background:linear-gradient(135deg,var(--gold2),var(--gold) 50%,var(--gold3));-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 18px rgba(245,185,66,.35))}
+.big.bull{background:linear-gradient(135deg,#ffb3b5,var(--up));-webkit-background-clip:text;background-clip:text}
+.big.bear{background:linear-gradient(135deg,#a6f0cf,var(--down));-webkit-background-clip:text;background-clip:text}
+.kv{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:20px}
+.kv div{background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.kv b{display:block;font-size:18px}
+.kv span{font-size:11px;color:var(--muted)}
+.kv.five{grid-template-columns:repeat(5,1fr);margin:0 0 14px;text-align:center}
+.kv.five b{font-size:24px;background:linear-gradient(135deg,var(--gold2),var(--gold));-webkit-background-clip:text;background-clip:text;color:transparent}
+@media(max-width:600px){.kv.five{grid-template-columns:repeat(2,1fr)}}
+svg text{font-size:11px;fill:#8d9ab3}
+.legend{display:flex;gap:16px;font-size:12px;color:var(--muted);margin:0 0 4px 4px}
+.legend i{display:inline-block;width:14px;height:3px;border-radius:2px;vertical-align:middle;margin-right:6px}
+
+.f{display:grid;grid-template-columns:118px 1fr 44px;gap:10px;align-items:center;margin:12px 0}
+.f small{display:block;color:var(--muted);font-size:11px;line-height:1.3}
+.f .tr{height:12px;background:#1c263b;border-radius:6px;position:relative;overflow:hidden}
+.f .tr i{position:absolute;top:0;height:100%;border-radius:6px}
+.f .tr i.mid{left:50%;width:1px;background:#46557a}
+.f .v{text-align:right;font-weight:800}
+
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{text-align:left;padding:9px 8px;border-bottom:1px solid var(--line)}
+th{color:var(--muted);font-weight:600;font-size:12px}
+tr:hover td{background:rgba(255,255,255,.02)}
+.tag{font-size:11px;padding:1px 9px;border-radius:999px;font-weight:700}
+.tag.hi{background:rgba(255,90,95,.15);color:var(--up)}
+.tag.mid{background:rgba(245,185,66,.15);color:var(--gold)}
+#events td{vertical-align:top}
+#events td .muted{font-size:11px}
+.sc{font-size:12px;line-height:1.7;margin-bottom:6px;color:var(--muted)}
+.sc:last-child{margin-bottom:0}
+.sc .cond{color:var(--text);font-weight:700}
+.sc .ar{margin:0 5px;color:#46557a}
+.sc .res{font-weight:800;padding:1px 8px;border-radius:999px;white-space:nowrap}
+.sc .res.up{color:var(--up);background:rgba(255,90,95,.14)}
+.sc .res.dn{color:var(--down);background:rgba(38,194,129,.14)}
+.warn{border-color:rgba(245,185,66,.3)}
+footer{max-width:1280px;margin:0 auto;padding:6px 24px 40px;color:var(--muted);font-size:12px}
+</style>
+</head>
+<body>
+<header><div class="bar">
+  <div class="logo"><i></i>每日黄金量化预测</div>
+  <span class="muted" id="date"></span>
+  <div class="spacer"></div>
+  <span class="live">预测已锁定</span>
+</div></header>
+
+<main>
+  <section class="card hero">
+    <div class="hl">
+      <div class="sym">国内黄金价格 · 人民币 / 克</div>
+      <div class="price"><b><small style="font-size:22px">¥</small><span id="px" style="font-size:inherit;color:inherit"></span></b><span class="unit" style="font-size:14px;color:var(--muted);font-weight:400">元/克</span><span id="chg"></span></div>
+      <div class="tabs" id="tabs"></div>
+      <div class="verdict">
+        <div class="ring">
+          <svg viewBox="0 0 120 120">
+            <defs><linearGradient id="gg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffdf8a"/><stop offset="1" stop-color="#d98a12"/></linearGradient></defs>
+            <circle class="t" cx="60" cy="60" r="50"/>
+            <circle class="a" id="arc" cx="60" cy="60" r="50" stroke-dasharray="314.16" stroke-dashoffset="314.16"/>
+          </svg>
+          <div class="c"><b id="pv">0%</b><span>上涨概率</span></div>
+        </div>
+        <div class="vt"><small>模型研判</small><div class="big" id="stance"></div></div>
+      </div>
+      <div class="kv" id="kv"></div>
+    </div>
+    <div class="hr">
+      <h2 style="margin-top:6px">价格走势与预测区间 <small>扇形为 80% 概率区间</small></h2>
+      <div class="legend"><span><i style="background:#eef2f9"></i>历史价格</span><span><i style="background:var(--gold)"></i>预测区间</span></div>
+      <svg id="chart" viewBox="0 0 720 340" width="100%"></svg>
+    </div>
+  </section>
+
+  <section class="card c5" style="animation-delay:.1s">
+    <h2>驱动因素贡献 <small>对所选周期方向的影响</small></h2>
+    <div id="factors"></div>
+  </section>
+
+  <section class="card c7" style="animation-delay:.2s">
+    <h2>事件与风险日历 <small>未来 14 天</small></h2>
+    <table id="events"><thead><tr><th>日期</th><th>事件</th><th>影响</th><th>预测与逻辑</th></tr></thead><tbody></tbody></table>
+  </section>
+
+  <section class="card c12" style="animation-delay:.3s">
+    <details class="acc" id="accHist">
+      <summary>
+        <div><span class="acc-t">历史回顾</span><div class="acc-s" id="histSum"></div></div>
+        <select id="histDate" onclick="event.stopPropagation()" aria-label="选择日期"></select>
+        <span class="chev"></span>
+      </summary>
+      <div class="acc-b">
+        <div class="hist" id="hist"></div>
+        <div class="acc-s" id="histDetail" style="margin-top:12px"></div>
+      </div>
+    </details>
+    <details class="acc teal">
+      <summary>
+        <div><span class="acc-t">理论依据</span></div>
+        <span class="chev"></span>
+      </summary>
+      <div class="acc-b theory">
+        <div><b>实际利率</b><span>持有黄金没有利息，实际利率下降，黄金更有吸引力。</span></div>
+        <div><b>美元与汇率</b><span>国际金价以美元计价，美元走弱、人民币走弱，国内金价通常上涨。</span></div>
+        <div><b>央行购金</b><span>各国央行持续买入，提供长期需求支撑。</span></div>
+        <div><b>资金与持仓</b><span>ETF 与期货持仓反映资金态度，过度拥挤时回调风险上升。</span></div>
+        <div><b>避险情绪</b><span>地缘冲突、市场恐慌时，资金倾向流入黄金。</span></div>
+      </div>
+    </details>
+  </section>
+</main>
+<footer>仅作信息参考，不构成投资建议。</footer>
+
+<script>
+const $=id=>document.getElementById(id);
+let seed=7;const rnd=()=>(seed=(seed*16807)%2147483647)/2147483647;
+const N=120;let p=620;const hist=[];
+for(let i=0;i<N;i++){p*=1+(rnd()-.47)*0.012;hist.push(p)}
+const last=hist[N-1];
+const H={"1周":{d:5,prob:56,sig:.022,n:48,lean:"偏多"},"1个月":{d:21,prob:62,sig:.045,n:22,lean:"偏多"},"3个月":{d:63,prob:53,sig:.08,n:8,lean:"中性"}};
+let cur="1个月";
+const factors=[["实际利率",1.1,"10Y TIPS 回落"],["美元指数",0.6,"美元走弱"],["央行购金",0.9,"净买入延续"],["ETF 持仓",0.4,"资金小幅流入"],["CFTC 持仓",-0.5,"投机多头偏拥挤"],["避险情绪",0.3,"VIX 小幅走高"],["人民币汇率",0.2,"人民币小幅走弱"]];
+const fmt=v=>v.toFixed(2);
+$("date").textContent=new Date().toLocaleDateString("zh-CN",{year:"numeric",month:"long",day:"numeric",weekday:"long"});
+$("px").textContent=fmt(last);
+const dc=(last/hist[N-2]-1)*100;
+$("chg").textContent=(dc>0?"▲ +":"▼ ")+dc.toFixed(2)+"%";$("chg").className=dc>0?"up":"down";
+let shown=0,raf;
+function countTo(target){cancelAnimationFrame(raf);const from=shown,t0=performance.now();
+  const step=t=>{const k=Math.min(1,(t-t0)/800),e=1-Math.pow(1-k,3);shown=from+(target-from)*e;$("pv").textContent=Math.round(shown)+"%";if(k<1)raf=requestAnimationFrame(step)};raf=requestAnimationFrame(step)}
+
+function render(){
+  const h=H[cur];
+  $("tabs").innerHTML=Object.keys(H).map(k=>`<span class="chip ${k===cur?"on":""}" data-k="${k}">${k}</span>`).join("");
+  $("tabs").querySelectorAll(".chip").forEach(e=>e.onclick=()=>{cur=e.dataset.k;render()});
+  const st=$("stance");st.textContent=h.lean;st.className="big "+(h.prob>=55?"bull":h.prob<=45?"bear":"");
+  requestAnimationFrame(()=>{$("arc").style.strokeDashoffset=314.16*(1-h.prob/100)});
+  countTo(h.prob);
+  const lo=last*(1-1.28*h.sig),hi=last*(1+1.28*h.sig);
+  $("kv").innerHTML=`<div><b>¥${fmt(lo)} – ${fmt(hi)}</b><span>80% 价格区间（元/克）</span></div><div><b>${h.n}</b><span>${h.n<30?"回测样本（偏少）":"回测样本"}</span></div>`;
+  chart(h);
+  $("factors").innerHTML=factors.map(([n,v,t])=>{
+    const w=Math.min(50,Math.abs(v)*40),pos=v>=0,c=pos?"linear-gradient(90deg,#ff8a8d,var(--up))":"linear-gradient(90deg,var(--down),#7be3b4)";
+    return `<div class="f"><div>${n}<small>${t}</small></div><div class="tr"><i style="left:${pos?50:50-w}%;width:${w}%;background:${c}"></i><i class="mid"></i></div><div class="v ${pos?"up":"down"}">${v>0?"+":""}${v.toFixed(1)}</div></div>`}).join("");
+}
+function chart(h){
+  const W=720,Hh=340,pl=44,pr=14,pt=14,pb=26,fut=h.d;
+  const tot=N+fut,x=i=>pl+i/(tot-1)*(W-pl-pr);
+  const lo=last*(1-1.28*h.sig),hi=last*(1+1.28*h.sig);
+  const min=Math.min(...hist,lo)*0.995,max=Math.max(...hist,hi)*1.005;
+  const y=v=>pt+(1-(v-min)/(max-min))*(Hh-pt-pb);
+  let s=`<defs><linearGradient id="fa" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#f5b942" stop-opacity=".45"/><stop offset="1" stop-color="#f5b942" stop-opacity=".08"/></linearGradient><linearGradient id="la" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#eef2f9" stop-opacity=".18"/><stop offset="1" stop-color="#eef2f9" stop-opacity="0"/></linearGradient></defs>`;
+  for(let k=0;k<=4;k++){const v=min+(max-min)*k/4;s+=`<line x1="${pl}" x2="${W-pr}" y1="${y(v)}" y2="${y(v)}" stroke="#243049" stroke-dasharray="2 4"/><text x="4" y="${y(v)+4}">${v.toFixed(0)}</text>`}
+    s+=`<text x="4" y="10">元/克</text>`;
+    const line=hist.map((v,i)=>`${i?"L":"M"}${x(i)},${y(v)}`).join("");
+  s+=`<path d="${line} L${x(N-1)},${Hh-pb} L${x(0)},${Hh-pb}Z" fill="url(#la)"/>`;
+  const up=[],dn=[],mid=[];
+  for(let j=0;j<=fut;j++){const f=Math.sqrt(j/fut),c=last*(1+(h.prob-50)/100*0.4*j/fut);up.push(`${x(N-1+j)},${y(c*(1+1.28*h.sig*f))}`);dn.push(`${x(N-1+j)},${y(c*(1-1.28*h.sig*f))}`);mid.push(`${j?"L":"M"}${x(N-1+j)},${y(c)}`)}
+  s+=`<polygon points="${up.join(" ")} ${dn.reverse().join(" ")}" fill="url(#fa)" stroke="#f5b942" stroke-opacity=".6" stroke-dasharray="4 3"/>`;
+  s+=`<path d="${mid.join("")}" fill="none" stroke="#ffdf8a" stroke-width="2" stroke-dasharray="5 4"/>`;
+  s+=`<path d="${line}" fill="none" stroke="#eef2f9" stroke-width="2" pathLength="1" stroke-dasharray="1" stroke-dashoffset="1"><animate attributeName="stroke-dashoffset" from="1" to="0" dur="1.2s" fill="freeze"/></path>`;
+  s+=`<line x1="${x(N-1)}" x2="${x(N-1)}" y1="${pt}" y2="${Hh-pb}" stroke="#46557a" stroke-dasharray="3 3"/><text x="${x(N-1)-30}" y="${pt+10}">今日</text>`;
+  s+=`<circle cx="${x(N-1)}" cy="${y(last)}" r="9" fill="#f5b942" opacity=".25"><animate attributeName="r" values="5;12;5" dur="2s" repeatCount="indefinite"/></circle><circle cx="${x(N-1)}" cy="${y(last)}" r="4.5" fill="#ffdf8a" stroke="#0b0f17" stroke-width="2"/>`;
+  $("chart").innerHTML=s;
+}
+$("events").querySelector("tbody").innerHTML=[
+ ["11-01","美国制造业 PMI","衡量美国工厂景气","mid",
+  ["预计数据偏弱","经济降温","降息预期升温","利率下降","up"]],
+ ["11-04","美联储利率决议","美国央行定利率","hi",
+  ["预计暗示降息","利率下降","持有黄金机会成本变低","up"]],
+ ["11-07","美国非农就业","美国新增就业人数","hi",
+  ["预计就业偏强","经济偏热","美联储不急着降息","dn"]],
+ ["11-12","美国 CPI","美国物价涨幅","hi",
+  ["预计通胀回落","降息空间变大","利率下降","up"]],
+ ["11-14","世界黄金协会季报","各国央行买金与 ETF 流向","mid",
+  ["预计央行继续买金","长期需求变强","up"]]
+].map(r=>{
+  const line=a=>{const dir=a[a.length-1],txt=a.slice(0,-1);
+    return `<div class="sc"><span class="cond">${txt[0]}</span>${txt.slice(1).map(t=>`<span class="ar">→</span>${t}`).join("")}<span class="ar">→</span><span class="res ${dir}">${dir==="up"?"金价涨 ▲":"金价跌 ▼"}</span></div>`};
+  return `<tr><td>${r[0]}</td><td><b>${r[1]}</b><div class="muted">${r[2]}</div></td><td><span class="tag ${r[3]}">${r[3]==="hi"?"高":"中"}</span></td><td>${line(r[4])}</td></tr>`}).join("");
+const days=[];
+{let d=new Date(),s2=11;while(days.length<30){d.setDate(d.getDate()-1);if(d.getDay()%6===0)continue;
+  const ok=(s2=(s2*48271)%2147483647)%100<95?1:0;
+  const pct=((s2%260)/100*(ok?1:-1)).toFixed(2);
+  days.unshift({date:`${d.getMonth()+1}.${String(d.getDate()).padStart(2,"0")}`,ok,pct})}}
+function renderHist(sel){
+  const w=days.filter(x=>x.ok).length;
+  $("histSum").innerHTML=`已复盘 <b>${days.length}</b> 次，对了 <b>${w}</b> 次，错了 <b>${days.length-w}</b> 次。`;
+  $("histDate").innerHTML=days.slice().reverse().map(x=>`<option ${x.date===sel?"selected":""}>${x.date}</option>`).join("");
+  $("hist").innerHTML=days.map(x=>`<i class="${x.ok?"w":"l"} ${x.date===sel?"sel":""}" data-d="${x.date}" title="${x.date}">${x.ok?"✓":"✕"}</i>`).join("");
+  const c=days.find(x=>x.date===sel)||days[days.length-1];
+  $("histDetail").innerHTML=`${c.date} · 预测上涨 · 实际 ${c.pct>0?"+":""}${c.pct}% · <b style="color:${c.ok?"var(--up)":"var(--down)"}">${c.ok?"判断正确":"判断错误"}</b>`;
+  $("hist").querySelectorAll("i").forEach(e=>e.onclick=()=>renderHist(e.dataset.d));
+}
+$("histDate").onchange=e=>renderHist(e.target.value);
+renderHist(days[days.length-1].date);
+render();
+</script>
+</body>
+</html>
