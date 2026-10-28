@@ -40,9 +40,13 @@ main{max-width:1280px;margin:0 auto;padding:24px;display:grid;grid-template-colu
 .hist i{width:24px;height:24px;border-radius:6px;display:grid;place-items:center;font-style:normal;font-size:12px;font-weight:800;cursor:pointer;color:#fff}
 .hist i.w{background:var(--up)}.hist i.l{background:var(--down)}
 .hist i.sel{outline:2px solid var(--gold);outline-offset:1px}
-.theory{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+.theory{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:10px}
 .theory div{background:rgba(255,255,255,.04);border-radius:10px;padding:10px 12px}
-.theory b{display:block;margin-bottom:2px}
+.theory b{display:block;margin-bottom:6px}
+.theory .wide{grid-column:1/-1}
+.theory code{display:block;margin:4px 0 8px;padding:8px 12px;border-radius:8px;background:rgba(0,0,0,.35);border:1px solid rgba(60,190,200,.25);color:#8fe9f0;font:13px/1.8 "Cambria Math","Times New Roman",serif;overflow-x:auto;white-space:nowrap}
+.theory span code{display:inline;margin:0;padding:1px 6px;white-space:normal}
+.theory sub,.theory sup{font-size:.75em}
 .theory span{color:var(--muted);font-size:12px;line-height:1.6}
 .c4{grid-column:span 4}.c5{grid-column:span 5}.c7{grid-column:span 7}.c8{grid-column:span 8}
 @media(max-width:900px){.c4,.c5,.c7,.c8{grid-column:span 12}}
@@ -175,11 +179,33 @@ footer{max-width:1280px;margin:0 auto;padding:6px 24px 40px;color:var(--muted);f
         <span class="chev"></span>
       </summary>
       <div class="acc-b theory">
-        <div><b>实际利率</b><span>持有黄金没有利息，实际利率下降，黄金更有吸引力。</span></div>
-        <div><b>美元与汇率</b><span>国际金价以美元计价，美元走弱、人民币走弱，国内金价通常上涨。</span></div>
-        <div><b>央行购金</b><span>各国央行持续买入，提供长期需求支撑。</span></div>
-        <div><b>资金与持仓</b><span>ETF 与期货持仓反映资金态度，过度拥挤时回调风险上升。</span></div>
-        <div><b>避险情绪</b><span>地缘冲突、市场恐慌时，资金倾向流入黄金。</span></div>
+        <div class="wide"><b>① 国内金价定价</b>
+          <code>P<sub>CNY/g</sub> = P<sub>XAU/USD</sub> × S<sub>USD/CNY</sub> ÷ 31.1035 + 升贴水</code>
+          <span>国内每克金价 = 国际金价（美元/盎司）× 美元兑人民币汇率 ÷ 31.1035（1 盎司克数）+ 进口升贴水。取对数收益后：<code>r<sub>CNY</sub> ≈ r<sub>XAU</sub> + r<sub>FX</sub></code>，即金价涨跌 ≈ 国际金价涨跌 + 汇率涨跌。</span></div>
+        <div><b>② 实际利率（核心因子）</b>
+          <code>r<sub>real</sub> = y<sub>nominal</sub> − π<sub>e</sub></code>
+          <span>实际利率 = 名义国债收益率 − 预期通胀（实务中取 10 年期 TIPS 收益率）。黄金不付息，持有成本 ≈ 实际利率，两者长期负相关：<code>Δ ln P ≈ α − β·Δr<sub>real</sub></code>，历史 β 约 −0.3 ~ −0.5。</span></div>
+        <div><b>③ 美元与汇率</b>
+          <code>Δ ln P<sub>USD</sub> ≈ −γ·Δ ln DXY</code>
+          <span>黄金以美元计价，美元指数 DXY 走强，非美货币持有者购金成本上升，需求下降。γ 一般约 0.5 ~ 1。人民币贬值则直接推高国内金价。</span></div>
+        <div><b>④ 央行购金与 ETF 资金</b>
+          <code>z<sub>flow</sub> = (F<sub>t</sub> − μ<sub>F</sub>) ÷ σ<sub>F</sub></code>
+          <span>将央行净购金、ETF 持仓变化标准化为 z 分数，衡量相对历史的偏离，正值代表增量需求。</span></div>
+        <div><b>⑤ 持仓拥挤度（CFTC）</b>
+          <code>C<sub>t</sub> = Pctl(净多头<sub>t</sub> , 过去 3 年)</code>
+          <span>投机净多头在历史中的分位数。分位数 &gt; 90% 视为过度拥挤，回调风险上升，作为反向因子。</span></div>
+        <div><b>⑥ 避险情绪</b>
+          <code>z<sub>risk</sub> = (VIX<sub>t</sub> − MA<sub>60</sub>) ÷ σ<sub>60</sub></code>
+          <span>VIX 相对 60 日均值的偏离。恐慌上升时避险资金流入黄金，但极端时可能因流动性挤兑而同跌。</span></div>
+        <div class="wide"><b>⑦ 综合模型：因子打分 → 概率</b>
+          <code>s<sub>t</sub> = Σ<sub>i</sub> w<sub>i</sub> · z<sub>i,t</sub>　　P(上涨) = 1 ÷ (1 + e<sup>−(a + b·s<sub>t</sub>)</sup>)</code>
+          <span>各因子标准化为 z 分数 z<sub>i</sub>，按权重 w<sub>i</sub> 加权得到综合得分 s；再用逻辑回归映射为上涨概率，参数 a、b 在滚动窗口内估计，并做概率校准。得分 s 越大，上涨概率越高。</span></div>
+        <div class="wide"><b>⑧ 价格区间</b>
+          <code>[ P·e<sup>μh − 1.28σ√h</sup> , P·e<sup>μh + 1.28σ√h</sup> ]</code>
+          <span>h 为预测天数，σ 为日波动率（由 GARCH 或近 60 日收益率估计），μ 为由概率推出的温和漂移。1.28 对应 80% 置信区间，区间随 √h 扩张，所以周期越长区间越宽。</span></div>
+        <div class="wide"><b>⑨ 复盘指标</b>
+          <code>命中率 = 判断正确次数 ÷ 复盘次数　　Brier = (1/N)·Σ(p<sub>t</sub> − y<sub>t</sub>)²</code>
+          <span>y<sub>t</sub> 为实际结果（涨 = 1，跌 = 0）。Brier 分数越低概率越准，一直预测 50% 时为 0.25，低于 0.25 才说明模型有信息量。</span></div>
       </div>
     </details>
   </section>
