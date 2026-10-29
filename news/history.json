@@ -186,7 +186,31 @@
           "up_probability": null
         }
       ],
-      "outcome": null
+      "outcome": {
+        "reviewed_at": "2026-10-29T15:49:52+08:00",
+        "top1_sector": "传媒",
+        "top1_close_change_pct": 1.9756,
+        "top1_correct": true,
+        "top3_up_count": 2,
+        "ranked_sector_results": [
+          {
+            "name": "传媒",
+            "close_change_pct": 1.9756,
+            "up": true
+          },
+          {
+            "name": "银行",
+            "close_change_pct": -0.5772,
+            "up": false
+          },
+          {
+            "name": "计算机",
+            "close_change_pct": 0.8254,
+            "up": true
+          }
+        ],
+        "basis": "按预测行业指数预测日收盘价是否高于前一交易日收盘价判定；不代表个股或实际交易收益。"
+      }
     },
     {
       "prediction_at": "2026-10-29T08:56:12+08:00",
