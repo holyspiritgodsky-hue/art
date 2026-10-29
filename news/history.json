@@ -187,6 +187,35 @@
         }
       ],
       "outcome": null
+    },
+    {
+      "prediction_at": "2026-10-29T08:56:12+08:00",
+      "trading_date": "2026-10-29",
+      "market_date": "2026-10-28",
+      "mode": "live_forecast",
+      "ranked_sectors": [
+        "机械设备",
+        "食品饮料",
+        "传媒"
+      ],
+      "ranked_sector_details": [
+        {
+          "name": "机械设备",
+          "score": 89.8,
+          "up_probability": null
+        },
+        {
+          "name": "食品饮料",
+          "score": 83.0,
+          "up_probability": null
+        },
+        {
+          "name": "传媒",
+          "score": 81.2,
+          "up_probability": null
+        }
+      ],
+      "outcome": null
     }
   ],
   "backtests": [
