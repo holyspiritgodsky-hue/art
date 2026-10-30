@@ -240,6 +240,35 @@
         }
       ],
       "outcome": null
+    },
+    {
+      "prediction_at": "2026-10-30T08:57:17+08:00",
+      "trading_date": "2026-10-30",
+      "market_date": "2026-10-29",
+      "mode": "live_forecast",
+      "ranked_sectors": [
+        "银行",
+        "机械设备",
+        "国防军工"
+      ],
+      "ranked_sector_details": [
+        {
+          "name": "银行",
+          "score": 93.5,
+          "up_probability": null
+        },
+        {
+          "name": "机械设备",
+          "score": 80.1,
+          "up_probability": null
+        },
+        {
+          "name": "国防军工",
+          "score": 75.8,
+          "up_probability": null
+        }
+      ],
+      "outcome": null
     }
   ],
   "backtests": [
