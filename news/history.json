@@ -239,7 +239,31 @@
           "up_probability": null
         }
       ],
-      "outcome": null
+      "outcome": {
+        "reviewed_at": "2026-10-30T15:49:57+08:00",
+        "top1_sector": "机械设备",
+        "top1_close_change_pct": -3.2308,
+        "top1_correct": false,
+        "top3_up_count": 1,
+        "ranked_sector_results": [
+          {
+            "name": "机械设备",
+            "close_change_pct": -3.2308,
+            "up": false
+          },
+          {
+            "name": "食品饮料",
+            "close_change_pct": 1.1668,
+            "up": true
+          },
+          {
+            "name": "传媒",
+            "close_change_pct": -1.686,
+            "up": false
+          }
+        ],
+        "basis": "按预测行业指数预测日收盘价是否高于前一交易日收盘价判定；不代表个股或实际交易收益。"
+      }
     },
     {
       "prediction_at": "2026-10-30T08:57:17+08:00",
