@@ -101,6 +101,360 @@
 			display: none;
 		}
 
+		.country-balls {
+			position: absolute;
+			top: 50%;
+			left: 50%;
+			width: min(100vw, 100vh);
+			height: min(100vw, 100vh);
+			z-index: 1;
+			transform: translate(-50%, -50%);
+			pointer-events: none;
+		}
+
+		.country-ball {
+			position: absolute;
+			left: var(--x);
+			top: var(--y);
+			z-index: 1;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			gap: 4px;
+			transform: translate(-50%, -50%);
+			animation: ball-float 3.2s ease-in-out infinite;
+			animation-delay: var(--delay, 0s);
+		}
+
+		.speech-tails {
+			position: absolute;
+			inset: 0;
+			z-index: 0;
+			width: 100%;
+			height: 100%;
+			overflow: visible;
+			pointer-events: none;
+		}
+
+		.speech-tail {
+			fill: #fffdf6;
+			stroke: #d5deeb;
+			stroke-width: 1;
+		}
+
+		.country-ball.shift-left {
+			left: calc(var(--x) - 13%);
+			top: calc(var(--y) - 2%);
+		}
+
+		.country-ball.shift-left-more {
+			left: calc(var(--x) - 18%);
+		}
+
+		.country-ball.shift-northwest {
+			left: calc(var(--x) - 21%);
+			top: calc(var(--y) - 10%);
+		}
+
+		.country-ball.shift-up {
+			top: calc(var(--y) - 10%);
+		}
+
+		.country-ball.shift-down {
+			top: calc(var(--y) - 5%);
+		}
+
+		.ball-face {
+			position: relative;
+			width: clamp(36px, 5vw, 58px);
+			aspect-ratio: 1;
+			overflow: hidden;
+			border: 2px solid rgba(255, 255, 255, 0.9);
+			border-radius: 50%;
+			box-shadow: 0 5px 16px rgba(0, 0, 0, 0.5), inset -5px -5px 10px rgba(0, 0, 0, 0.2);
+		}
+
+		.country-ball.compact .ball-face {
+			width: clamp(29px, 3.2vw, 38px);
+		}
+
+		.country-ball.compact .ball-eyes i {
+			width: 8px;
+			height: 11px;
+		}
+
+		.ball-eyes {
+			position: absolute;
+			left: 50%;
+			top: 35%;
+			display: flex;
+			gap: 3px;
+			transform: translateX(-50%) rotate(-7deg);
+		}
+
+		.ball-eyes i {
+			display: block;
+			width: clamp(9px, 1.15vw, 14px);
+			height: clamp(13px, 1.65vw, 19px);
+			border: 1px solid #252525;
+			border-radius: 50%;
+			background: #fff;
+		}
+
+		.country-name {
+			padding: 2px 6px;
+			border: 1px solid rgba(220, 235, 255, 0.3);
+			border-radius: 999px;
+			background: rgba(3, 10, 22, 0.78);
+			color: #f4f8ff;
+			font-size: clamp(10px, 1vw, 13px);
+			line-height: 1.2;
+			white-space: nowrap;
+			text-shadow: 0 1px 3px #000;
+		}
+
+		.speech-bubble {
+			position: absolute;
+			z-index: 4;
+			width: min(240px, 42vw);
+			padding: 9px 12px;
+			border: 1px solid #d5deeb;
+			border-radius: 14px;
+			background: #fffdf6;
+			box-shadow: 0 5px 16px rgba(0, 0, 0, 0.35);
+			color: #172033;
+			font-size: clamp(12px, 1.15vw, 15px);
+			font-weight: 600;
+			line-height: 1.45;
+			text-align: left;
+			white-space: normal;
+			opacity: 0;
+			visibility: hidden;
+			transition: opacity 0.2s ease, visibility 0.2s ease;
+		}
+
+		.speech-bubble.visible {
+			opacity: 1;
+			visibility: visible;
+		}
+
+		.speech-france {
+			top: calc(100% - 25px);
+			right: calc(100% + 14px);
+		}
+
+		.speech-china {
+			right: auto;
+			bottom: calc(100% + 14px);
+			left: calc(100% + 14px);
+		}
+
+		.speech-us {
+			top: calc(100% + 12px);
+			left: calc(100% + 12px);
+		}
+
+		.speech-poland {
+			right: calc(100% + 14px);
+			bottom: calc(100% + 14px);
+		}
+
+		@media (max-width: 600px) {
+			.speech-bubble { width: min(190px, 50vw); }
+			.speech-france {
+				top: calc(100% + 10px);
+				right: auto;
+				left: calc(100% + 10px);
+			}
+			.speech-china {
+				top: calc(100% + 10px);
+				right: calc(100% + 10px);
+				bottom: auto;
+				left: auto;
+			}
+			.speech-us {
+				top: calc(100% + 10px);
+				left: auto;
+				right: calc(100% + 10px);
+			}
+			.speech-poland {
+				right: auto;
+				bottom: calc(100% + 10px);
+				left: calc(100% + 10px);
+			}
+		}
+
+		.ball-china { background: #d90016; }
+		.ball-china::before {
+			content: "★";
+			position: absolute;
+			left: 19%;
+			top: 15%;
+			color: #ffdf36;
+			font-size: 15px;
+		}
+		.ball-japan { background: radial-gradient(circle, #c9152b 0 25%, transparent 27%), #fff; }
+		.ball-russia { background: linear-gradient(to bottom, #fff 0 33.3%, #3155a4 33.3% 66.6%, #d52b35 66.6%); }
+		.ball-uk {
+			background:
+				linear-gradient(to right, transparent 40%, #fff 40% 60%, transparent 60%),
+				linear-gradient(to bottom, transparent 35%, #fff 35% 65%, transparent 65%),
+				linear-gradient(to right, transparent 45%, #c8102e 45% 55%, transparent 55%),
+				linear-gradient(to bottom, transparent 42%, #c8102e 42% 58%, transparent 58%),
+				linear-gradient(32deg, transparent 42%, #c8102e 42% 58%, transparent 58%),
+				linear-gradient(-32deg, transparent 42%, #c8102e 42% 58%, transparent 58%),
+				linear-gradient(32deg, transparent 33%, #fff 33% 67%, transparent 67%),
+				linear-gradient(-32deg, transparent 33%, #fff 33% 67%, transparent 67%),
+				#012169;
+		}
+		.ball-france { background: linear-gradient(to right, #21468b 0 33.3%, #fff 33.3% 66.6%, #ed2939 66.6%); }
+		.ball-germany { background: linear-gradient(to bottom, #171717 0 33.3%, #d32735 33.3% 66.6%, #ffce00 66.6%); }
+		.ball-us { background: repeating-linear-gradient(to bottom, #b22234 0 8%, #fff 8% 16%); }
+		.ball-us::before {
+			content: "✦";
+			position: absolute;
+			left: 0;
+			top: 0;
+			width: 48%;
+			height: 48%;
+			background: #3c3b6e;
+			color: #fff;
+			font-size: 10px;
+			text-align: center;
+		}
+		.ball-iran { background: linear-gradient(to bottom, #239f40 0 33.3%, #fff 33.3% 66.6%, #da0000 66.6%); }
+		.ball-ukraine { background: linear-gradient(to bottom, #0057b7 0 50%, #ffd700 50%); }
+		.ball-poland { background: linear-gradient(to bottom, #fff 0 50%, #dc143c 50%); }
+		.ball-yemen { background: linear-gradient(to bottom, #ce1126 0 33.3%, #fff 33.3% 66.6%, #000 66.6%); }
+		.ball-saudi { background: #006c35; }
+		.ball-saudi::before {
+			content: "الله";
+			position: absolute;
+			top: 12%;
+			left: 50%;
+			transform: translateX(-50%);
+			color: #fff;
+			font-size: clamp(8px, 1vw, 12px);
+			font-weight: 700;
+			white-space: nowrap;
+		}
+		.ball-saudi::after {
+			content: "";
+			position: absolute;
+			left: 25%;
+			right: 25%;
+			bottom: 24%;
+			height: 2px;
+			border-radius: 2px;
+			background: #fff;
+			transform: rotate(-8deg);
+		}
+
+		.country-ball.russia-attacker {
+			animation: russia-lunge 4s ease-in-out infinite;
+		}
+
+		.country-ball.us-attacker {
+			animation: us-lunge 4.2s ease-in-out infinite;
+			animation-delay: -2s;
+		}
+
+		.country-ball.houthi-attacker {
+			animation: houthi-lunge 4.5s ease-in-out infinite;
+			animation-delay: -1s;
+		}
+
+		.country-ball.under-attack .ball-face {
+			animation: target-shake 4s ease-in-out infinite;
+		}
+
+		.country-ball.us-target .ball-face {
+			animation-duration: 4.2s;
+			animation-delay: -2s;
+		}
+
+		.country-ball.france-target .ball-face {
+			animation-delay: -1s;
+		}
+
+		.country-ball.saudi-target .ball-face {
+			animation-duration: 4.5s;
+			animation-delay: -1s;
+		}
+
+		.tears {
+			position: absolute;
+			inset: 0;
+			display: none;
+			pointer-events: none;
+		}
+
+		.tears i {
+			position: absolute;
+			top: 47%;
+			width: clamp(5px, 0.65vw, 8px);
+			height: clamp(11px, 1.25vw, 16px);
+			border: 1px solid rgba(232, 250, 255, 0.9);
+			border-radius: 3px 6px 7px 7px;
+			background: linear-gradient(90deg, #b9f1ff, #42c8ff 48%, #168fce);
+			box-shadow: 0 0 7px rgba(66, 200, 255, 0.95);
+			animation: tear-fall 1.15s ease-in infinite;
+		}
+
+		.tears i:first-child { left: 20%; --tear-angle: -10deg; }
+		.tears i:last-child { right: 20%; --tear-angle: 10deg; animation-delay: 0.55s; }
+		.country-ball.compact .tears i { width: 6px; height: 12px; }
+		.under-attack .tears,
+		.crying .tears { display: block; }
+
+		@keyframes russia-lunge {
+			0%, 42%, 100% { translate: 0 0; }
+			48% { translate: -11px 8px; }
+			53% { translate: -3px 2px; }
+			58% { translate: 0 0; }
+		}
+
+		@keyframes us-lunge {
+			0%, 42%, 100% { translate: 0 0; }
+			48% { translate: -9px -10px; }
+			53% { translate: -2px -2px; }
+			58% { translate: 0 0; }
+		}
+
+		@keyframes houthi-lunge {
+			0%, 42%, 100% { translate: 0 0; }
+			48% { translate: -7px -10px; }
+			53% { translate: -2px -2px; }
+			58% { translate: 0 0; }
+		}
+
+		@keyframes target-shake {
+			0%, 44%, 100% { transform: rotate(0); }
+			48% { transform: translateX(-3px) rotate(-6deg); }
+			52% { transform: translateX(3px) rotate(6deg); }
+			57% { transform: translateX(-1px) rotate(-2deg); }
+		}
+
+		@keyframes tear-fall {
+			0%, 12% { opacity: 0; transform: translateY(-2px) rotate(var(--tear-angle)) scaleY(0.6); }
+			25% { opacity: 1; }
+			100% { opacity: 0; transform: translateY(14px) rotate(var(--tear-angle)) scaleY(1.05); }
+		}
+
+		@media (prefers-reduced-motion: reduce) {
+			.country-ball,
+			.country-ball.russia-attacker,
+			.country-ball.us-attacker,
+			.country-ball.houthi-attacker,
+			.country-ball .ball-face,
+			.country-ball.under-attack .ball-face,
+			.country-ball.saudi-target .ball-face,
+			.tears i { animation: none; }
+			.under-attack .tears,
+			.crying .tears { display: none; }
+			.speech-bubble { transition: none; }
+		}
+
 		.vignette {
 			position: absolute;
 			inset: 0;
@@ -204,7 +558,11 @@
 
 		.scene-select {
 			position: absolute;
-			inset: 64px 54px 54px;
+			top: auto;
+			right: 54px;
+			bottom: 40px;
+			left: 54px;
+			height: min(42vh, 360px);
 			padding: 26px;
 			pointer-events: auto;
 			display: none;
@@ -381,7 +739,11 @@
 			}
 
 			.scene-select {
-				inset: 14px;
+				top: auto;
+				right: 14px;
+				bottom: 56px;
+				left: 14px;
+				height: min(46vh, 380px);
 				padding: 14px;
 			}
 
@@ -449,6 +811,67 @@
 				<div class="server"><span class="dot"></span><span>中国服 | 深圳一区</span></div>
 			</div>
 
+			<div class="country-balls" aria-label="地图上的国家波兰球">
+				<svg id="speechTails" class="speech-tails" aria-hidden="true">
+					<path id="franceTail" class="speech-tail"></path>
+					<path id="chinaTail" class="speech-tail"></path>
+					<path id="usTail" class="speech-tail"></path>
+					<path id="polandTail" class="speech-tail"></path>
+				</svg>
+				<div class="country-ball shift-left shift-northwest russia-attacker crying" style="--x: 52%; --y: 31%; --delay: -0.5s;" title="俄罗斯">
+					<div class="ball-face ball-russia"><span class="ball-eyes"><i></i><i></i></span><span class="tears" aria-hidden="true"><i></i><i></i></span></div>
+					<span class="country-name">俄罗斯</span>
+				</div>
+				<div class="country-ball" style="--x: 67%; --y: 43%; --delay: -1.2s;" title="中国">
+					<div class="ball-face ball-china"><span class="ball-eyes"><i></i><i></i></span></div>
+					<span class="country-name">中国</span>
+					<div id="chinaSpeech" class="speech-bubble speech-china" role="status" aria-live="polite"></div>
+				</div>
+				<div class="country-ball" style="--x: 84%; --y: 42%; --delay: -0.9s;" title="日本">
+					<div class="ball-face ball-japan"><span class="ball-eyes"><i></i><i></i></span></div>
+					<span class="country-name">日本</span>
+				</div>
+				<div class="country-ball shift-left us-target under-attack" style="--x: 53%; --y: 51%; --delay: -1.7s;" title="伊朗">
+					<div class="ball-face ball-iran"><span class="ball-eyes"><i></i><i></i></span><span class="tears" aria-hidden="true"><i></i><i></i></span></div>
+					<span class="country-name">伊朗</span>
+				</div>
+				<div class="country-ball compact shift-left shift-northwest under-attack" style="--x: 45%; --y: 39%; --delay: -0.3s;" title="乌克兰">
+					<div class="ball-face ball-ukraine"><span class="ball-eyes"><i></i><i></i></span><span class="tears" aria-hidden="true"><i></i><i></i></span></div>
+					<span class="country-name">乌克兰</span>
+				</div>
+				<div class="country-ball shift-left shift-left-more under-attack saudi-target" style="--x: 44%; --y: 59%; --delay: -1s;" title="沙特阿拉伯">
+					<div class="ball-face ball-saudi"><span class="ball-eyes"><i></i><i></i></span><span class="tears" aria-hidden="true"><i></i><i></i></span></div>
+					<span class="country-name">沙特</span>
+				</div>
+				<div class="country-ball compact shift-left shift-left-more houthi-attacker" style="--x: 47%; --y: 64%; --delay: -1s;" title="也门胡塞">
+					<div class="ball-face ball-yemen"><span class="ball-eyes"><i></i><i></i></span></div>
+					<span class="country-name">胡塞</span>
+				</div>
+				<div class="country-ball compact shift-left shift-northwest shift-down" style="--x: 36%; --y: 36%; --delay: -1.5s;" title="德国">
+					<div class="ball-face ball-germany"><span class="ball-eyes"><i></i><i></i></span></div>
+					<span class="country-name">德国</span>
+				</div>
+				<div class="country-ball compact shift-left shift-northwest under-attack france-target" style="--x: 31%; --y: 43%; --delay: -0.8s;" title="法国">
+					<div class="ball-face ball-france"><span class="ball-eyes"><i></i><i></i></span><span class="tears" aria-hidden="true"><i></i><i></i></span></div>
+					<span class="country-name">法国</span>
+					<div id="franceSpeech" class="speech-bubble speech-france" role="status" aria-live="polite"></div>
+				</div>
+				<div class="country-ball compact shift-left shift-up" style="--x: 26%; --y: 35%; --delay: -1.9s;" title="英国">
+					<div class="ball-face ball-uk"><span class="ball-eyes"><i></i><i></i></span></div>
+					<span class="country-name">英国</span>
+				</div>
+				<div class="country-ball compact shift-left shift-northwest crying" style="--x: 40%; --y: 37%; --delay: -0.1s;" title="波兰">
+					<div class="ball-face ball-poland"><span class="ball-eyes"><i></i><i></i></span><span class="tears" aria-hidden="true"><i></i><i></i></span></div>
+					<span class="country-name">波兰</span>
+					<div id="polandSpeech" class="speech-bubble speech-poland" role="status" aria-live="polite"></div>
+				</div>
+				<div class="country-ball shift-left us-attacker crying" style="--x: 53%; --y: 60%; --delay: -1.1s;" title="美国（印度洋）">
+					<div class="ball-face ball-us"><span class="ball-eyes"><i></i><i></i></span><span class="tears" aria-hidden="true"><i></i><i></i></span></div>
+					<span class="country-name">美国</span>
+					<div id="usSpeech" class="speech-bubble speech-us" role="status" aria-live="polite"></div>
+				</div>
+			</div>
+
 			<div class="menu">
 				<button id="btnContinue">继续</button>
 				<button id="btnAbout">关于</button>
@@ -458,7 +881,7 @@
 
 		<div id="sceneSelect" class="scene-select panel">
 			<div class="scene-top">
-				<h2 style="margin: 0; font-size: clamp(24px, 3vw, 34px);">大厅场景</h2>
+				<h2 style="margin: 0; font-size: clamp(24px, 3vw, 34px);">深圳水贝黄金购买</h2>
 				<button id="btnBackMenu" class="back-btn">返回</button>
 			</div>
 			<div class="scene-grid">
@@ -568,12 +991,102 @@
 		const globalBack = document.getElementById("globalBack");
 		const taskText = document.getElementById("taskText");
 		const statsBox = document.getElementById("statsBox");
+		const franceSpeech = document.getElementById("franceSpeech");
+		const chinaSpeech = document.getElementById("chinaSpeech");
+		const usSpeech = document.getElementById("usSpeech");
+		const polandSpeech = document.getElementById("polandSpeech");
+		const speechTails = document.getElementById("speechTails");
 		const bgm = new Audio();
 		let currentMusicSrc = "";
+		let chinaSpeechTimer;
 
 		bgm.preload = "auto";
 		bgm.loop = true;
 		bgm.volume = 0.55;
+
+		function startMenuDialogue() {
+			window.clearTimeout(chinaSpeechTimer);
+			franceSpeech.textContent = "福利发不起了，我自爆了";
+			chinaSpeech.textContent = "买买买，目前黄金储备2300吨，买到8000吨差不多？";
+			usSpeech.textContent = "国债要爆了，对面快点投降啊";
+			polandSpeech.textContent = "糟糕，又是贵族叛乱";
+			franceSpeech.classList.add("visible");
+			chinaSpeech.classList.add("visible");
+			usSpeech.classList.add("visible");
+			polandSpeech.classList.add("visible");
+			window.requestAnimationFrame(updateSpeechTails);
+			chinaSpeechTimer = window.setTimeout(() => {
+				chinaSpeech.textContent = "奇怪，怎么越买价格越低？这可太好了!";
+				window.requestAnimationFrame(updateSpeechTails);
+			}, 5000);
+		}
+
+		function updateSpeechTails() {
+			const bounds = speechTails.getBoundingClientRect();
+			speechTails.setAttribute("viewBox", "0 0 " + bounds.width + " " + bounds.height);
+			const links = [
+				{ path: document.getElementById("franceTail"), bubble: franceSpeech, face: document.querySelector(".ball-france") },
+				{ path: document.getElementById("chinaTail"), bubble: chinaSpeech, face: document.querySelector(".ball-china") },
+				{ path: document.getElementById("usTail"), bubble: usSpeech, face: document.querySelector(".ball-us") },
+				{ path: document.getElementById("polandTail"), bubble: polandSpeech, face: document.querySelector(".ball-poland") }
+			];
+
+			links.forEach(({ path, bubble, face }) => {
+				if (window.getComputedStyle(bubble).visibility !== "visible") {
+					path.setAttribute("d", "");
+					return;
+				}
+
+				const bubbleRect = bubble.getBoundingClientRect();
+				const faceRect = face.getBoundingClientRect();
+				const centerX = faceRect.left + faceRect.width / 2;
+				const centerY = faceRect.top + faceRect.height / 2;
+				const horizontalSide = centerX < bubbleRect.left ? "left" : centerX > bubbleRect.right ? "right" : null;
+				const verticalSide = centerY < bubbleRect.top ? "top" : centerY > bubbleRect.bottom ? "bottom" : null;
+				let side = horizontalSide || verticalSide;
+
+				if (horizontalSide && verticalSide) {
+					const horizontalGap = Math.abs(centerX - (horizontalSide === "left" ? bubbleRect.left : bubbleRect.right));
+					const verticalGap = Math.abs(centerY - (verticalSide === "top" ? bubbleRect.top : bubbleRect.bottom));
+					side = horizontalGap < verticalGap ? horizontalSide : verticalSide;
+				} else if (!side) {
+					const gaps = [
+						["left", centerX - bubbleRect.left],
+						["right", bubbleRect.right - centerX],
+						["top", centerY - bubbleRect.top],
+						["bottom", bubbleRect.bottom - centerY]
+					];
+					side = gaps.reduce((nearest, gap) => gap[1] < nearest[1] ? gap : nearest)[0];
+				}
+
+				const margin = 12;
+				let baseX = Math.max(bubbleRect.left + margin, Math.min(centerX, bubbleRect.right - margin));
+				let baseY = Math.max(bubbleRect.top + margin, Math.min(centerY, bubbleRect.bottom - margin));
+				let pointA;
+				let pointB;
+
+				if (side === "left" || side === "right") {
+					baseX = side === "left" ? bubbleRect.left : bubbleRect.right;
+					pointA = { x: baseX, y: baseY - 10 };
+					pointB = { x: baseX, y: baseY + 10 };
+				} else {
+					baseY = side === "top" ? bubbleRect.top : bubbleRect.bottom;
+					pointA = { x: baseX - 10, y: baseY };
+					pointB = { x: baseX + 10, y: baseY };
+				}
+
+				const dx = centerX - baseX;
+				const dy = centerY - baseY;
+				const distance = Math.hypot(dx, dy) || 1;
+				const radius = Math.min(faceRect.width, faceRect.height) * 0.46;
+				const tip = {
+					x: centerX - dx / distance * radius,
+					y: centerY - dy / distance * radius
+				};
+				const local = point => (point.x - bounds.left).toFixed(1) + " " + (point.y - bounds.top).toFixed(1);
+				path.setAttribute("d", "M " + local(pointA) + " L " + local(tip) + " L " + local(pointB) + " Z");
+			});
+		}
 
 		function updateGlobalBackVisibility() {
 			const shouldShow = (GAME.state !== "menu" || sceneSelect.style.display === "flex") && !GAME.branchOpen;
@@ -682,6 +1195,7 @@
 			setVisible(sceneFallback, false);
 			setVisible(menuBg, true, "block");
 			setVisible(menuLayer, true, "block");
+			startMenuDialogue();
 			setVisible(sceneSelect, false);
 			setVisible(hud, false);
 			setVisible(status, false);
@@ -826,6 +1340,7 @@
 		});
 
 		video.addEventListener("timeupdate", handleTimeline);
+		window.addEventListener("resize", updateSpeechTails);
 		video.addEventListener("error", () => {
 			setVisible(video, false);
 			showSceneFallback(GAME.scene, "视频加载失败");
