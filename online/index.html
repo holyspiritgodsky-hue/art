@@ -183,6 +183,19 @@
 			height: 11px;
 		}
 
+		.country-ball.large-ball .ball-face {
+			width: clamp(44px, 5.8vw, 66px);
+		}
+
+		.country-ball.compact.large-ball .ball-face {
+			width: clamp(40px, 4.4vw, 54px);
+		}
+
+		.country-ball.large-ball .ball-eyes i {
+			width: clamp(10px, 1.2vw, 15px);
+			height: clamp(14px, 1.7vw, 20px);
+		}
+
 		.ball-eyes {
 			position: absolute;
 			left: 50%;
@@ -221,7 +234,6 @@
 			border: 1px solid #d5deeb;
 			border-radius: 14px;
 			background: #fffdf6;
-			box-shadow: 0 5px 16px rgba(0, 0, 0, 0.35);
 			color: #172033;
 			font-size: clamp(12px, 1.15vw, 15px);
 			font-weight: 600;
@@ -257,6 +269,11 @@
 		.speech-poland {
 			right: calc(100% + 14px);
 			bottom: calc(100% + 14px);
+		}
+
+		.speech-germany {
+			top: calc(100% + 10px);
+			left: calc(100% + 10px);
 		}
 
 		@media (max-width: 600px) {
@@ -532,6 +549,10 @@
 			pointer-events: auto;
 		}
 
+		.mobile-dialogue {
+			display: none;
+		}
+
 		.menu button,
 		.choice button,
 		.scene-card button,
@@ -559,15 +580,18 @@
 		.scene-select {
 			position: absolute;
 			top: auto;
-			right: 54px;
+			left: 50%;
+			right: auto;
 			bottom: 40px;
-			left: 54px;
-			height: min(42vh, 360px);
-			padding: 26px;
+			width: min(82vw, 920px);
+			height: auto;
+			max-height: min(38vh, 320px);
+			padding: 20px;
 			pointer-events: auto;
 			display: none;
 			flex-direction: column;
-			gap: 18px;
+			gap: 14px;
+			transform: translateX(-50%);
 		}
 
 		.scene-top {
@@ -589,14 +613,14 @@
 			border-radius: 10px;
 			overflow: hidden;
 			background: rgba(8, 16, 32, 0.7);
-			min-height: 148px;
+			min-height: 126px;
 			display: flex;
 			flex-direction: column;
 		}
 
 		.scene-thumb {
 			flex: 1;
-			min-height: 90px;
+			min-height: 72px;
 			background: linear-gradient(120deg, #24579e 0%, #0f2f5f 40%, #071531 100%);
 			background-size: cover;
 			background-position: center;
@@ -723,6 +747,52 @@
 			padding: 14px 18px;
 		}
 
+		.news-broadcast {
+			position: absolute;
+			left: 50%;
+			bottom: 28px;
+			z-index: 15;
+			display: none;
+			align-items: center;
+			gap: 18px;
+			width: min(86vw, 700px);
+			padding: 16px 20px;
+			transform: translateX(-50%);
+			color: var(--text);
+			font: inherit;
+			text-align: left;
+			cursor: pointer;
+		}
+
+		.news-broadcast.visible { display: flex; }
+
+		.news-broadcast img {
+			width: 76px;
+			height: 76px;
+			flex: 0 0 auto;
+			border: 2px solid rgba(100, 210, 255, 0.8);
+			border-radius: 50%;
+			object-fit: cover;
+		}
+
+		.news-broadcast-poland {
+			display: none;
+			width: 76px;
+			height: 76px;
+			flex: 0 0 auto;
+			border-color: rgba(100, 210, 255, 0.8);
+		}
+
+		.news-broadcast.is-poland img { display: none; }
+		.news-broadcast.is-poland .news-broadcast-poland { display: block; }
+
+		.news-broadcast-text {
+			display: block;
+			font-size: clamp(17px, 2vw, 24px);
+			font-weight: 600;
+			line-height: 1.4;
+		}
+
 		.hidden {
 			display: none !important;
 		}
@@ -743,8 +813,11 @@
 				right: 14px;
 				bottom: 56px;
 				left: 14px;
-				height: min(46vh, 380px);
+				width: auto;
+				height: auto;
+				max-height: min(40vh, 320px);
 				padding: 14px;
+				transform: none;
 			}
 
 			.brand {
@@ -794,6 +867,67 @@
 			.scene-grid {
 				grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
 			}
+
+			.news-broadcast {
+				bottom: 120px;
+				gap: 12px;
+				width: calc(100vw - 28px);
+				padding: 12px 14px;
+			}
+
+			.news-broadcast img {
+				width: 58px;
+				height: 58px;
+			}
+
+			.news-broadcast-poland {
+				width: 58px;
+				height: 58px;
+			}
+		}
+
+		@media (max-width: 600px) and (orientation: portrait) {
+			#menuBg { background-position: center 44%; }
+			.country-balls { top: 44%; }
+			.brand { width: 100%; }
+			.brand h1 { font-size: clamp(30px, 10vw, 42px); white-space: nowrap; }
+			.brand .sub { font-size: 14px; }
+			.server { margin-top: 8px; padding: 5px 10px; font-size: 12px; }
+			.country-ball .ball-face { width: 30px; }
+			.country-ball.compact .ball-face { width: 22px; }
+			.country-ball.large-ball .ball-face { width: 34px; }
+			.country-ball .ball-eyes i { width: 6px; height: 9px; }
+			.country-ball.compact .ball-eyes i { width: 5px; height: 7px; }
+			.country-ball.large-ball .ball-eyes i { width: 8px; height: 11px; }
+			.country-ball .ball-eyes { gap: 2px; }
+			.ball-china::before { font-size: 10px; }
+			.country-ball .country-name { font-size: 8px; padding: 1px 3px; }
+			.country-ball .speech-bubble,
+			.speech-tails { display: none; }
+			.country-ball.mobile-speaking { z-index: 3; }
+			.country-ball.mobile-speaking .ball-face {
+				box-shadow: 0 0 0 2px #64d2ff, 0 0 14px #64d2ff;
+			}
+			.mobile-dialogue {
+				position: absolute;
+				left: 14px;
+				right: 14px;
+				bottom: 76px;
+				z-index: 2;
+				display: block;
+				padding: 10px 12px;
+				border: 1px solid #d5deeb;
+				border-radius: 12px;
+				background: #fffdf6;
+				color: #172033;
+				font-size: 15px;
+				line-height: 1.4;
+			}
+			.mobile-dialogue-name { font-weight: 700; }
+			#menuLayer.news-open .mobile-dialogue,
+			#menuLayer.scene-open .mobile-dialogue { display: none; }
+			.menu { flex-direction: row; gap: 10px; }
+			.menu button { font-size: 16px; }
 		}
 	</style>
 </head>
@@ -817,17 +951,18 @@
 					<path id="chinaTail" class="speech-tail"></path>
 					<path id="usTail" class="speech-tail"></path>
 					<path id="polandTail" class="speech-tail"></path>
+					<path id="germanyTail" class="speech-tail"></path>
 				</svg>
-				<div class="country-ball shift-left shift-northwest russia-attacker crying" style="--x: 52%; --y: 31%; --delay: -0.5s;" title="俄罗斯">
+				<div class="country-ball large-ball shift-left shift-northwest russia-attacker crying" style="--x: 52%; --y: 31%; --delay: -0.5s;" title="俄罗斯">
 					<div class="ball-face ball-russia"><span class="ball-eyes"><i></i><i></i></span><span class="tears" aria-hidden="true"><i></i><i></i></span></div>
 					<span class="country-name">俄罗斯</span>
 				</div>
-				<div class="country-ball" style="--x: 67%; --y: 43%; --delay: -1.2s;" title="中国">
+				<div class="country-ball large-ball" style="--x: 73%; --y: 34%; --delay: -1.2s;" title="中国">
 					<div class="ball-face ball-china"><span class="ball-eyes"><i></i><i></i></span></div>
 					<span class="country-name">中国</span>
 					<div id="chinaSpeech" class="speech-bubble speech-china" role="status" aria-live="polite"></div>
 				</div>
-				<div class="country-ball" style="--x: 84%; --y: 42%; --delay: -0.9s;" title="日本">
+				<div class="country-ball" style="--x: 84%; --y: 35%; --delay: -0.9s;" title="日本">
 					<div class="ball-face ball-japan"><span class="ball-eyes"><i></i><i></i></span></div>
 					<span class="country-name">日本</span>
 				</div>
@@ -847,9 +982,10 @@
 					<div class="ball-face ball-yemen"><span class="ball-eyes"><i></i><i></i></span></div>
 					<span class="country-name">胡塞</span>
 				</div>
-				<div class="country-ball compact shift-left shift-northwest shift-down" style="--x: 36%; --y: 36%; --delay: -1.5s;" title="德国">
-					<div class="ball-face ball-germany"><span class="ball-eyes"><i></i><i></i></span></div>
+				<div class="country-ball compact shift-left shift-northwest shift-down crying" style="--x: 36%; --y: 36%; --delay: -1.5s;" title="德国">
+					<div class="ball-face ball-germany"><span class="ball-eyes"><i></i><i></i></span><span class="tears" aria-hidden="true"><i></i><i></i></span></div>
 					<span class="country-name">德国</span>
+					<div id="germanySpeech" class="speech-bubble speech-germany" role="status" aria-live="polite"></div>
 				</div>
 				<div class="country-ball compact shift-left shift-northwest under-attack france-target" style="--x: 31%; --y: 43%; --delay: -0.8s;" title="法国">
 					<div class="ball-face ball-france"><span class="ball-eyes"><i></i><i></i></span><span class="tears" aria-hidden="true"><i></i><i></i></span></div>
@@ -865,37 +1001,41 @@
 					<span class="country-name">波兰</span>
 					<div id="polandSpeech" class="speech-bubble speech-poland" role="status" aria-live="polite"></div>
 				</div>
-				<div class="country-ball shift-left us-attacker crying" style="--x: 53%; --y: 60%; --delay: -1.1s;" title="美国（印度洋）">
+				<div class="country-ball large-ball shift-left us-attacker crying" style="--x: 53%; --y: 60%; --delay: -1.1s;" title="美国（印度洋）">
 					<div class="ball-face ball-us"><span class="ball-eyes"><i></i><i></i></span><span class="tears" aria-hidden="true"><i></i><i></i></span></div>
 					<span class="country-name">美国</span>
 					<div id="usSpeech" class="speech-bubble speech-us" role="status" aria-live="polite"></div>
 				</div>
 			</div>
 
+			<div class="mobile-dialogue">
+				<span id="mobileDialogueName" class="mobile-dialogue-name"></span>
+				<span id="mobileDialogueText"></span>
+			</div>
+
 			<div class="menu">
-				<button id="btnContinue">继续</button>
-				<button id="btnAbout">关于</button>
-				<button id="btnSettings">设置</button>
+				<button id="btnAbout">观测未来</button>
+				<button id="btnContinue">改变现在</button>
 			</div>
 		</div>
 
 		<div id="sceneSelect" class="scene-select panel">
 			<div class="scene-top">
-				<h2 style="margin: 0; font-size: clamp(24px, 3vw, 34px);">深圳水贝黄金购买</h2>
+				<h2 style="margin: 0; font-size: clamp(24px, 3vw, 34px);">选择</h2>
 				<button id="btnBackMenu" class="back-btn">返回</button>
 			</div>
 			<div class="scene-grid">
 				<div class="scene-card">
 					<div class="scene-thumb" style="background-image: url('img/1.png');"></div>
-					<button data-scene="nightRoad">去吃肉（o0）</button>
+					<button data-scene="nightRoad">去吃肉</button>
 				</div>
 				<div class="scene-card">
 					<div class="scene-thumb" style="background-image: url('img/2.png');"></div>
-					<button data-scene="market">吃肉过程 1（o1）</button>
+					<button data-scene="market">买黄金</button>
 				</div>
 				<div class="scene-card">
 					<div class="scene-thumb" style="background-image: url('img/3.png');"></div>
-					<button data-scene="home">吃肉过程 2（o2）</button>
+					<button data-scene="home">买股票</button>
 				</div>
 			</div>
 		</div>
@@ -915,6 +1055,14 @@
 		</div>
 
 		<button id="globalBack" class="global-back">返回主页 (Esc)</button>
+
+		<button id="newsBroadcast" class="news-broadcast panel" type="button" aria-live="polite">
+			<img src="img/me.jpg" alt="我的头像">
+			<span class="ball-face ball-poland news-broadcast-poland" aria-hidden="true"><span class="ball-eyes"><i></i><i></i></span></span>
+			<span>
+				<span id="newsBroadcastText" class="news-broadcast-text"></span>
+			</span>
+		</button>
 
 		<div id="centerMsg" class="panel center-msg"></div>
 	</div>
@@ -989,36 +1137,100 @@
 		const choiceB = document.getElementById("choiceB");
 		const choiceBack = document.getElementById("choiceBack");
 		const globalBack = document.getElementById("globalBack");
+		const newsBroadcast = document.getElementById("newsBroadcast");
+		const newsBroadcastText = document.getElementById("newsBroadcastText");
 		const taskText = document.getElementById("taskText");
 		const statsBox = document.getElementById("statsBox");
 		const franceSpeech = document.getElementById("franceSpeech");
 		const chinaSpeech = document.getElementById("chinaSpeech");
 		const usSpeech = document.getElementById("usSpeech");
 		const polandSpeech = document.getElementById("polandSpeech");
+		const germanySpeech = document.getElementById("germanySpeech");
 		const speechTails = document.getElementById("speechTails");
+		const mobileDialogueName = document.getElementById("mobileDialogueName");
+		const mobileDialogueText = document.getElementById("mobileDialogueText");
+		const mobileDialogueMedia = window.matchMedia("(max-width: 600px) and (orientation: portrait)");
 		const bgm = new Audio();
 		let currentMusicSrc = "";
 		let chinaSpeechTimer;
+		let mobileDialogueTimer;
+		let mobileDialogueIndex = 0;
+		let chinaSpeechIndex = 0;
+		let newsBroadcastIndex = -1;
+		const chinaSpeechLines = [
+			"买买买，目前黄金储备2300吨，买到8000吨差不多？",
+			"奇怪，怎么越买价格越低？这可太好了!"
+		];
+		const newsBroadcastLines = [
+			"11月1日德国也刷暴乱了。法国不愧是老区，这感染力，都传遍欧洲了。",
+			"什么，波兰也发生了暴乱？",
+			"我这不一样，我这是贵族叛乱。",
+			"……坏了，总统府被人占了。",
+			"不愧是平独镇露大波波。",
+			"可以预见的未来5年，欧洲就是会一团糟啊。"
+		];
 
 		bgm.preload = "auto";
 		bgm.loop = true;
 		bgm.volume = 0.55;
 
+		function stopMobileDialogue() {
+			window.clearInterval(mobileDialogueTimer);
+			mobileDialogueTimer = undefined;
+			document.querySelectorAll(".country-ball.mobile-speaking").forEach(ball => ball.classList.remove("mobile-speaking"));
+		}
+
+		function startMobileDialogue() {
+			stopMobileDialogue();
+			if (!mobileDialogueMedia.matches || GAME.state !== "menu") {
+				return;
+			}
+
+			const lines = [
+				{ bubble: chinaSpeech, text: chinaSpeechLines[0] },
+				{ bubble: chinaSpeech, text: chinaSpeechLines[1] },
+				{ bubble: franceSpeech },
+				{ bubble: germanySpeech },
+				{ bubble: polandSpeech },
+				{ bubble: usSpeech }
+			];
+			mobileDialogueIndex = 0;
+			function showMobileDialogue() {
+				const line = lines[mobileDialogueIndex];
+				const ball = line.bubble.closest(".country-ball");
+				document.querySelectorAll(".country-ball.mobile-speaking").forEach(item => item.classList.remove("mobile-speaking"));
+				ball.classList.add("mobile-speaking");
+				mobileDialogueName.textContent = ball.querySelector(".country-name").textContent + "：";
+				mobileDialogueText.textContent = line.text || line.bubble.textContent;
+			}
+
+			showMobileDialogue();
+			mobileDialogueTimer = window.setInterval(() => {
+				mobileDialogueIndex = (mobileDialogueIndex + 1) % lines.length;
+				showMobileDialogue();
+			}, 8000);
+		}
+
 		function startMenuDialogue() {
-			window.clearTimeout(chinaSpeechTimer);
+			window.clearInterval(chinaSpeechTimer);
 			franceSpeech.textContent = "福利发不起了，我自爆了";
-			chinaSpeech.textContent = "买买买，目前黄金储备2300吨，买到8000吨差不多？";
+			chinaSpeechIndex = 0;
+			chinaSpeech.textContent = chinaSpeechLines[chinaSpeechIndex];
 			usSpeech.textContent = "国债要爆了，对面快点投降啊";
 			polandSpeech.textContent = "糟糕，又是贵族叛乱";
+			germanySpeech.textContent = "我也自爆了";
 			franceSpeech.classList.add("visible");
 			chinaSpeech.classList.add("visible");
 			usSpeech.classList.add("visible");
 			polandSpeech.classList.add("visible");
+			germanySpeech.classList.add("visible");
+			startMobileDialogue();
 			window.requestAnimationFrame(updateSpeechTails);
-			chinaSpeechTimer = window.setTimeout(() => {
-				chinaSpeech.textContent = "奇怪，怎么越买价格越低？这可太好了!";
+			chinaSpeechTimer = window.setInterval(() => {
+				chinaSpeechIndex = (chinaSpeechIndex + 1) % chinaSpeechLines.length;
+				chinaSpeech.textContent = chinaSpeechLines[chinaSpeechIndex];
 				window.requestAnimationFrame(updateSpeechTails);
-			}, 5000);
+			}, 8000);
 		}
 
 		function updateSpeechTails() {
@@ -1028,7 +1240,8 @@
 				{ path: document.getElementById("franceTail"), bubble: franceSpeech, face: document.querySelector(".ball-france") },
 				{ path: document.getElementById("chinaTail"), bubble: chinaSpeech, face: document.querySelector(".ball-china") },
 				{ path: document.getElementById("usTail"), bubble: usSpeech, face: document.querySelector(".ball-us") },
-				{ path: document.getElementById("polandTail"), bubble: polandSpeech, face: document.querySelector(".ball-poland") }
+				{ path: document.getElementById("polandTail"), bubble: polandSpeech, face: document.querySelector(".ball-poland") },
+				{ path: document.getElementById("germanyTail"), bubble: germanySpeech, face: document.querySelector(".ball-germany") }
 			];
 
 			links.forEach(({ path, bubble, face }) => {
@@ -1066,11 +1279,11 @@
 				let pointB;
 
 				if (side === "left" || side === "right") {
-					baseX = side === "left" ? bubbleRect.left : bubbleRect.right;
+					baseX = side === "left" ? bubbleRect.left + 2 : bubbleRect.right - 2;
 					pointA = { x: baseX, y: baseY - 10 };
 					pointB = { x: baseX, y: baseY + 10 };
 				} else {
-					baseY = side === "top" ? bubbleRect.top : bubbleRect.bottom;
+					baseY = side === "top" ? bubbleRect.top + 2 : bubbleRect.bottom - 2;
 					pointA = { x: baseX - 10, y: baseY };
 					pointB = { x: baseX + 10, y: baseY };
 				}
@@ -1112,6 +1325,27 @@
 			centerMsg.textContent = text;
 			setVisible(centerMsg, true, "block");
 			window.setTimeout(() => setVisible(centerMsg, false), ms);
+		}
+
+		function advanceNewsBroadcast() {
+			if (newsBroadcastIndex === newsBroadcastLines.length - 1) {
+				closeNewsBroadcast();
+				return;
+			}
+
+			newsBroadcastIndex += 1;
+			newsBroadcastText.textContent = newsBroadcastLines[newsBroadcastIndex];
+			newsBroadcast.classList.toggle("is-poland", newsBroadcastIndex === 2 || newsBroadcastIndex === 3);
+			newsBroadcast.setAttribute("aria-label", newsBroadcastLines[newsBroadcastIndex]);
+			newsBroadcast.classList.add("visible");
+			menuLayer.classList.add("news-open");
+		}
+
+		function closeNewsBroadcast() {
+			newsBroadcastIndex = -1;
+			newsBroadcast.classList.remove("visible");
+			newsBroadcast.classList.remove("is-poland");
+			menuLayer.classList.remove("news-open");
 		}
 
 		function showSceneFallback(sceneName, reason = "") {
@@ -1185,6 +1419,7 @@
 
 		function enterMenu() {
 			GAME.state = "menu";
+			menuLayer.classList.remove("scene-open");
 			GAME.branchOpen = false;
 			GAME.canRide = false;
 			stopMusic();
@@ -1205,6 +1440,8 @@
 		}
 
 		function enterPlay(sceneName) {
+			window.clearInterval(chinaSpeechTimer);
+			stopMobileDialogue();
 			GAME.state = "play";
 			GAME.branchOpen = false;
 			GAME.canRide = false;
@@ -1274,20 +1511,21 @@
 		}
 
 		document.getElementById("btnContinue").addEventListener("click", () => {
-			setVisible(sceneSelect, true, "flex");
+			closeNewsBroadcast();
+			setVisible(sceneSelect, sceneSelect.style.display !== "flex", "flex");
+			menuLayer.classList.toggle("scene-open", sceneSelect.style.display === "flex");
 			updateGlobalBackVisibility();
 		});
 
 		document.getElementById("btnAbout").addEventListener("click", () => {
-			showCenter("原型说明：游戏外壳 + 现实视频交互。", 2400);
+			advanceNewsBroadcast();
 		});
 
-		document.getElementById("btnSettings").addEventListener("click", () => {
-			showCenter("设置占位：语言、界面缩放、字幕开关。", 2400);
-		});
+		newsBroadcast.addEventListener("click", advanceNewsBroadcast);
 
 		document.getElementById("btnBackMenu").addEventListener("click", () => {
 			setVisible(sceneSelect, false);
+			menuLayer.classList.remove("scene-open");
 			updateGlobalBackVisibility();
 		});
 
@@ -1340,6 +1578,7 @@
 		});
 
 		video.addEventListener("timeupdate", handleTimeline);
+		mobileDialogueMedia.addEventListener("change", startMobileDialogue);
 		window.addEventListener("resize", updateSpeechTails);
 		video.addEventListener("error", () => {
 			setVisible(video, false);
