@@ -292,7 +292,31 @@
           "up_probability": null
         }
       ],
-      "outcome": null
+      "outcome": {
+        "reviewed_at": "2026-11-02T15:50:07+08:00",
+        "top1_sector": "银行",
+        "top1_close_change_pct": 0.515,
+        "top1_correct": true,
+        "top3_up_count": 1,
+        "ranked_sector_results": [
+          {
+            "name": "银行",
+            "close_change_pct": 0.515,
+            "up": true
+          },
+          {
+            "name": "机械设备",
+            "close_change_pct": -3.9431,
+            "up": false
+          },
+          {
+            "name": "国防军工",
+            "close_change_pct": -4.1021,
+            "up": false
+          }
+        ],
+        "basis": "按预测行业指数预测日收盘价是否高于前一交易日收盘价判定；不代表个股或实际交易收益。"
+      }
     }
   ],
   "backtests": [
