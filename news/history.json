@@ -346,6 +346,35 @@
         }
       ],
       "outcome": null
+    },
+    {
+      "prediction_at": "2026-11-04T08:49:26+08:00",
+      "trading_date": "2026-11-04",
+      "market_date": "2026-11-03",
+      "mode": "live_forecast",
+      "ranked_sectors": [
+        "电力设备",
+        "社会服务",
+        "银行"
+      ],
+      "ranked_sector_details": [
+        {
+          "name": "电力设备",
+          "score": 80.9,
+          "up_probability": null
+        },
+        {
+          "name": "社会服务",
+          "score": 78.8,
+          "up_probability": null
+        },
+        {
+          "name": "银行",
+          "score": 73.4,
+          "up_probability": null
+        }
+      ],
+      "outcome": null
     }
   ],
   "backtests": [
