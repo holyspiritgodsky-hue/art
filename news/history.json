@@ -345,7 +345,31 @@
           "up_probability": null
         }
       ],
-      "outcome": null
+      "outcome": {
+        "reviewed_at": "2026-11-05T15:49:17+08:00",
+        "top1_sector": "传媒",
+        "top1_close_change_pct": 0.5236,
+        "top1_correct": true,
+        "top3_up_count": 2,
+        "ranked_sector_results": [
+          {
+            "name": "传媒",
+            "close_change_pct": 0.5236,
+            "up": true
+          },
+          {
+            "name": "食品饮料",
+            "close_change_pct": 2.1189,
+            "up": true
+          },
+          {
+            "name": "医药生物",
+            "close_change_pct": -0.579,
+            "up": false
+          }
+        ],
+        "basis": "按预测行业指数预测日收盘价是否高于前一交易日收盘价判定；不代表个股或实际交易收益。"
+      }
     },
     {
       "prediction_at": "2026-11-04T08:49:26+08:00",
@@ -374,7 +398,31 @@
           "up_probability": null
         }
       ],
-      "outcome": null
+      "outcome": {
+        "reviewed_at": "2026-11-05T15:49:22+08:00",
+        "top1_sector": "电力设备",
+        "top1_close_change_pct": 3.4493,
+        "top1_correct": true,
+        "top3_up_count": 2,
+        "ranked_sector_results": [
+          {
+            "name": "电力设备",
+            "close_change_pct": 3.4493,
+            "up": true
+          },
+          {
+            "name": "社会服务",
+            "close_change_pct": 1.472,
+            "up": true
+          },
+          {
+            "name": "银行",
+            "close_change_pct": -0.844,
+            "up": false
+          }
+        ],
+        "basis": "按预测行业指数预测日收盘价是否高于前一交易日收盘价判定；不代表个股或实际交易收益。"
+      }
     }
   ],
   "backtests": [
