@@ -423,6 +423,35 @@
         ],
         "basis": "按预测行业指数预测日收盘价是否高于前一交易日收盘价判定；不代表个股或实际交易收益。"
       }
+    },
+    {
+      "prediction_at": "2026-11-06T08:50:11+08:00",
+      "trading_date": "2026-11-06",
+      "market_date": "2026-11-05",
+      "mode": "live_forecast",
+      "ranked_sectors": [
+        "电力设备",
+        "传媒",
+        "商贸零售"
+      ],
+      "ranked_sector_details": [
+        {
+          "name": "电力设备",
+          "score": 98.4,
+          "up_probability": null
+        },
+        {
+          "name": "传媒",
+          "score": 89.8,
+          "up_probability": null
+        },
+        {
+          "name": "商贸零售",
+          "score": 83.9,
+          "up_probability": null
+        }
+      ],
+      "outcome": null
     }
   ],
   "backtests": [
