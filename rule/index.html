@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#060b14">
+  <title>观测未来 · 世界关联与行业推演</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='24' fill='%23060b14' stroke='%239ae2cb' stroke-width='3'/%3E%3Ccircle cx='32' cy='32' r='15' fill='%231a5360'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="observatory.css">
+  <script defer src="logic.js"></script>
+  <script defer src="rules.js"></script>
+  <script defer src="observatory.js"></script>
+  <script defer src="daily.js"></script>
+  <script type="importmap">{"imports":{"three":"./afterlight/vendor/three.module.min.js","three/addons/":"./afterlight/vendor/addons/"}}</script>
+  <script type="module" src="globe.js"></script>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <a class="brand" href="./"><span class="brand-orbit">◉</span><span>观测未来<small>WORLD OBSERVATORY</small></span></a>
+    <nav class="tabs" aria-label="页面导航">
+      <button type="button" class="tab active" data-tab="world" aria-selected="true">世界关联</button>
+      <button type="button" class="tab" data-tab="analysis" aria-selected="false">信息与推演</button>
+      <button type="button" class="tab" data-tab="review" aria-selected="false">判断与复盘</button>
+    </nav>
+    <div class="top-actions"><button type="button" id="export" class="text-button">导出备份</button><label class="text-button import">导入备份<input id="import" type="file" accept=".json,application/json"></label></div>
+  </header>
+  <div id="notice" class="notice" role="status" hidden></div>
+  <main>
+    <section class="view active" id="view-world">
+      <div class="hero-copy"><span class="eyebrow"><i></i> WORLD OBSERVATORY</span><h1>世界正在发生什么<span>与行业有什么关系</span></h1><p>自动读取新闻，按已有规则梳理可能的传导；点击信息查看依据。</p></div>
+      <div class="world-layout">
+        <div class="globe-card">
+          <div class="globe-caption"><span>THE CONNECTED EARTH</span><span>01 / 03</span></div>
+          <div id="globe" class="globe" aria-label="可旋转的地球，显示手动记录的关联">
+            <div class="globe-status" id="globe-status">正在加载地球…</div>
+          </div>
+          <div class="globe-footer"><span>拖动旋转 · 滚轮缩放</span><span>连线为手动记录，不代表实时数据</span></div>
+        </div>
+        <aside class="panel connections-panel">
+          <div class="panel-kicker">DAILY OBSERVATION <span>自动读取</span></div>
+          <h2>今日观察</h2>
+          <p id="daily-status" class="muted" role="status">正在读取新闻…</p>
+          <div id="daily-result"></div>
+          <button type="button" class="button outline" id="daily-retry" hidden>重新获取</button>
+          <details class="add-connection"><summary>手动管理地球关联（可选）</summary>
+            <p class="muted">地球连线仅显示你手动记录的关联，不是新闻自动推断。</p>
+            <div class="panel-kicker">CONNECTIONS <span id="connection-count">0</span></div>
+            <div id="connections" class="connection-list"></div>
+            <details><summary>＋ 添加一条关联</summary>
+            <form id="connection-form" class="form-stack">
+              <div class="columns"><label>起点<select name="from" required></select></label><label>终点<select name="to" required></select></label></div>
+              <label>关系描述<input name="description" maxlength="100" required placeholder="例如：能源贸易、航线、供应链"></label>
+              <label>来源或依据<input name="source" maxlength="180" required placeholder="请填写来源名称"></label>
+              <button class="button primary" type="submit">保存关联</button>
+            </form>
+            </details>
+          </details>
+          <button type="button" class="button outline go-analysis">自己分析其他信息 <span>↗</span></button>
+        </aside>
+      </div>
+      <section class="panel daily-list-panel"><div class="panel-kicker">LATEST SIGNALS</div><h2>更多新闻</h2><p class="muted">选择一条查看规则是否覆盖。新闻可能包含观点或预测，请打开来源核实。</p><div id="daily-list" class="daily-list"></div></section>
+      <div class="process"><span>从世界信息到可检验的判断</span><b>01 信息</b><i>→</i><b>02 传导逻辑</b><i>→</i><b>03 行业假设</b><i>→</i><b>04 事后复盘</b></div>
+    </section>
+
+    <section class="view" id="view-analysis" hidden>
+      <div class="view-title"><div><span class="eyebrow">SIGNAL LAB / 01—03</span><h1>从一条信息<span>走到行业假设</span></h1><p>粘贴原文，系统匹配可解释的规则；由你核对方向，再决定是否保存判断。</p></div><span class="pill">手动信息 · 本地规则 · 无 AI</span></div>
+      <div class="analysis-layout">
+        <section class="panel input-panel">
+          <div class="panel-kicker">01 / INFORMATION</div><h2>输入信息</h2>
+          <p class="muted">也可以自己粘贴包含明确变化的标题或正文，例如“国际油价上涨”；规则只识别少数明确表述。</p>
+          <form id="analysis-form" class="form-stack">
+            <label>信息原文<textarea name="text" rows="8" maxlength="6000" required placeholder="在这里粘贴新闻标题或正文……"></textarea></label>
+            <div class="columns"><label>来源名称<input name="source" maxlength="180" required placeholder="例如：机构公告"></label><label>信息日期<input name="date" type="date" required></label></div>
+            <label>原文链接 <span class="optional">选填</span><input name="url" type="url" placeholder="https://..."></label>
+            <button type="submit" class="button primary">提取并推演 <span>→</span></button>
+          </form>
+          <div class="rule-note"><strong>本版覆盖范围</strong><p>黄金价格走高的少数表述、国际油价上涨 / 下跌、航运运价上涨 / 下跌。其他信息会明确提示未匹配，不会编造结论。</p></div>
+        </section>
+        <section class="panel output-panel">
+          <div class="panel-kicker">02—03 / REASONING &amp; SCENARIOS</div><h2>规则推演</h2>
+          <div id="analysis-result" class="analysis-empty"><div class="empty-symbol">◎</div><strong>从一条真实信息开始</strong><p>提取结果、传导路径、行业假设和失效条件将显示在这里。</p></div>
+        </section>
+      </div>
+    </section>
+
+    <section class="view" id="view-review" hidden>
+      <div class="view-title"><div><span class="eyebrow">FORECAST JOURNAL / 04</span><h1>每一次判断<span>都值得回看</span></h1><p>记录行业相对基准的方向，到期手动录入指数值并复盘。</p></div><span id="forecast-count" class="pill">0 条判断</span></div>
+      <div id="forecasts" class="forecast-list"></div>
+    </section>
+  </main>
+  <footer><span>观测未来 / WORLD OBSERVATORY</span><span>本地保存 · 规则是情景假设，不是投资建议</span><div><a href="./afterlight/assets/ASSET-CREDITS.md">素材署名 ↗</a></div></footer>
+</div>
+<dialog id="forecast-dialog">
+  <form id="forecast-form" class="form-stack">
+    <div class="dialog-heading"><div><span class="panel-kicker">SAVE A FORECAST</span><h2>确认行业判断</h2></div><button type="button" id="close-dialog" class="icon-button" aria-label="关闭">×</button></div>
+    <div id="forecast-context" class="context"></div>
+    <p id="forecast-error" class="dialog-error" role="alert" hidden></p>
+    <p class="muted">规则给出的是经营传导假设，不自动推断股价。请独立选择市场方向和检验窗口。</p>
+    <div class="columns"><label>A 股行业指数及代码<input name="sector" required maxlength="150" placeholder="例如：具体行业指数及代码"></label><label>比较基准及代码<input name="benchmark" required maxlength="150" placeholder="例如：沪深300及代码"></label></div>
+    <div class="columns"><label>相对表现判断<select name="direction" required><option value="">请选择</option><option value="outperform">行业跑赢基准</option><option value="underperform">行业跑输基准</option></select></label><label>信心程度<select name="confidence" required><option value="">请选择</option><option value="low">低</option><option value="medium">中</option><option value="high">高</option></select></label></div>
+    <div class="columns"><label>起始交易日<input name="startDate" type="date" required></label><label>截止交易日<input name="endDate" type="date" required></label></div>
+    <p class="hint">请在判断发生时及时保存。日期须自行核对为交易日，使用相同口径的收盘数据。</p>
+    <button class="button primary" type="submit">确认并保存判断</button>
+  </form>
+</dialog>
+</body>
+</html>
