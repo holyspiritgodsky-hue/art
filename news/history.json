@@ -452,6 +452,35 @@
         }
       ],
       "outcome": null
+    },
+    {
+      "prediction_at": "2026-11-09T08:52:00+08:00",
+      "trading_date": "2026-11-09",
+      "market_date": "2026-11-06",
+      "mode": "live_forecast",
+      "ranked_sectors": [
+        "电力设备",
+        "计算机",
+        "电子"
+      ],
+      "ranked_sector_details": [
+        {
+          "name": "电力设备",
+          "score": 85.8,
+          "up_probability": null
+        },
+        {
+          "name": "计算机",
+          "score": 81.4,
+          "up_probability": null
+        },
+        {
+          "name": "电子",
+          "score": 80.2,
+          "up_probability": null
+        }
+      ],
+      "outcome": null
     }
   ],
   "backtests": [
