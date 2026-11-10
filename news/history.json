@@ -505,6 +505,35 @@
         }
       ],
       "outcome": null
+    },
+    {
+      "prediction_at": "2026-11-10T08:49:06+08:00",
+      "trading_date": "2026-11-10",
+      "market_date": "2026-11-09",
+      "mode": "live_forecast",
+      "ranked_sectors": [
+        "传媒",
+        "电子",
+        "商贸零售"
+      ],
+      "ranked_sector_details": [
+        {
+          "name": "传媒",
+          "score": 91.9,
+          "up_probability": null
+        },
+        {
+          "name": "电子",
+          "score": 85.9,
+          "up_probability": null
+        },
+        {
+          "name": "商贸零售",
+          "score": 72.3,
+          "up_probability": null
+        }
+      ],
+      "outcome": null
     }
   ],
   "backtests": [
