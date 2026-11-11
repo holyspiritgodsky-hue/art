@@ -558,6 +558,35 @@
         }
       ],
       "outcome": null
+    },
+    {
+      "prediction_at": "2026-11-11T08:50:16+08:00",
+      "trading_date": "2026-11-11",
+      "market_date": "2026-11-10",
+      "mode": "live_forecast",
+      "ranked_sectors": [
+        "电子",
+        "汽车",
+        "机械设备"
+      ],
+      "ranked_sector_details": [
+        {
+          "name": "电子",
+          "score": 94.3,
+          "up_probability": null
+        },
+        {
+          "name": "汽车",
+          "score": 87.1,
+          "up_probability": null
+        },
+        {
+          "name": "机械设备",
+          "score": 85.8,
+          "up_probability": null
+        }
+      ],
+      "outcome": null
     }
   ],
   "backtests": [
