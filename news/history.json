@@ -610,7 +610,31 @@
           "up_probability": null
         }
       ],
-      "outcome": null
+      "outcome": {
+        "reviewed_at": "2026-11-12T15:48:13+08:00",
+        "top1_sector": "电子",
+        "top1_close_change_pct": 3.5607,
+        "top1_correct": true,
+        "top3_up_count": 3,
+        "ranked_sector_results": [
+          {
+            "name": "电子",
+            "close_change_pct": 3.5607,
+            "up": true
+          },
+          {
+            "name": "汽车",
+            "close_change_pct": 0.8282,
+            "up": true
+          },
+          {
+            "name": "机械设备",
+            "close_change_pct": 2.0354,
+            "up": true
+          }
+        ],
+        "basis": "按预测行业指数预测日收盘价是否高于前一交易日收盘价判定；不代表个股或实际交易收益。"
+      }
     }
   ],
   "backtests": [
