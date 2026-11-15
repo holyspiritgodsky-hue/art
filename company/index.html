@@ -354,6 +354,20 @@
 			},
 		];
 
+		function cleanDemoLabels(company) {
+			if (!company?.id?.startsWith('demo-')) return company;
+			return {
+				...company,
+				name: String(company.name || '').replace('（示例）', ''),
+				region: String(company.region || '').replace(' · 示例地区', ''),
+				source: String(company.source || '').replace('演示样例 · 非真实项目', '').trim(),
+			};
+		}
+
+		demoCompanies.forEach((company, index) => {
+			demoCompanies[index] = cleanDemoLabels(company);
+		});
+
 		const statusClass = { '重点推进': 'status-focus', '待验证': 'status-check', '持续观察': 'status-watch', '暂缓': 'status-hold' };
 		let companies = loadCompanies();
 		let selectedId = companies[0]?.id || '';
@@ -362,8 +376,9 @@
 
 		function loadCompanies() {
 			try {
-				const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
-				if (!Array.isArray(saved) || !saved.length) return structuredClone(demoCompanies);
+				const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
+				if (!Array.isArray(stored)) return structuredClone(demoCompanies);
+				const saved = stored.map(cleanDemoLabels);
 				const savedIds = new Set(saved.map((company) => company.id));
 				return [...saved, ...demoCompanies.filter((company) => !savedIds.has(company.id)).map((company) => structuredClone(company))];
 			} catch {
@@ -476,7 +491,7 @@
 						<div class="theory-note">本评分只用于企业池初筛和安排后续沟通，基于当前已有信息，不增加企业或销售人员的填报负担。它不代表估值、投资评级、上市或并购成功率、收益预测，也不能替代具体项目进入交易阶段后的专业核查。</div>
 					</div>
 				</details>
-				<div class="detail-footer">信息来源：${escapeHtml(company.source || '未记录')} · 更新：${escapeHtml(company.updated || '待补')}<br>分数是内部初筛示意，需根据证据更新；不能替代尽调或专业投资判断。</div>`;
+				<div class="detail-footer">${company.source ? `信息来源：${escapeHtml(company.source)} · ` : ''}${company.updated ? `更新：${escapeHtml(company.updated)}` : ''}<br>分数是内部初筛示意，需根据证据更新；不能替代尽调或专业投资判断。</div>`;
 			panel.querySelector('#detailStar').addEventListener('click', () => {
 				company.watch = !company.watch;
 				saveCompanies();
