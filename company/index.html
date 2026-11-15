@@ -40,6 +40,7 @@
 		.brandline { display: flex; align-items: center; gap: 9px; color: var(--cyan); font-size: 11px; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; }
 		.signal { width: 7px; height: 7px; border-radius: 50%; background: var(--lime); box-shadow: 0 0 14px var(--lime); }
 		h1 { margin: 9px 0 7px; color: #fff; font-size: clamp(26px, 4vw, 42px); line-height: 1.15; }
+		.titleline { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 12px; }
 		.subtitle { margin: 0; color: #a7b3c9; font-size: 14px; line-height: 1.7; }
 		.top-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 9px; }
 		.btn { min-height: 40px; padding: 9px 14px; color: #dce5f4; border: 1px solid var(--line); border-radius: 8px; background: rgba(255,255,255,.055); transition: .18s ease; }
@@ -49,20 +50,20 @@
 		.btn-small { min-height: 32px; padding: 6px 10px; font-size: 12px; }
 		.panel { border: 1px solid var(--line); border-radius: 12px; background: linear-gradient(145deg, rgba(12,19,37,.94), rgba(7,12,25,.94)); box-shadow: 0 20px 70px rgba(0,0,0,.24); }
 		.overview-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; margin-bottom: 14px; }
-		.metrics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
-		.metric { min-height: 98px; padding: 16px 18px; }
+		.metrics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+		.metric { padding: 7px 14px; }
 		.metric-label { color: var(--muted); font-size: 12px; }
-		.metric-value { margin-top: 9px; color: #fff; font-size: 28px; font-weight: 750; font-variant-numeric: tabular-nums; }
-		.metric-note { margin-top: 3px; color: #74839f; font-size: 11px; }
-		.region-overview { display: flex; align-items: center; gap: clamp(18px, 3vw, 36px); padding: 14px 22px; }
-		.earth { flex: 0 0 160px; width: 160px; height: 160px; }
+		.metric-value { margin-top: 4px; color: #fff; font-size: 24px; font-weight: 750; font-variant-numeric: tabular-nums; line-height: 1.1; }
+		.region-overview { display: flex; align-items: center; gap: clamp(15px, 2vw, 24px); padding: 10px 16px; }
+		.earth { flex: 0 0 110px; width: 110px; height: 110px; }
 		.earth canvas { display: block; width: 100%; height: 100%; cursor: grab; touch-action: none; }
 		.earth canvas:active { cursor: grabbing; }
 		.earth canvas:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; border-radius: 50%; }
 		.earth-fallback { border-radius: 50%; background: url("globe/assets/earth-day.jpg") 22% 50% / 200% 100% repeat-x; box-shadow: inset -24px -8px 35px rgba(0,4,16,.72), 0 0 24px rgba(89,243,255,.16); }
 		.region-content { min-width: 0; flex: 1; }
 		.region-content h2 { margin-bottom: 5px; }
-		.region-note { margin: 0 0 11px; color: var(--muted); font-size: 11px; line-height: 1.6; }
+		.region-note { margin: 0 0 7px; color: var(--muted); font-size: 11px; line-height: 1.6; }
+		.region-note:empty { display: none; }
 		.region-options { display: flex; flex-wrap: wrap; gap: 7px; max-height: 90px; overflow-y: auto; }
 		.region-option { padding: 6px 10px; color: #b7c7da; border: 1px solid var(--line); border-radius: 999px; background: rgba(255,255,255,.035); font-size: 11px; }
 		.region-option:hover, .region-option[aria-pressed="true"] { color: var(--cyan); border-color: rgba(89,243,255,.4); background: rgba(89,243,255,.09); }
@@ -159,8 +160,8 @@
 			.topbar { display: block; }
 			.top-actions { justify-content: flex-start; margin-top: 15px; }
 			.metrics { grid-template-columns: 1fr 1fr; gap: 8px; }
-			.metric { min-height: 86px; padding: 12px; }
-			.metric-value { font-size: 24px; }
+			.metric { padding: 7px 10px; }
+			.metric-value { font-size: 22px; }
 			.region-overview { gap: 15px; padding: 13px; }
 			.earth { flex-basis: 100px; width: 100px; height: 100px; }
 			.region-options { max-height: 100px; }
@@ -189,8 +190,7 @@
 		<header class="topbar">
 			<div>
 				<div class="brandline"><span class="signal"></span> HUAXIN · ENTERPRISE RESERVE</div>
-				<h1>华鑫投资储备库</h1>
-				<p class="subtitle">让好企业走出来</p>
+				<div class="titleline"><h1>华鑫投资储备库</h1><p class="subtitle">让好企业走出来</p></div>
 			</div>
 			<div class="top-actions">
 				<button class="btn" id="videoButton" type="button">&#9654; 华鑫介绍</button>
@@ -205,16 +205,16 @@
 				<div class="region-content">
 					<div class="section-kicker">Enterprise footprint</div>
 					<h2 id="regionTitle">企业地区分布</h2>
-					<p class="region-note">拖动地球旋转；按企业填写的地区筛选。地球为示意，不代表实际坐标。<br><span id="earthStatus" role="status">正在加载地球…</span></p>
+					<p class="region-note" id="earthStatus" role="status">正在加载地球…</p>
 					<div class="region-options" id="regionOptions" role="group" aria-label="按地区筛选企业"></div>
 				</div>
 			</section>
 
 			<section class="metrics" aria-label="企业储备概览">
-				<div class="panel metric"><div class="metric-label">企业储备</div><div class="metric-value" id="metricTotal">0</div><div class="metric-note">当前筛选范围内的企业</div></div>
-				<div class="panel metric"><div class="metric-label">重点推进</div><div class="metric-value" id="metricFocus">0</div><div class="metric-note">建议优先补充材料并研判</div></div>
-				<div class="panel metric"><div class="metric-label">待验证</div><div class="metric-value" id="metricCheck">0</div><div class="metric-note">关键信息尚待核验</div></div>
-				<div class="panel metric"><div class="metric-label">重点清单</div><div class="metric-value" id="metricWatch">0</div><div class="metric-note">手动标记，方便后续跟进</div></div>
+				<div class="panel metric"><div class="metric-label">企业储备</div><div class="metric-value" id="metricTotal">0</div></div>
+				<div class="panel metric"><div class="metric-label">重点推进</div><div class="metric-value" id="metricFocus">0</div></div>
+				<div class="panel metric"><div class="metric-label">待验证</div><div class="metric-value" id="metricCheck">0</div></div>
+				<div class="panel metric"><div class="metric-label">重点清单</div><div class="metric-value" id="metricWatch">0</div></div>
 			</section>
 		</div>
 
@@ -698,6 +698,6 @@
 		if (companies.length && !companies.some((item) => item.id === selectedId)) selectedId = companies[0].id;
 		renderList();
 	</script>
-	<script src="globe/globe.bundle.js?v=3" onerror="document.getElementById('earth').classList.add('earth-fallback'); document.getElementById('earthStatus').textContent = '地球程序加载失败；地区筛选仍可使用。';"></script>
+	<script src="globe/globe.bundle.js?v=4" onerror="document.getElementById('earth').classList.add('earth-fallback'); document.getElementById('earthStatus').textContent = '地球程序加载失败；地区筛选仍可使用。';"></script>
 </body>
 </html>
