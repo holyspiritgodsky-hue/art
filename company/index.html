@@ -48,11 +48,24 @@
 		.btn-primary:hover { background: #8af7ff; }
 		.btn-small { min-height: 32px; padding: 6px 10px; font-size: 12px; }
 		.panel { border: 1px solid var(--line); border-radius: 12px; background: linear-gradient(145deg, rgba(12,19,37,.94), rgba(7,12,25,.94)); box-shadow: 0 20px 70px rgba(0,0,0,.24); }
-		.metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 14px; }
+		.overview-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; margin-bottom: 14px; }
+		.metrics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 		.metric { min-height: 98px; padding: 16px 18px; }
 		.metric-label { color: var(--muted); font-size: 12px; }
 		.metric-value { margin-top: 9px; color: #fff; font-size: 28px; font-weight: 750; font-variant-numeric: tabular-nums; }
 		.metric-note { margin-top: 3px; color: #74839f; font-size: 11px; }
+		.region-overview { display: flex; align-items: center; gap: clamp(18px, 3vw, 36px); padding: 14px 22px; }
+		.earth { flex: 0 0 160px; width: 160px; height: 160px; }
+		.earth canvas { display: block; width: 100%; height: 100%; cursor: grab; touch-action: none; }
+		.earth canvas:active { cursor: grabbing; }
+		.earth canvas:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; border-radius: 50%; }
+		.earth-fallback { border-radius: 50%; background: url("globe/assets/earth-day.jpg") 22% 50% / 200% 100% repeat-x; box-shadow: inset -24px -8px 35px rgba(0,4,16,.72), 0 0 24px rgba(89,243,255,.16); }
+		.region-content { min-width: 0; flex: 1; }
+		.region-content h2 { margin-bottom: 5px; }
+		.region-note { margin: 0 0 11px; color: var(--muted); font-size: 11px; line-height: 1.6; }
+		.region-options { display: flex; flex-wrap: wrap; gap: 7px; max-height: 90px; overflow-y: auto; }
+		.region-option { padding: 6px 10px; color: #b7c7da; border: 1px solid var(--line); border-radius: 999px; background: rgba(255,255,255,.035); font-size: 11px; }
+		.region-option:hover, .region-option[aria-pressed="true"] { color: var(--cyan); border-color: rgba(89,243,255,.4); background: rgba(89,243,255,.09); }
 		.workspace { display: grid; grid-template-columns: minmax(0, 1.24fr) minmax(360px, .76fr); gap: 14px; align-items: start; }
 		.list-panel, .detail-panel { padding: 18px; }
 		.section-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 15px; }
@@ -140,6 +153,7 @@
 		.toast { position: fixed; z-index: 30; right: 20px; bottom: 20px; max-width: min(420px, calc(100vw - 40px)); padding: 11px 15px; color: #e9f4ff; border: 1px solid rgba(89,243,255,.25); border-radius: 8px; background: #101b2c; box-shadow: 0 10px 40px rgba(0,0,0,.35); font-size: 12px; opacity: 0; transform: translateY(8px); pointer-events: none; transition: .2s ease; }
 		.toast.show { opacity: 1; transform: translateY(0); }
 		@media (max-width: 1000px) { .workspace { grid-template-columns: minmax(0, 1fr); } .detail-panel { order: -1; } }
+		@media (max-width: 900px) { .overview-grid { grid-template-columns: minmax(0, 1fr); } }
 		@media (max-width: 680px) {
 			.app { padding: 18px 13px 30px; }
 			.topbar { display: block; }
@@ -147,6 +161,9 @@
 			.metrics { grid-template-columns: 1fr 1fr; gap: 8px; }
 			.metric { min-height: 86px; padding: 12px; }
 			.metric-value { font-size: 24px; }
+			.region-overview { gap: 15px; padding: 13px; }
+			.earth { flex-basis: 100px; width: 100px; height: 100px; }
+			.region-options { max-height: 100px; }
 			.filters { grid-template-columns: 1fr 1fr; }
 			.filters .search { grid-column: 1 / -1; }
 			.list-panel, .detail-panel { padding: 13px; }
@@ -182,12 +199,24 @@
 			</div>
 		</header>
 
-		<section class="metrics" aria-label="企业储备概览">
-			<div class="panel metric"><div class="metric-label">企业储备</div><div class="metric-value" id="metricTotal">0</div><div class="metric-note">当前筛选范围内的企业</div></div>
-			<div class="panel metric"><div class="metric-label">重点推进</div><div class="metric-value" id="metricFocus">0</div><div class="metric-note">建议优先补充材料并研判</div></div>
-			<div class="panel metric"><div class="metric-label">待验证</div><div class="metric-value" id="metricCheck">0</div><div class="metric-note">关键信息尚待核验</div></div>
-			<div class="panel metric"><div class="metric-label">重点清单</div><div class="metric-value" id="metricWatch">0</div><div class="metric-note">手动标记，方便后续跟进</div></div>
-		</section>
+		<div class="overview-grid">
+			<section class="panel region-overview" aria-labelledby="regionTitle">
+				<div class="earth" id="earth"></div>
+				<div class="region-content">
+					<div class="section-kicker">Enterprise footprint</div>
+					<h2 id="regionTitle">企业地区分布</h2>
+					<p class="region-note">拖动地球旋转；按企业填写的地区筛选。地球为示意，不代表实际坐标。<br><span id="earthStatus" role="status">正在加载地球…</span></p>
+					<div class="region-options" id="regionOptions" role="group" aria-label="按地区筛选企业"></div>
+				</div>
+			</section>
+
+			<section class="metrics" aria-label="企业储备概览">
+				<div class="panel metric"><div class="metric-label">企业储备</div><div class="metric-value" id="metricTotal">0</div><div class="metric-note">当前筛选范围内的企业</div></div>
+				<div class="panel metric"><div class="metric-label">重点推进</div><div class="metric-value" id="metricFocus">0</div><div class="metric-note">建议优先补充材料并研判</div></div>
+				<div class="panel metric"><div class="metric-label">待验证</div><div class="metric-value" id="metricCheck">0</div><div class="metric-note">关键信息尚待核验</div></div>
+				<div class="panel metric"><div class="metric-label">重点清单</div><div class="metric-value" id="metricWatch">0</div><div class="metric-note">手动标记，方便后续跟进</div></div>
+			</section>
+		</div>
 
 		<div class="workspace">
 			<section class="panel list-panel">
@@ -371,6 +400,7 @@
 		const statusClass = { '重点推进': 'status-focus', '待验证': 'status-check', '持续观察': 'status-watch', '暂缓': 'status-hold' };
 		let companies = loadCompanies();
 		let selectedId = companies[0]?.id || '';
+		let selectedRegion = null;
 		let editingId = '';
 		let toastTimer;
 
@@ -406,15 +436,37 @@
 			return null;
 		}
 
-		function filteredCompanies() {
+		function companyRegion(company) {
+			return String(company.region || '').trim();
+		}
+
+		function filteredCompanies(includeRegion = true) {
 			const query = document.getElementById('searchInput').value.trim().toLowerCase();
 			const sector = document.getElementById('sectorFilter').value;
 			const path = document.getElementById('pathFilter').value;
 			const status = document.getElementById('statusFilter').value;
 			return companies.filter((company) => {
 				const searchable = [company.name, company.sector, company.region, company.product, company.need, company.path].join(' ').toLowerCase();
-				return (!query || searchable.includes(query)) && (!sector || company.sector === sector) && (!path || company.path === path) && (!status || company.status === status);
+				return (!query || searchable.includes(query)) && (!sector || company.sector === sector) && (!path || company.path === path) && (!status || company.status === status) && (!includeRegion || selectedRegion === null || companyRegion(company) === selectedRegion);
 			}).sort((a, b) => (getScore(b) ?? -1) - (getScore(a) ?? -1));
+		}
+
+		function renderRegions() {
+			const records = filteredCompanies(false);
+			const counts = new Map();
+			companies.forEach((company) => counts.set(companyRegion(company), 0));
+			records.forEach((company) => {
+				const region = companyRegion(company);
+				counts.set(region, counts.get(region) + 1);
+			});
+			const options = document.getElementById('regionOptions');
+			const hadFocus = options.contains(document.activeElement);
+			const focusedRegion = hadFocus ? document.activeElement.dataset.region : undefined;
+			const regions = [...counts.keys()].sort((a, b) => a ? (b ? a.localeCompare(b, 'zh-CN') : -1) : 1);
+			options.innerHTML = `<button class="region-option" type="button" data-all="true" aria-pressed="${selectedRegion === null}">全部地区 ${records.length}</button>` +
+				regions.map((region) => `<button class="region-option" type="button" data-region="${escapeHtml(region)}" aria-pressed="${selectedRegion === region}">${escapeHtml(region || '地区待补')} ${counts.get(region)}</button>`).join('');
+			if (focusedRegion !== undefined) [...options.querySelectorAll('[data-region]')].find((button) => button.dataset.region === focusedRegion)?.focus();
+			else if (hadFocus) options.querySelector('[data-all]').focus();
 		}
 
 		function updateMetrics(records) {
@@ -427,10 +479,13 @@
 
 		function renderList() {
 			const records = filteredCompanies();
+			renderRegions();
 			updateMetrics(records);
 			const tbody = document.getElementById('companyRows');
+			if (!records.some((item) => item.id === selectedId)) selectedId = records[0]?.id || '';
 			if (!records.length) {
 				tbody.innerHTML = '<tr><td class="empty" colspan="6">没有符合条件的企业。试试调整筛选，或新增一条企业记录。</td></tr>';
+				renderDetail();
 				return;
 			}
 			tbody.innerHTML = records.map((company) => `
@@ -459,7 +514,6 @@
 				saveCompanies();
 				renderList();
 			}));
-			if (!records.some((item) => item.id === selectedId)) selectedId = records[0]?.id || '';
 			renderDetail();
 		}
 
@@ -580,6 +634,12 @@
 		document.getElementById('closeModal').addEventListener('click', closeModal);
 		document.getElementById('cancelModal').addEventListener('click', closeModal);
 		document.getElementById('exportButton').addEventListener('click', exportWatchlist);
+		document.getElementById('regionOptions').addEventListener('click', (event) => {
+			const button = event.target.closest('button');
+			if (!button) return;
+			selectedRegion = button.hasAttribute('data-all') ? null : button.dataset.region;
+			renderList();
+		});
 		document.getElementById('modalBackdrop').addEventListener('click', (event) => { if (event.target.id === 'modalBackdrop') closeModal(); });
 		document.getElementById('videoBackdrop').addEventListener('click', (event) => { if (event.target.id === 'videoBackdrop') closeVideo(); });
 		document.addEventListener('keydown', (event) => { if (event.key === 'Escape') { closeModal(); closeVideo(); } });
@@ -628,6 +688,7 @@
 			document.getElementById('sectorFilter').value = '';
 			document.getElementById('pathFilter').value = '';
 			document.getElementById('statusFilter').value = '';
+			selectedRegion = null;
 			closeModal();
 			renderList();
 			showToast(current ? '企业信息已更新并保存到本机。' : '企业已保存到本机，可稍后补充分项评分。');
@@ -637,5 +698,6 @@
 		if (companies.length && !companies.some((item) => item.id === selectedId)) selectedId = companies[0].id;
 		renderList();
 	</script>
+	<script src="globe/globe.bundle.js?v=3" onerror="document.getElementById('earth').classList.add('earth-fallback'); document.getElementById('earthStatus').textContent = '地球程序加载失败；地区筛选仍可使用。';"></script>
 </body>
 </html>
