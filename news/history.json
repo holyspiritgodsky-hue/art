@@ -664,6 +664,35 @@
         }
       ],
       "outcome": null
+    },
+    {
+      "prediction_at": "2026-11-16T08:57:12+08:00",
+      "trading_date": "2026-11-16",
+      "market_date": "2026-11-13",
+      "mode": "live_forecast",
+      "ranked_sectors": [
+        "通信",
+        "计算机",
+        "国防军工"
+      ],
+      "ranked_sector_details": [
+        {
+          "name": "通信",
+          "score": 91.4,
+          "up_probability": null
+        },
+        {
+          "name": "计算机",
+          "score": 74.3,
+          "up_probability": null
+        },
+        {
+          "name": "国防军工",
+          "score": 74.0,
+          "up_probability": null
+        }
+      ],
+      "outcome": null
     }
   ],
   "backtests": [
