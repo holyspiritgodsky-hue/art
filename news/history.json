@@ -717,6 +717,35 @@
         }
       ],
       "outcome": null
+    },
+    {
+      "prediction_at": "2026-11-17T08:51:27+08:00",
+      "trading_date": "2026-11-17",
+      "market_date": "2026-11-16",
+      "mode": "live_forecast",
+      "ranked_sectors": [
+        "家用电器",
+        "非银金融",
+        "公用事业"
+      ],
+      "ranked_sector_details": [
+        {
+          "name": "家用电器",
+          "score": 89.5,
+          "up_probability": null
+        },
+        {
+          "name": "非银金融",
+          "score": 82.8,
+          "up_probability": null
+        },
+        {
+          "name": "公用事业",
+          "score": 82.6,
+          "up_probability": null
+        }
+      ],
+      "outcome": null
     }
   ],
   "backtests": [
