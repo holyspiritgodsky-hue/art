@@ -716,7 +716,31 @@
           "up_probability": null
         }
       ],
-      "outcome": null
+      "outcome": {
+        "reviewed_at": "2026-11-17T15:48:48+08:00",
+        "top1_sector": "通信",
+        "top1_close_change_pct": -7.0641,
+        "top1_correct": false,
+        "top3_up_count": 0,
+        "ranked_sector_results": [
+          {
+            "name": "通信",
+            "close_change_pct": -7.0641,
+            "up": false
+          },
+          {
+            "name": "计算机",
+            "close_change_pct": -2.319,
+            "up": false
+          },
+          {
+            "name": "国防军工",
+            "close_change_pct": -3.7867,
+            "up": false
+          }
+        ],
+        "basis": "按预测行业指数预测日收盘价是否高于前一交易日收盘价判定；不代表个股或实际交易收益。"
+      }
     },
     {
       "prediction_at": "2026-11-17T08:51:27+08:00",
