@@ -769,7 +769,31 @@
           "up_probability": null
         }
       ],
-      "outcome": null
+      "outcome": {
+        "reviewed_at": "2026-11-18T15:48:41+08:00",
+        "top1_sector": "家用电器",
+        "top1_close_change_pct": 0.818,
+        "top1_correct": true,
+        "top3_up_count": 2,
+        "ranked_sector_results": [
+          {
+            "name": "家用电器",
+            "close_change_pct": 0.818,
+            "up": true
+          },
+          {
+            "name": "非银金融",
+            "close_change_pct": 0.0305,
+            "up": true
+          },
+          {
+            "name": "公用事业",
+            "close_change_pct": -0.147,
+            "up": false
+          }
+        ],
+        "basis": "按预测行业指数预测日收盘价是否高于前一交易日收盘价判定；不代表个股或实际交易收益。"
+      }
     }
   ],
   "backtests": [
