@@ -1,6 +1,7 @@
 const STORAGE_KEY = 'company-opportunity-radar-v1';
 		const simulationStorageKey = 'future-equity-simulation-v1';
 		const userRatingStorageKey = 'company-user-ratings-v1';
+const guestbookStorageKey = 'company-guestbook-v1';
 		const isRoomPage = document.body.classList.contains('room-page');
 		const requestedCompanyId = new URLSearchParams(window.location.search).get('company');
 		const demoCompanies = [
@@ -338,9 +339,10 @@ const STORAGE_KEY = 'company-opportunity-radar-v1';
 		}
 
 		function renderSectorOptionsBar() {
+			const options = document.getElementById('sectorOptionsBar');
+			if (!options) return;
 			const counts = new Map();
 			companies.forEach((company) => counts.set(company.sector, (counts.get(company.sector) || 0) + 1));
-			const options = document.getElementById('sectorOptionsBar');
 			const hadFocus = options.contains(document.activeElement);
 			const focusedSector = hadFocus ? document.activeElement.dataset.sector : undefined;
 			options.innerHTML = `<button class="region-option" type="button" data-all-sector="true" aria-pressed="${selectedSector === null}">全部行业 ${companies.length}</button>` +
@@ -401,7 +403,7 @@ const STORAGE_KEY = 'company-opportunity-radar-v1';
 					<td><div class="company-name">${escapeHtml(companyName(company))}</div><div class="company-sub" title="${escapeHtml(company.product || '业务描述待补')}">${escapeHtml(company.product || '业务描述待补')}</div></td>
 					<td>${escapeHtml(company.sector)}</td>
 					<td><button class="row-star ${company.watch ? 'on' : ''}" type="button" data-star="${escapeHtml(company.id)}" aria-label="${company.watch ? '取消重点' : '标为重点'}">${company.watch ? '★' : '☆'}</button></td>
-					<td><button class="btn btn-small btn-primary row-room" type="button" data-room-company="${escapeHtml(company.id)}">进入会客室</button></td>
+					<td><button class="btn btn-small btn-primary row-room" type="button" data-room-company="${escapeHtml(company.id)}">投资洽谈</button></td>
 				</tr>`).join('');
 			tbody.querySelectorAll('.project-row').forEach((row) => {
 				const selectRow = (event) => {
@@ -453,7 +455,7 @@ const STORAGE_KEY = 'company-opportunity-radar-v1';
 			const sentiment = getUserSentiment(company);
 			const rating = getUserRating(company);
 			panel.innerHTML = `
-				<div class="section-head"><div><div class="section-kicker">企业简介</div><div class="detail-name">${escapeHtml(companyName(company))}</div></div>
+				<div class="section-head"><div><div class="detail-name">${escapeHtml(companyName(company))}</div></div>
 					<div class="detail-actions"><button class="btn btn-small" id="detailEdit" type="button">编辑</button></div></div>
 				<section class="score-card score-${score === null ? 'pending' : score >= 75 ? 'high' : score >= 60 ? 'good' : score >= 45 ? 'watch' : 'low'}" aria-label="资料与对接观察评分">
 					<div class="score-overview">
@@ -533,6 +535,26 @@ const STORAGE_KEY = 'company-opportunity-radar-v1';
 			toast.classList.add('show');
 			clearTimeout(toastTimer);
 			toastTimer = setTimeout(() => toast.classList.remove('show'), 2600);
+		}
+
+		function loadGuestbook() {
+			try {
+				const entries = JSON.parse(localStorage.getItem(guestbookStorageKey) || '[]');
+				return Array.isArray(entries) ? entries : [];
+			} catch {
+				return [];
+			}
+		}
+
+		function renderGuestbook() {
+			const container = document.getElementById('guestbookEntries');
+			if (!container) return;
+			const entries = loadGuestbook();
+			container.innerHTML = entries.length ? entries.map((entry) => {
+				const date = new Date(entry.createdAt);
+				const dateLabel = Number.isFinite(date.getTime()) ? date.toLocaleString('zh-CN') : '时间未知';
+				return `<article class="guestbook-entry"><div class="guestbook-entry-head"><strong>${escapeHtml(entry.name || '匿名用户')}</strong><span>${escapeHtml(dateLabel)}</span></div><p>${escapeHtml(entry.message)}</p></article>`;
+			}).join('') : '<div class="guestbook-empty">还没有留言，欢迎留下第一条。</div>';
 		}
 
 		function roomReply(company, topic) {
@@ -774,6 +796,26 @@ const STORAGE_KEY = 'company-opportunity-radar-v1';
 					hero,
 					ctx: context,
 					drawHealthBar: () => {},
+					drawSoldier: (soldier, female, body, accent) => {
+						context.fillStyle = 'rgba(20, 42, 44, .25)';
+						context.beginPath();
+						context.ellipse(0, 17, 18, 8, 0, 0, Math.PI * 2);
+						context.fill();
+						context.fillStyle = body || soldier.body || '#d4a654';
+						context.beginPath();
+						context.moveTo(-14, 14);
+						context.lineTo(-11, -4);
+						context.quadraticCurveTo(0, -13, 11, -4);
+						context.lineTo(14, 14);
+						context.quadraticCurveTo(0, 22, -14, 14);
+						context.fill();
+						context.fillStyle = accent || soldier.accent || '#f4e2ad';
+						context.fillRect(-10, -1, 20, 4);
+						context.fillStyle = soldier.head || '#e9b38e';
+						context.beginPath();
+						context.arc(0, -16, 10, 0, Math.PI * 2);
+						context.fill();
+					},
 					getFacing: (direction) => Math.cos(direction || 0) >= 0 ? 1 : -1,
 					showName: false,
 				});
@@ -1385,12 +1427,6 @@ const STORAGE_KEY = 'company-opportunity-radar-v1';
 		document.addEventListener('click', (event) => {
 			if (!event.target.closest('.management')) setManagementMenu(false);
 		});
-		document.getElementById('sectorOptionsBar').addEventListener('click', (event) => {
-			const button = event.target.closest('button');
-			if (!button) return;
-			selectedSector = button.hasAttribute('data-all-sector') ? null : button.dataset.sector;
-			renderList();
-		});
 		document.addEventListener('keydown', (event) => {
 			if (event.key === 'Escape') {
 				closeModal();
@@ -1399,6 +1435,27 @@ const STORAGE_KEY = 'company-opportunity-radar-v1';
 			}
 		});
 		document.getElementById('searchInput').addEventListener('input', renderList);
+		renderGuestbook();
+		document.getElementById('guestbookForm').addEventListener('submit', (event) => {
+			event.preventDefault();
+			const form = new FormData(event.currentTarget);
+			const message = String(form.get('message') || '').trim();
+			if (!message) return;
+			const entry = {
+				name: String(form.get('name') || '').trim() || '匿名用户',
+				message,
+				createdAt: new Date().toISOString(),
+			};
+			try {
+				const entries = loadGuestbook();
+				localStorage.setItem(guestbookStorageKey, JSON.stringify([entry, ...entries].slice(0, 30)));
+				event.currentTarget.reset();
+				renderGuestbook();
+				showToast('留言已保存到本机。');
+			} catch {
+				showToast('留言保存失败，请检查浏览器存储设置。');
+			}
+		});
 		document.getElementById('companyForm').addEventListener('submit', (event) => {
 			event.preventDefault();
 			const form = new FormData(event.currentTarget);
