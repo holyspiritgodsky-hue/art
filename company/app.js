@@ -390,8 +390,9 @@ const guestbookStorageKey = 'company-guestbook-v1';
 			if (detailPanel.parentElement !== workspace) workspace.appendChild(detailPanel);
 			const invitationCompany = companies.find((company) => company.id === selectedId);
 			const homeRoomScene = document.getElementById('homeRoomScene');
-			homeRoomScene.innerHTML = `${renderMeetingScene(invitationCompany, 'home')}<div class="home-room-copy"><strong>坐下来，认识一家企业</strong><span>和企业代表聊聊业务与机会，再试着做一次模拟投资。</span></div>`;
+			homeRoomScene.innerHTML = `${renderMeetingScene(invitationCompany, 'home')}<div class="home-room-character"><canvas width="220" height="180" aria-hidden="true"></canvas><span>企业代表</span></div><div class="home-room-copy"><strong>企业会客室</strong><span>与企业代表面对面聊聊业务与机会。</span></div>`;
 			drawRoomPreview(invitationCompany, homeRoomScene.querySelector('.room-preview-canvas'));
+			drawRoomRepresentativePreview(invitationCompany, homeRoomScene.querySelector('.home-room-character canvas'));
 			const tbody = document.getElementById('companyRows');
 			if (!records.length) {
 				tbody.innerHTML = '<tr><td class="empty" colspan="4">没有符合条件的企业。试试调整筛选，或新增一条企业记录。</td></tr>';
@@ -863,8 +864,14 @@ const guestbookStorageKey = 'company-guestbook-v1';
 			const context = canvas.getContext('2d');
 			if (!context) return;
 			context.clearRect(0, 0, canvas.width, canvas.height);
-			drawRoomGameCharacter(context, createRoomGameHero(company, 'representative', 458, 177));
 			drawRoomGameCharacter(context, createRoomGameHero(company, 'player', 328, 270));
+		}
+
+		function drawRoomRepresentativePreview(company, canvas) {
+			const context = canvas?.getContext('2d');
+			if (!context) return;
+			context.clearRect(0, 0, canvas.width, canvas.height);
+			drawRoomGameCharacter(context, createRoomGameHero(company, 'representative', 110, 132));
 		}
 
 		function startRoomGame(company) {
