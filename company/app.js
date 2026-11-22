@@ -390,12 +390,14 @@ const guestbookStorageKey = 'company-guestbook-v1';
 			if (detailPanel.parentElement !== workspace) workspace.appendChild(detailPanel);
 			const invitationCompany = companies.find((company) => company.id === selectedId);
 			const homeRoomScene = document.getElementById('homeRoomScene');
-			homeRoomScene.innerHTML = `${renderMeetingScene(invitationCompany, 'home')}<div class="home-room-character"><canvas width="220" height="180" aria-hidden="true"></canvas><span>企业代表</span></div><div class="home-room-copy"><strong>企业会客室</strong><span>与企业代表面对面聊聊业务与机会。</span></div>`;
-			drawRoomPreview(invitationCompany, homeRoomScene.querySelector('.room-preview-canvas'));
-			drawRoomRepresentativePreview(invitationCompany, homeRoomScene.querySelector('.home-room-character canvas'));
+			if (homeRoomScene) {
+				homeRoomScene.innerHTML = `${renderMeetingScene(invitationCompany, 'home')}<div class="home-room-character"><canvas width="220" height="180" aria-hidden="true"></canvas><span>企业代表</span></div><div class="home-room-copy"><strong>企业会客室</strong><span>与企业代表面对面聊聊业务与机会。</span></div>`;
+				drawRoomPreview(invitationCompany, homeRoomScene.querySelector('.room-preview-canvas'));
+				drawRoomRepresentativePreview(invitationCompany, homeRoomScene.querySelector('.home-room-character canvas'));
+			}
 			const tbody = document.getElementById('companyRows');
 			if (!records.length) {
-				tbody.innerHTML = '<tr><td class="empty" colspan="4">没有符合条件的企业。试试调整筛选，或新增一条企业记录。</td></tr>';
+				tbody.innerHTML = '<tr><td class="empty" colspan="5">没有符合条件的企业。试试调整筛选，或新增一条企业记录。</td></tr>';
 				renderDetail();
 				return;
 			}
@@ -403,9 +405,16 @@ const guestbookStorageKey = 'company-guestbook-v1';
 				<tr class="project-row ${company.id === selectedId ? 'active' : ''}" data-id="${escapeHtml(company.id)}" tabindex="0">
 					<td><div class="company-name">${escapeHtml(companyName(company))}</div><div class="company-sub" title="${escapeHtml(company.product || '业务描述待补')}">${escapeHtml(company.product || '业务描述待补')}</div></td>
 					<td>${escapeHtml(company.sector)}</td>
+					<td><canvas class="company-representative-canvas" width="56" height="56" data-representative-company="${escapeHtml(company.id)}" aria-label="企业代表形象"></canvas></td>
 					<td><button class="row-star ${company.watch ? 'on' : ''}" type="button" data-star="${escapeHtml(company.id)}" aria-label="${company.watch ? '取消重点' : '标为重点'}">${company.watch ? '★' : '☆'}</button></td>
 					<td><button class="btn btn-small btn-primary row-room" type="button" data-room-company="${escapeHtml(company.id)}">投资洽谈</button></td>
 				</tr>`).join('');
+			tbody.querySelectorAll('[data-representative-company]').forEach((canvas) => {
+				const company = companies.find((item) => item.id === canvas.dataset.representativeCompany);
+				if (!company) return;
+				const context = canvas.getContext('2d');
+				if (context) drawRoomGameCharacter(context, createRoomGameHero(company, 'representative', 28, 43));
+			});
 			tbody.querySelectorAll('.project-row').forEach((row) => {
 				const selectRow = (event) => {
 					if (event.target.closest('[data-star]')) return;
@@ -421,9 +430,10 @@ const guestbookStorageKey = 'company-guestbook-v1';
 			if (window.matchMedia('(max-width: 680px)').matches && mobileDetailOpen) {
 				const selectedRow = [...tbody.querySelectorAll('.project-row')].find((row) => row.dataset.id === selectedId);
 				if (selectedRow) {
-					selectedRow.insertAdjacentHTML('afterend', '<tr class="mobile-detail-row"><td colspan="4"></td></tr>');
+					selectedRow.insertAdjacentHTML('afterend', '<tr class="mobile-detail-row"><td colspan="5"></td></tr>');
 					selectedRow.nextElementSibling.firstElementChild.appendChild(detailPanel);
 				}
+
 			}
 			tbody.querySelectorAll('[data-star]').forEach((button) => button.addEventListener('click', (event) => {
 				event.stopPropagation();
