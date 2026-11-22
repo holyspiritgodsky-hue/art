@@ -9,7 +9,8 @@
 <body>
 	<main class="app">
 		<header class="topbar">
-			<div>
+			<div class="topbar-brand">
+				<div class="earth" id="earth"></div>
 				<div class="titleline"><h1>华鑫创投</h1><p class="subtitle">观测企业未来</p></div>
 			</div>
 			<div class="top-actions">
@@ -24,14 +25,8 @@
 			</div>
 		</header>
 
-		<section class="panel region-overview" aria-labelledby="sectorTitle">
-			<div class="earth" id="earth"></div>
-			<div class="region-content">
-				<div class="sector-row">
-					<div><div class="section-kicker">企业观测台</div><h2 id="sectorTitle">观察企业机会</h2></div>
-				</div>
-				<p class="region-note" id="earthStatus" role="status">旋转地球查看区域分布，选择行业后浏览企业机会池。</p>
-			</div>
+		<section class="panel region-overview" aria-label="企业信息与会客室预览">
+			<p class="region-note" id="earthStatus" role="status" hidden>浏览企业信息，再进入会客室进行投资洽谈。</p>
 			<div class="home-room-scene" id="homeRoomScene" aria-hidden="true"></div>
 		</section>
 		<div class="workspace">
