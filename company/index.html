@@ -42,6 +42,7 @@
 				</div>
 				<div class="filters">
 					<input class="control search" id="searchInput" type="search" placeholder="搜索企业、产品、地区" aria-label="搜索企业、产品、地区" />
+					<div id="sectorOptionsBar" hidden></div>
 				</div>
 				<div class="table-wrap">
 					<table>
@@ -53,6 +54,18 @@
 
 			<aside class="panel detail-panel" id="detailPanel" aria-live="polite"></aside>
 		</div>
+		<section class="panel guestbook-panel" aria-labelledby="guestbookTitle">
+			<div class="guestbook-head">
+				<div><h2 id="guestbookTitle">用户留言</h2><p>留下你对企业项目或平台的看法。</p></div>
+				<div class="guestbook-contact"><span>联系方式</span><a href="tel:15221056162">15221056162</a></div>
+			</div>
+			<form class="guestbook-form" id="guestbookForm">
+				<input class="control" id="guestbookName" name="name" maxlength="30" placeholder="你的称呼（可选）" />
+				<textarea class="control" id="guestbookMessage" name="message" maxlength="300" required placeholder="写下留言"></textarea>
+				<button class="btn btn-primary" type="submit">发布留言</button>
+			</form>
+			<div class="guestbook-entries" id="guestbookEntries" aria-live="polite"></div>
+		</section>
 	</main>
 
 	<div class="modal-backdrop" id="modalBackdrop" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
