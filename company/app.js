@@ -708,6 +708,26 @@ const guestbookStorageKey = 'company-guestbook-v1';
 					<p>若订单履约、产能扩张和信息披露持续改善，企业有机会形成稳定的产业链位置，并围绕核心产品建立更高复购与议价能力。</p>
 					<span>参考同行业上市公司5年市值趋势，不代表实际行情或收益承诺。</span>
 				</div>
+				<div class="room-next-actions" hidden>
+					<div class="room-next-actions-head">
+						<strong>下一步可以继续了解</strong>
+						<span>推演仅用于交流，不构成投资或估值承诺。</span>
+					</div>
+					<div class="room-next-actions-grid">
+						<a class="room-next-action" href="index.html?submit=1">
+							<strong>试试我的企业估值</strong>
+							<span>提交企业项目与经营资料</span>
+						</a>
+						<a class="room-next-action" href="index.html">
+							<strong>继续考察项目</strong>
+							<span>浏览更多合作与投资项目</span>
+						</a>
+						<a class="room-next-action" href="index.html#guestbookPanel">
+							<strong>预约专业沟通</strong>
+							<span>与华鑫团队交流合作方向</span>
+						</a>
+					</div>
+				</div>
 			</div>`;
 		}
 
@@ -1300,29 +1320,41 @@ const guestbookStorageKey = 'company-guestbook-v1';
 						<div class="room-time-actions"><button class="btn btn-primary room-horizon-button" type="button" data-horizon="10">10年后</button><button class="btn btn-primary room-horizon-button" type="button" data-horizon="100">100年后</button></div>
 						<div id="roomProjectionOutput"></div>
 					</div>`;
+				window.requestAnimationFrame(() => {
+					investmentResult.scrollIntoView({ behavior: 'smooth', block: 'center' });
+					investmentResult.classList.remove('room-result-attention');
+					window.requestAnimationFrame(() => investmentResult.classList.add('room-result-attention'));
+					showToast('投资结果已生成，请向下查看时间推演。');
+				});
 				investmentResult.querySelectorAll('[data-horizon]').forEach((button) => button.addEventListener('click', () => {
 					const output = investmentResult.querySelector('#roomProjectionOutput');
 					if (button.dataset.horizon === '100') {
 						output.innerHTML = renderHundredYearProjection(target);
-						return;
+					} else {
+						output.innerHTML = renderTenYearProjection(target, fundingWan, equityRatio);
+						const steps = [...output.querySelectorAll('.room-projection-step')];
+						const revealNext = (index) => {
+							if (index >= steps.length) return;
+							const step = steps[index];
+							step.hidden = false;
+							window.requestAnimationFrame(() => step.classList.add('visible'));
+							window.requestAnimationFrame(() => step.scrollIntoView({ behavior: 'smooth', block: 'nearest' }));
+							window.setTimeout(() => {
+								if (index === steps.length - 1) {
+									output.querySelector('.room-market-value').hidden = false;
+									output.querySelector('.room-projection-summary').hidden = false;
+									output.querySelector('.room-next-actions').hidden = false;
+									window.requestAnimationFrame(() => {
+										output.querySelector('.room-market-value').scrollIntoView({ behavior: 'smooth', block: 'start' });
+									});
+									return;
+								}
+								revealNext(index + 1);
+							}, 900);
+						};
+						revealNext(0);
 					}
-					output.innerHTML = renderTenYearProjection(target, fundingWan, equityRatio);
-					const steps = [...output.querySelectorAll('.room-projection-step')];
-					const revealNext = (index) => {
-						if (index >= steps.length) return;
-						const step = steps[index];
-						step.hidden = false;
-						window.requestAnimationFrame(() => step.classList.add('visible'));
-						window.setTimeout(() => {
-							if (index === steps.length - 1) {
-								output.querySelector('.room-market-value').hidden = false;
-								output.querySelector('.room-projection-summary').hidden = false;
-								return;
-							}
-							revealNext(index + 1);
-						}, 900);
-					};
-					revealNext(0);
+					window.requestAnimationFrame(() => output.scrollIntoView({ behavior: 'smooth', block: 'center' }));
 				}));
 			});
 			investmentFlow.querySelector('[data-investment-choice="no"]').addEventListener('click', () => {
@@ -1496,8 +1528,20 @@ const guestbookStorageKey = 'company-guestbook-v1';
 		});
 		document.getElementById('videoButton').addEventListener('click', openVideo);
 		document.getElementById('closeVideo').addEventListener('click', closeVideo);
+		document.getElementById('creatorConsultButton').addEventListener('click', () => {
+			closeVideo();
+			document.getElementById('guestbookTitle').textContent = '预约咨询';
+			document.getElementById('guestbookForm').scrollIntoView({ behavior: 'smooth', block: 'start' });
+			document.getElementById('guestbookMessage').focus();
+		});
 		document.getElementById('closeModal').addEventListener('click', closeModal);
 		document.getElementById('cancelModal').addEventListener('click', closeModal);
+		document.getElementById('videoBackdrop').addEventListener('click', (event) => {
+			if (event.target === event.currentTarget) closeVideo();
+		});
+		document.getElementById('modalBackdrop').addEventListener('click', (event) => {
+			if (event.target === event.currentTarget) closeModal();
+		});
 		document.addEventListener('click', (event) => {
 			if (!event.target.closest('.management')) setManagementMenu(false);
 		});
@@ -1606,6 +1650,11 @@ const guestbookStorageKey = 'company-guestbook-v1';
 		refreshSectorOptions();
 		if (companies.length && !companies.some((item) => item.id === selectedId)) selectedId = companies[0].id;
 		renderList();
+		if (new URLSearchParams(window.location.search).get('submit') === '1') openModal();
+		if (window.location.hash === '#guestbookPanel') {
+			document.getElementById('guestbookTitle').textContent = '预约咨询';
+			window.requestAnimationFrame(() => document.getElementById('guestbookPanel').scrollIntoView({ behavior: 'smooth', block: 'start' }));
+		}
 		} else {
 			document.getElementById('returnToCompanies').href = `index.html?company=${encodeURIComponent(simulationTargetCompanyId)}`;
 			renderSimulation();
