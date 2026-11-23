@@ -425,7 +425,7 @@ const guestbookStorageKey = 'company-guestbook-v1';
 					<td>${escapeHtml(company.sector)}</td>
 					<td><canvas class="company-representative-canvas" width="56" height="56" data-representative-company="${escapeHtml(company.id)}" aria-label="企业代表形象"></canvas></td>
 					<td><button class="row-star ${company.watch ? 'on' : ''}" type="button" data-star="${escapeHtml(company.id)}" aria-label="${company.watch ? '取消重点' : '标为重点'}">${company.watch ? '★' : '☆'}</button></td>
-					<td><button class="btn btn-small btn-primary row-room" type="button" data-room-company="${escapeHtml(company.id)}">投资洽谈</button></td>
+					<td><button class="btn btn-small btn-primary row-room" type="button" data-room-company="${escapeHtml(company.id)}">企业咨询</button></td>
 				</tr>`).join('');
 			tbody.querySelectorAll('[data-representative-company]').forEach((canvas) => {
 				const company = companies.find((item) => item.id === canvas.dataset.representativeCompany);
@@ -1426,8 +1426,8 @@ const guestbookStorageKey = 'company-guestbook-v1';
 			form.reset();
 			editingId = id;
 			const company = companies.find((item) => item.id === id);
-			document.getElementById('modalTitle').textContent = company ? '编辑企业' : '新增企业';
-			form.querySelector('[type="submit"]').textContent = company ? '保存修改' : '保存企业';
+			document.getElementById('modalTitle').textContent = company ? '编辑企业项目' : '提交企业项目';
+			form.querySelector('[type="submit"]').textContent = company ? '保存修改' : '提交项目';
 			if (company) {
 				form.elements.name.value = company.name || '';
 				form.elements.sector.value = company.sector || '';
@@ -1487,14 +1487,17 @@ const guestbookStorageKey = 'company-guestbook-v1';
 			setManagementMenu(false);
 			openModal();
 		});
+		document.getElementById('bookingButton').addEventListener('click', () => {
+			setManagementMenu(false);
+			const guestbook = document.getElementById('guestbookForm');
+			document.getElementById('guestbookTitle').textContent = '预约咨询';
+			guestbook.scrollIntoView({ behavior: 'smooth', block: 'start' });
+			document.getElementById('guestbookMessage').focus();
+		});
 		document.getElementById('videoButton').addEventListener('click', openVideo);
 		document.getElementById('closeVideo').addEventListener('click', closeVideo);
 		document.getElementById('closeModal').addEventListener('click', closeModal);
 		document.getElementById('cancelModal').addEventListener('click', closeModal);
-		document.getElementById('exportButton').addEventListener('click', () => {
-			setManagementMenu(false);
-			exportWatchlist();
-		});
 		document.addEventListener('click', (event) => {
 			if (!event.target.closest('.management')) setManagementMenu(false);
 		});
