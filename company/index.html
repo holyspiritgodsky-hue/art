@@ -16,10 +16,10 @@
 			<div class="top-actions">
 				<button class="btn" id="videoButton" type="button">&#9654; 华鑫介绍</button>
 				<div class="management">
-					<button class="btn" id="managementButton" type="button" aria-haspopup="menu" aria-expanded="false">管理</button>
+					<button class="btn" id="managementButton" type="button" aria-haspopup="menu" aria-expanded="false">企业咨询</button>
 					<div class="management-menu" id="managementMenu" role="menu" hidden>
-						<button id="exportButton" type="button" role="menuitem">导出重点清单</button>
-						<button id="addButton" type="button" role="menuitem">新增企业</button>
+						<button id="addButton" type="button" role="menuitem">提交企业项目</button>
+						<button id="bookingButton" type="button" role="menuitem">预约咨询</button>
 					</div>
 				</div>
 			</div>
@@ -29,7 +29,7 @@
 		<div class="workspace">
 			<section class="panel list-panel">
 				<div class="section-head">
-					<div><h2>企业机会池</h2></div>
+					<div><h2>合作项目</h2></div>
 					<div class="count-chip" id="resultCount">0 个项目</div>
 				</div>
 				<div class="filters">
@@ -62,7 +62,7 @@
 
 	<div class="modal-backdrop" id="modalBackdrop" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
 		<form class="modal" id="companyForm">
-			<div class="modal-head"><h2 id="modalTitle">新增企业</h2><button class="btn btn-small" id="closeModal" type="button" aria-label="关闭">关闭</button></div>
+			<div class="modal-head"><h2 id="modalTitle">提交企业项目</h2><button class="btn btn-small" id="closeModal" type="button" aria-label="关闭">关闭</button></div>
 			<div class="form-grid">
 				<div class="form-field"><label for="companyName">企业名称 *</label><input class="control" id="companyName" name="name" required maxlength="60" placeholder="如：XX农业科技" /></div>
 				<div class="form-field"><label for="companySector">行业 *</label><input class="control" id="companySector" name="sector" required maxlength="30" list="sectorOptions" placeholder="如：中药材" /><datalist id="sectorOptions"></datalist></div>
@@ -89,7 +89,7 @@
 				<div class="form-field"><label for="scoreReady">对接准备度（0-100）</label><input class="control" id="scoreReady" name="scoreReady" type="number" min="0" max="100" placeholder="可留空" /></div>
 				<div class="form-field full"><div class="form-hint">新增企业先以待验证信息入库。评分仅为机会筛选参考，不是投资评级。新增内容保存在当前浏览器。</div></div>
 			</div>
-			<div class="modal-actions"><button class="btn" id="cancelModal" type="button">取消</button><button class="btn btn-primary" type="submit">保存企业</button></div>
+			<div class="modal-actions"><button class="btn" id="cancelModal" type="button">取消</button><button class="btn btn-primary" type="submit">提交项目</button></div>
 		</form>
 	</div>
 	<div class="modal-backdrop" id="videoBackdrop" role="dialog" aria-modal="true" aria-labelledby="videoTitle">
