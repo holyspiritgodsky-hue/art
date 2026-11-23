@@ -982,8 +982,44 @@ const guestbookStorageKey = 'company-guestbook-v1';
 				const closeButton = document.getElementById('roomGameClose');
 				closeButton.textContent = '关闭资料';
 				closeButton.dataset.action = '';
-				document.getElementById('roomGameDialogText').textContent =
-					'保密\n\n尚未签署保密协议，暂不提供详细数据。';
+				const companyNameText = escapeHtml(companyName(runtime.company));
+				const sector = escapeHtml(runtime.company.sector || '行业待补');
+				const region = escapeHtml(runtime.company.region || '地区待补');
+				const product = escapeHtml(runtime.company.product || '企业尚未补充业务描述。');
+				const need = escapeHtml(runtime.company.need || '企业尚未补充合作诉求。');
+				const funding = requestedFundingWan(runtime.company);
+				const fundingText = funding === null
+					? '待企业确认'
+					: `${new Intl.NumberFormat('zh-CN', { maximumFractionDigits: 2 }).format(funding)} 万元`;
+				const source = escapeHtml(runtime.company.source || '资料来源待补');
+				document.getElementById('roomGameDialogText').innerHTML =
+					`<div class="room-material-section room-material-basic">
+						<div class="room-material-section-title"><strong>基本经营材料</strong><span>公开资料</span></div>
+						<dl class="room-material-list">
+							<div><dt>企业名称</dt><dd>${companyNameText}</dd></div>
+							<div><dt>行业与地区</dt><dd>${sector} · ${region}</dd></div>
+							<div><dt>主要业务</dt><dd>${product}</dd></div>
+							<div><dt>合作诉求</dt><dd>${need}</dd></div>
+							<div><dt>拟融资金额</dt><dd>${fundingText}</dd></div>
+							<div><dt>资料来源</dt><dd>${source}</dd></div>
+						</dl>
+					</div>
+					<div class="room-material-section room-material-detailed" aria-label="详细经营材料需签署保密协议">
+						<div class="room-material-lock" aria-hidden="true">锁</div>
+						<div class="room-material-detailed-copy">
+							<div class="room-material-section-title"><strong>详细经营材料</strong><span>保密资料</span></div>
+							<p>查看财务报表、股权结构、在手订单和核心客户资料前，需要企业与华鑫签署保密协议。</p>
+							<button class="room-nda-request" id="roomNdaRequest" type="button">申请发起保密协议</button>
+							<p class="room-nda-status" id="roomNdaStatus" hidden>保密协议申请已记录；协议需由企业与华鑫双方确认后方可查看详细资料。</p>
+						</div>
+					</div>`;
+				const ndaButton = document.getElementById('roomNdaRequest');
+				ndaButton?.addEventListener('click', () => {
+					ndaButton.disabled = true;
+					ndaButton.textContent = '已申请保密协议';
+					const ndaStatus = document.getElementById('roomNdaStatus');
+					if (ndaStatus) ndaStatus.hidden = false;
+				});
 			};
 			const closeDialog = () => {
 				runtime.dialogOpen = false;
