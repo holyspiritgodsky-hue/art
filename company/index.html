@@ -46,7 +46,7 @@
 
 			<aside class="panel detail-panel" id="detailPanel" aria-live="polite"></aside>
 		</div>
-		<section class="panel guestbook-panel" aria-labelledby="guestbookTitle">
+		<section class="panel guestbook-panel" id="guestbookPanel" aria-labelledby="guestbookTitle">
 			<div class="guestbook-head">
 				<div><h2 id="guestbookTitle">用户留言</h2><p>留下你对企业项目或平台的看法。</p></div>
 				<div class="guestbook-contact"><span>联系方式</span><a href="tel:15221056162">15221056162</a></div>
@@ -95,12 +95,45 @@
 	<div class="modal-backdrop" id="videoBackdrop" role="dialog" aria-modal="true" aria-labelledby="videoTitle">
 		<section class="modal video-modal">
 			<div class="modal-head"><h2 id="videoTitle">华鑫集团助力好企业走出来</h2><button class="btn btn-small" id="closeVideo" type="button" aria-label="关闭视频">关闭</button></div>
+			<div class="hx-about-intro">
+				<span>企业成长陪伴者</span>
+				<strong>连接产业资源，推动企业完成融资、合作与价值增长。</strong>
+			</div>
 			<a class="video-poster" href="https://www.bilibili.com/video/BV1XHsE6TESb/" target="_blank" rel="noreferrer" aria-label="在哔哩哔哩观看：华鑫集团助力好企业走出来">
 				<img src="https://i2.hdslb.com/bfs/archive/69af058d03d339feda9bd3a6c54b56d7b0a206be.jpg" alt="华鑫集团助力好企业走出来视频封面" loading="lazy" />
 				<span class="video-play" aria-hidden="true">&#9654;</span>
 				<span class="video-poster-title">华鑫集团助力好企业走出来 · 00:57</span>
 			</a>
-			<div class="video-footer"><span>视频来源：哔哩哔哩 · 点击封面将在新标签页播放</span><a class="btn btn-small" href="https://www.bilibili.com/video/BV1XHsE6TESb/" target="_blank" rel="noreferrer">在哔哩哔哩打开</a></div>
+			<section class="creator-profile" aria-labelledby="creatorProfileTitle">
+				<div class="team-profile-head">
+					<span class="creator-profile-kicker">团队介绍</span>
+					<h3 id="creatorProfileTitle">团队人员</h3>
+				</div>
+				<div class="team-profile-grid">
+					<article class="team-member-card team-member-placeholder">
+						<div class="team-member-avatar-placeholder" aria-hidden="true">待</div>
+						<h4>团队成员</h4>
+						<p>信息待更新</p>
+					</article>
+					<article class="team-member-card team-member-primary">
+						<div class="creator-profile-person">
+							<img class="creator-profile-avatar" src="assets/me.jpg" alt="雷君" />
+							<div>
+								<h4>雷君</h4>
+								<span class="creator-profile-role">资深创业者 · 投资人</span>
+							</div>
+						</div>
+						<p class="creator-profile-summary">长期从事企业融资、股权投资及产业资源对接，投资覆盖消费、文旅、科技、智能制造、新材料、健康与数字产业。</p>
+						<p class="creator-profile-investments">参与投资和主导股权投资项目包括：江苏上游文旅、深圳易聆科、中山明阳智能、中航信诺、惠州星聚宇光学、唐仁宫、生意谋士数据服务、闲云科技、微星火科技、五分钟洗车、云墓园等，覆盖文旅消费、信息安全、风力发电、新材料、智能制造、健康管理、SaaS、手游、新媒体与数字遗产等领域。</p>
+					</article>
+					<article class="team-member-card team-member-placeholder">
+						<div class="team-member-avatar-placeholder" aria-hidden="true">待</div>
+						<h4>团队成员</h4>
+						<p>信息待更新</p>
+					</article>
+				</div>
+				<button class="btn btn-primary creator-profile-action" id="creatorConsultButton" type="button">预约企业咨询</button>
+			</section>
 		</section>
 	</div>
 	<div class="toast" id="toast" role="status"></div>
