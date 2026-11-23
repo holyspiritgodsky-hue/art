@@ -847,6 +847,35 @@
         ],
         "basis": "按预测行业指数预测日收盘价是否高于前一交易日收盘价判定；不代表个股或实际交易收益。"
       }
+    },
+    {
+      "prediction_at": "2026-11-23T08:54:00+08:00",
+      "trading_date": "2026-11-23",
+      "market_date": "2026-11-20",
+      "mode": "live_forecast",
+      "ranked_sectors": [
+        "非银金融",
+        "银行",
+        "计算机"
+      ],
+      "ranked_sector_details": [
+        {
+          "name": "非银金融",
+          "score": 91.9,
+          "up_probability": null
+        },
+        {
+          "name": "银行",
+          "score": 91.4,
+          "up_probability": null
+        },
+        {
+          "name": "计算机",
+          "score": 69.3,
+          "up_probability": null
+        }
+      ],
+      "outcome": null
     }
   ],
   "backtests": [
