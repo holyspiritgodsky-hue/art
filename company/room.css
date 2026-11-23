@@ -104,6 +104,22 @@
 .room-company-info { padding: 8px 10px; color: #40596b; border: 1px solid #d5e8e4; border-radius: 7px; background: #f8fbfa; font-size: 11px; line-height: 1.6; }
 .room-company-info summary { color: #315a5c; font-weight: 700; cursor: pointer; }
 .room-company-info p { margin: 6px 0 0; overflow-wrap: anywhere; }
+.room-material-section { border: 1px solid #cfe1dd; border-radius: 9px; background: #fff; }
+.room-material-basic { margin-bottom: 8px; padding: 10px; }
+.room-material-section-title { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 7px; }
+.room-material-section-title strong { color: #167968; font-size: 12px; }
+.room-material-section-title span { color: #718496; font-size: 9px; }
+.room-material-list { display: grid; gap: 5px; margin: 0; }
+.room-material-list div { display: grid; grid-template-columns: 68px minmax(0, 1fr); gap: 7px; }
+.room-material-list dt { color: #718496; font-size: 10px; }
+.room-material-list dd { margin: 0; color: #243c50; font-size: 10px; line-height: 1.5; }
+.room-material-detailed { display: grid; grid-template-columns: 38px minmax(0, 1fr); gap: 9px; align-items: center; padding: 9px; background: #f7f9f8; }
+.room-material-lock { display: grid; width: 32px; height: 32px; place-items: center; color: #fff; border-radius: 50%; background: #718496; font-size: 10px; font-weight: 800; }
+.room-material-detailed-copy p { margin: 5px 0 7px; color: #607387; font-size: 10px; line-height: 1.55; }
+.room-nda-request { width: 100%; padding: 7px 9px; color: #315a5c; border: 1px solid #b7ccc8; border-radius: 7px; background: #fff; font-size: 10px; font-weight: 700; }
+.room-nda-request:hover { color: #fff; border-color: #087c89; background: #087c89; }
+.room-nda-request:disabled { color: #718496; border-color: #d8e3e1; background: #edf3f1; cursor: default; }
+.room-nda-status { color: #087c89 !important; font-weight: 700; }
 .room-page .room-stage-hint { right: auto; left: 16px; }
 .room-page .room-future-heading { color: #eaf5f3; }
 .room-page .observation-panel, .room-page .simulation-section { color: #243c50; }
