@@ -905,6 +905,35 @@
         }
       ],
       "outcome": null
+    },
+    {
+      "prediction_at": "2026-11-25T08:52:49+08:00",
+      "trading_date": "2026-11-25",
+      "market_date": "2026-11-24",
+      "mode": "live_forecast",
+      "ranked_sectors": [
+        "非银金融",
+        "机械设备",
+        "汽车"
+      ],
+      "ranked_sector_details": [
+        {
+          "name": "非银金融",
+          "score": 91.1,
+          "up_probability": null
+        },
+        {
+          "name": "机械设备",
+          "score": 87.9,
+          "up_probability": null
+        },
+        {
+          "name": "汽车",
+          "score": 83.8,
+          "up_probability": null
+        }
+      ],
+      "outcome": null
     }
   ],
   "backtests": [
