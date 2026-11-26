@@ -425,7 +425,7 @@ const guestbookStorageKey = 'company-guestbook-v1';
 					<td>${escapeHtml(company.sector)}</td>
 					<td><canvas class="company-representative-canvas" width="56" height="56" data-representative-company="${escapeHtml(company.id)}" aria-label="企业代表形象"></canvas></td>
 					<td><button class="row-star ${company.watch ? 'on' : ''}" type="button" data-star="${escapeHtml(company.id)}" aria-label="${company.watch ? '取消重点' : '标为重点'}">${company.watch ? '★' : '☆'}</button></td>
-					<td><button class="btn btn-small btn-primary row-room" type="button" data-room-company="${escapeHtml(company.id)}">企业咨询</button></td>
+					<td><button class="btn btn-small btn-primary row-room" type="button" data-room-company="${escapeHtml(company.id)}">投资洽谈</button></td>
 				</tr>`).join('');
 			tbody.querySelectorAll('[data-representative-company]').forEach((canvas) => {
 				const company = companies.find((item) => item.id === canvas.dataset.representativeCompany);
@@ -782,35 +782,39 @@ const guestbookStorageKey = 'company-guestbook-v1';
 			if (character.business) {
 				context.save();
 				context.translate(character.x, character.y);
-				context.scale(1.15, 1.15);
+				context.scale(1.35, 1.35);
 				context.fillStyle = 'rgba(20, 42, 44, .25)';
 				context.beginPath();
 				context.ellipse(0, 15, 13, 6, 0, 0, Math.PI * 2);
 				context.fill();
-				context.strokeStyle = '#26363f';
-				context.lineWidth = 2;
-				context.beginPath();
-				context.moveTo(-2, 4); context.lineTo(-3, 12);
-				context.moveTo(2, 4); context.lineTo(3, 12);
-				context.stroke();
-				context.fillStyle = character.body;
-				context.fillRect(-6, -8, 12, 14);
-				context.fillStyle = character.accent;
-				context.fillRect(-2, -8, 4, 14);
-				context.fillStyle = character.head;
-				context.beginPath();
-				context.arc(0, -13, 5, 0, Math.PI * 2);
-				context.fill();
-				context.fillStyle = '#2c2020';
-				context.fillRect(-5, -17, 10, 3);
+				context.fillStyle = '#263a3e';
+				context.fillRect(-5, 5, 4, 8);
+				context.fillRect(1, 5, 4, 8);
+				context.fillRect(-7, 12, 6, 2);
+				context.fillRect(1, 12, 6, 2);
+				context.fillStyle = character.body || '#5c8d9b';
+				context.fillRect(-7, -7, 14, 14);
+				context.fillRect(-9, -5, 3, 10);
+				context.fillRect(6, -5, 3, 10);
+				context.fillStyle = '#f2e7ca';
+				context.fillRect(-3, -7, 6, 12);
+				context.fillStyle = '#bd7650';
+				context.fillRect(-1, -6, 2, 9);
+				context.fillStyle = character.head || '#e9b38e';
+				context.fillRect(-5, -17, 10, 10);
+				context.fillRect(-8, 4, 2, 3);
+				context.fillRect(6, 4, 2, 3);
+				context.fillStyle = '#342d2a';
+				context.fillRect(-5, -19, 10, 3);
+				context.fillRect(-6, -16, 2, 3);
+				context.fillRect(3, -16, 2, 2);
+				context.fillRect(-3, -13, 1, 1);
+				context.fillRect(2, -13, 1, 1);
 				context.fillStyle = '#8b6a43';
-				context.fillRect(7, 0, 7, 6);
-				context.strokeStyle = '#d7b878';
-				context.lineWidth = 1.3;
-				context.strokeRect(7, 0, 7, 6);
-				context.beginPath();
-				context.arc(10.5, 0, 2.2, Math.PI, 0);
-				context.stroke();
+				context.fillRect(8, 1, 8, 7);
+				context.fillStyle = '#dfc18d';
+				context.fillRect(9, 0, 6, 1);
+				context.fillRect(9, 3, 6, 1);
 				context.restore();
 				return;
 			}
@@ -920,6 +924,252 @@ const guestbookStorageKey = 'company-guestbook-v1';
 			if (!context) return;
 			context.clearRect(0, 0, canvas.width, canvas.height);
 			drawRoomGameCharacter(context, createRoomGameHero(company, 'representative', 110, 132));
+		}
+
+		function startRoomPrelude() {
+			const prelude = document.getElementById('roomPrelude');
+			const canvas = document.getElementById('roomPreludeCanvas');
+			const starsCanvas = document.getElementById('roomPreludeStars');
+			const earth = document.getElementById('earth');
+			const content = document.getElementById('simulationContent');
+			const header = document.querySelector('.room-page-header');
+			const flash = document.getElementById('roomPreludeFlash');
+			const bubble = document.getElementById('roomPreludeBubble');
+			const go = document.getElementById('roomPreludeGo');
+			const skip = document.getElementById('roomPreludeSkip');
+			const context = canvas.getContext('2d');
+			const starsContext = starsCanvas.getContext('2d');
+			if (!context) {
+				showToast('地球场景无法显示，已直接进入会客室。');
+				renderSimulation();
+				return;
+			}
+			prelude.hidden = false;
+			header.hidden = true;
+			content.hidden = true;
+			const company = companies.find((item) => item.id === simulationTargetCompanyId) || companies[0];
+			const hero = createRoomGameHero(company, 'representative', 0, 0);
+			document.getElementById('roomPreludeIntroduction').textContent = company ? `我来自${companyName(company)}。` : '我来赴一场会谈。';
+			const player = { x: -.4, y: .18, targetX: -.4, targetY: .18 };
+			const entrance = { x: .38, y: .16 };
+			const keys = new Set();
+			let frameId = 0;
+			let lastTime = performance.now();
+			let entering = false;
+			const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+			const starLayers = [[], []];
+			if (!starsContext) console.error('星空画面无法显示。');
+
+			function createStar(bright) {
+				return {
+					x: Math.random(),
+					y: Math.random(),
+					radius: bright ? Math.random() * 1.5 + .2 : Math.random() * .9 + .1,
+					speed: bright ? Math.random() * .0132 + .0048 : Math.random() * .0072 + .0018,
+					phase: Math.random() * Math.PI * 2,
+					twinkle: bright ? Math.random() * .6 + .12 : Math.random() * .48 + .06,
+					brightness: bright ? Math.random() * .07 + .93 : Math.random() * .35 + .3,
+				};
+			}
+
+			function drawStars(dt) {
+				if (!starsContext) return;
+				const rect = starsCanvas.getBoundingClientRect();
+				if (!rect.width || !rect.height) return;
+				const ratio = Math.min(window.devicePixelRatio || 1, 2);
+				const width = Math.round(rect.width * ratio);
+				const height = Math.round(rect.height * ratio);
+				if (starsCanvas.width !== width || starsCanvas.height !== height) {
+					starsCanvas.width = width;
+					starsCanvas.height = height;
+					const counts = [Math.round(rect.width * rect.height / 3900), Math.round(rect.width * rect.height / 5700)];
+					starLayers.forEach((stars, index) => {
+						while (stars.length < counts[index]) stars.push(createStar(index === 0));
+						stars.length = counts[index];
+					});
+				}
+				starsContext.setTransform(ratio, 0, 0, ratio, 0, 0);
+				starsContext.clearRect(0, 0, rect.width, rect.height);
+				starLayers.forEach((stars, index) => stars.forEach((star) => {
+					if (!reducedMotion.matches) {
+						star.x -= star.speed * dt;
+						star.phase += star.twinkle * dt;
+						if (star.x < 0) {
+							star.x = 1;
+							star.y = Math.random();
+						}
+					}
+					const brightness = star.brightness * (index === 0 ? .9 + .1 * Math.sin(star.phase) : .85 + .15 * Math.sin(star.phase));
+					starsContext.fillStyle = index === 0 ? `rgba(255,255,255,${brightness})` : `rgba(220,230,255,${brightness})`;
+					starsContext.beginPath();
+					starsContext.arc(star.x * rect.width, star.y * rect.height, star.radius, 0, Math.PI * 2);
+					starsContext.fill();
+				}));
+			}
+
+			function enterRoom() {
+				if (entering) return;
+				entering = true;
+				cancelAnimationFrame(frameId);
+				window.removeEventListener('keydown', onKeyDown);
+				window.removeEventListener('keyup', onKeyUp);
+				window.removeEventListener('blur', onBlur);
+				go.disabled = true;
+				skip.disabled = true;
+				flash.textContent = '现在，你将以投资人的身份进入会谈。';
+				flash.classList.add('is-active');
+				const delay = reducedMotion.matches ? 1200 : 1600;
+				window.setTimeout(() => {
+					prelude.hidden = true;
+					header.hidden = false;
+					content.hidden = false;
+					renderSimulation();
+					document.getElementById('returnToCompanies').focus({ preventScroll: true });
+					window.requestAnimationFrame(() => flash.classList.remove('is-active'));
+				}, delay);
+			}
+
+			function approachEntrance() {
+				if (reducedMotion.matches) {
+					enterRoom();
+					return;
+				}
+				player.targetX = entrance.x;
+				player.targetY = entrance.y;
+			}
+
+			function geometry() {
+				const canvasRect = canvas.getBoundingClientRect();
+				const earthRect = earth.getBoundingClientRect();
+				const scale = canvas.width / canvasRect.width;
+				const height = Math.round(canvasRect.height * scale);
+				if (canvas.height !== height) canvas.height = height;
+				return {
+					cx: (earthRect.left + earthRect.width / 2 - canvasRect.left) * scale,
+					cy: (earthRect.top + earthRect.height / 2 - canvasRect.top) * scale,
+					radius: earthRect.width * scale / 2,
+					rect: canvasRect,
+					scale,
+				};
+			}
+
+			function onPointerDown(event) {
+				if (entering) return;
+				canvas.focus({ preventScroll: true });
+				const { cx, cy, radius, rect, scale } = geometry();
+				let x = ((event.clientX - rect.left) * scale - cx) / radius;
+				let y = ((event.clientY - rect.top) * scale - cy) / radius;
+				if (Math.hypot(x - entrance.x, y - entrance.y) < .24) {
+					approachEntrance();
+					return;
+				}
+				const distance = Math.hypot(x, y);
+				if (distance > .82) {
+					x *= .82 / distance;
+					y *= .82 / distance;
+				}
+				player.targetX = x;
+				player.targetY = y;
+			}
+
+			function onKeyDown(event) {
+				const key = event.key.toLowerCase();
+				if (['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright'].includes(key)) {
+					if (event.target instanceof HTMLElement && event.target.closest('input, textarea, select')) return;
+					keys.add(key);
+					event.preventDefault();
+				}
+			}
+			function onKeyUp(event) { keys.delete(event.key.toLowerCase()); }
+			function onBlur() { keys.clear(); }
+			canvas.addEventListener('pointerdown', onPointerDown);
+			canvas.addEventListener('pointermove', (event) => {
+				const { cx, cy, radius, rect, scale } = geometry();
+				const x = ((event.clientX - rect.left) * scale - cx) / radius;
+				const y = ((event.clientY - rect.top) * scale - cy) / radius;
+				canvas.style.cursor = Math.hypot(x - entrance.x, y - entrance.y) < .24 ? 'pointer' : 'crosshair';
+			});
+			go.addEventListener('click', approachEntrance);
+			skip.addEventListener('click', enterRoom);
+			window.addEventListener('keydown', onKeyDown);
+			window.addEventListener('keyup', onKeyUp);
+			window.addEventListener('blur', onBlur);
+
+			function drawEntrance(x, y, scale) {
+				context.save();
+				context.translate(x, y);
+				context.scale(scale, scale);
+				context.fillStyle = 'rgba(5, 23, 36, .35)';
+				context.beginPath();
+				context.ellipse(0, 8, 41, 12, 0, 0, Math.PI * 2);
+				context.fill();
+				context.fillStyle = '#294c4a';
+				context.fillRect(-28, -45, 56, 49);
+				context.fillStyle = '#e5d4ae';
+				context.fillRect(-24, -41, 48, 41);
+				context.fillStyle = '#416c68';
+				context.fillRect(-29, -48, 58, 8);
+				context.fillStyle = '#93c8ba';
+				context.fillRect(-19, -35, 11, 12);
+				context.fillRect(8, -35, 11, 12);
+				context.fillStyle = '#42685d';
+				context.fillRect(-6, -23, 12, 23);
+				context.fillStyle = '#ecd398';
+				context.fillRect(2, -13, 2, 2);
+				context.font = '700 13px Microsoft YaHei';
+				context.textAlign = 'center';
+				context.fillStyle = '#fff';
+				context.shadowColor = '#102b32';
+				context.shadowBlur = 5;
+				context.fillText('会客室', 0, -57);
+				context.restore();
+			}
+
+			function drawFrame(now) {
+				if (entering) return;
+				const dt = Math.min(.033, (now - lastTime) / 1000);
+				lastTime = now;
+				drawStars(dt);
+				const horizontal = (keys.has('d') || keys.has('arrowright') ? 1 : 0) - (keys.has('a') || keys.has('arrowleft') ? 1 : 0);
+				const vertical = (keys.has('s') || keys.has('arrowdown') ? 1 : 0) - (keys.has('w') || keys.has('arrowup') ? 1 : 0);
+				if (horizontal || vertical) {
+					const length = Math.hypot(horizontal, vertical);
+					player.targetX = player.x + horizontal / length * .1;
+					player.targetY = player.y + vertical / length * .1;
+				}
+				const dx = player.targetX - player.x;
+				const dy = player.targetY - player.y;
+				const distance = Math.hypot(dx, dy);
+				if (distance > .001) {
+					const step = Math.min(distance, .6 * dt);
+					player.x += dx / distance * step;
+					player.y += dy / distance * step;
+				}
+				const edge = Math.hypot(player.x, player.y);
+				if (edge > .82) {
+					player.x *= .82 / edge;
+					player.y *= .82 / edge;
+					player.targetX = player.x;
+					player.targetY = player.y;
+				}
+				if (Math.hypot(player.x - entrance.x, player.y - entrance.y) < .08) {
+					enterRoom();
+					return;
+				}
+				const { cx, cy, radius, rect, scale } = geometry();
+				context.clearRect(0, 0, canvas.width, canvas.height);
+				drawEntrance(cx + entrance.x * radius, cy + entrance.y * radius, radius / 235);
+				hero.x = cx + player.x * radius;
+				hero.y = cy + player.y * radius;
+				drawRoomGameCharacter(context, hero);
+				const halfWidth = bubble.offsetWidth / 2;
+				const bubbleX = Math.max(halfWidth + 8, Math.min(rect.width - halfWidth - 8, hero.x / scale));
+				bubble.style.left = `${bubbleX}px`;
+				bubble.style.top = `${Math.max(bubble.offsetHeight + 8, hero.y / scale - 38 / scale)}px`;
+				bubble.style.setProperty('--bubble-tail', `${Math.max(12, Math.min(bubble.offsetWidth - 12, hero.x / scale - bubbleX + halfWidth))}px`);
+				frameId = requestAnimationFrame(drawFrame);
+			}
+			frameId = requestAnimationFrame(drawFrame);
 		}
 
 		function startRoomGame(company) {
@@ -1222,34 +1472,58 @@ const guestbookStorageKey = 'company-guestbook-v1';
 						<linearGradient id="${idPrefix}-roomFloor" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#55736f"/><stop offset="1" stop-color="#334d50"/></linearGradient>
 						<linearGradient id="${idPrefix}-roomWall" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#e4e6d9"/><stop offset="1" stop-color="#bfcfc1"/></linearGradient>
 						<pattern id="${idPrefix}-roomTiles" width="70" height="70" patternUnits="userSpaceOnUse" patternTransform="matrix(.86 .5 -.86 .5 380 155)"><path d="M70 0H0V70" fill="none" stroke="#b7c8b7" stroke-opacity=".16" stroke-width="2"/></pattern>
+						<pattern id="${idPrefix}-wallTexture" width="12" height="12" patternUnits="userSpaceOnUse"><path d="M1 1h2v2H1zm7 6h2v2H8z" fill="#6f8e7f" opacity=".09"/></pattern>
+						<clipPath id="${idPrefix}-windowClip"><path d="M112 149L231 82V142L112 210Z"/></clipPath>
 					</defs>
 					<ellipse cx="390" cy="452" rx="305" ry="38" fill="#0b1c22" opacity=".3"/>
 					<path d="M78 246L378 75 682 247 382 423Z" fill="url(#${idPrefix}-roomFloor)"/>
 					<path d="M78 246L378 75 682 247 382 423Z" fill="url(#${idPrefix}-roomTiles)"/>
 					<path d="M78 246V126L378 -42V75Z" fill="#e1e3d5"/>
 					<path d="M378 -42L682 126V247L378 75Z" fill="url(#${idPrefix}-roomWall)"/>
+					<path d="M78 246V126L378 -42V75Z M378 -42L682 126V247L378 75Z" fill="url(#${idPrefix}-wallTexture)"/>
+					<path d="M78 228L378 57 682 229" fill="none" stroke="#f6f3e5" stroke-width="3" opacity=".6"/>
 					<path d="M78 239L378 68 682 240" fill="none" stroke="#829e90" stroke-width="6"/>
 					<path d="M100 144L244 63V149L100 231Z" fill="#325351" stroke="#a8bfb1" stroke-width="6"/>
 					<path d="M112 149L231 82V142L112 210Z" fill="#a5d5c8"/>
-					<path d="M112 194L150 145 179 158 231 115V142L112 210Z" fill="#6ba99b"/>
+					<g clip-path="url(#${idPrefix}-windowClip)">
+						<path d="M106 184L132 169V155L145 148V165L153 160V142L169 133V151L180 145V124L194 116V137L207 130V108L220 101V123L238 113V215H106Z" fill="#7fb5a7"/>
+						<path d="M106 201L130 179 143 184 161 164 176 172 195 151 211 157 237 138V215H106Z" fill="#609b8c"/>
+						<path d="M120 159h3v3h-3zm16-8h3v3h-3zm22-12h3v3h-3zm28-14h3v3h-3zm27-15h3v3h-3z" fill="#e6f4df" opacity=".8"/>
+					</g>
 					<path d="M170 112V176M112 179L231 112" stroke="#e6f4eb" stroke-width="4" opacity=".85"/>
+					<path d="M102 233L244 152v6L102 239Z" fill="#739486"/>
+					<path d="M270 65L300 48v31l-30 17Z" fill="#d0bc93" stroke="#8fa99b" stroke-width="3"/>
+					<path d="M276 66l8-5v19l-8 5zm11-7l7-4v19l-7 4z" fill="#f3e7c9"/>
 					<path d="M419 12L546 83V171L419 99Z" fill="#355751" stroke="#9fb4a6" stroke-width="5"/>
 					<path d="M431 31L534 89V153L431 95Z" fill="#e5f1e7"/>
 					<path d="M443 65L466 77 480 70 495 88 521 88" fill="none" stroke="#419383" stroke-width="4"/>
 					<path d="M445 82L488 106M445 91L513 129" stroke="#a9c7bc" stroke-width="3"/>
+					<path d="M425 102L541 168v5l-116-66Z" fill="#273f40"/>
+					<circle cx="536" cy="164" r="2" fill="#d3bd82"/>
 					<path d="M584 114L640 146V217L584 185Z" fill="#f3e8cd" stroke="#9bb0a0" stroke-width="4"/>
 					<path d="M598 145L625 160M598 156L626 172M598 167L620 179" stroke="#bb9e74" stroke-width="3"/>
+					<path d="M590 121l44 25v6l-44-25z" fill="#dfcfac"/>
+					<path d="M126 265L172 239 223 268 177 294Z" fill="#192f32" opacity=".22"/>
 					<path d="M168 254L215 228 253 250 206 277Z" fill="#d9bd8c"/>
 					<path d="M206 277L253 250V282L206 309Z" fill="#a78259"/>
 					<path d="M168 254L206 277V309L168 286Z" fill="#bd986a"/>
+					<path d="M174 269l26 15v2l-26-15zm0 7l26 15v2l-26-15zm38 7l34-19v2l-34 19z" fill="#e3c69d" opacity=".45"/>
 					<path d="M190 254C179 236 183 220 189 216C192 230 198 238 200 245C199 226 207 213 214 211C213 229 207 242 203 249C211 238 221 234 226 236C220 249 211 253 201 257Z" fill="#67a677"/>
 					<path d="M190 254L212 242 210 261 200 267 190 261Z" fill="#e8b982"/>
+					<path d="M273 309L420 222 555 299 407 386Z" fill="#1e3435" opacity=".26"/>
+					<path d="M254 311l25-14 18 10-25 15z" fill="#1c3435"/><path d="M256 306l23-13 18 10-23 13z" fill="#759b8d" stroke="#294c48" stroke-width="3"/>
+					<path d="M490 230l25-14 18 10-25 15z" fill="#1c3435"/><path d="M492 225l23-13 18 10-23 13z" fill="#759b8d" stroke="#294c48" stroke-width="3"/>
 					<path d="M295 306L421 233 536 299 410 373Z" fill="#ead2ab" stroke="#b89c75" stroke-width="3"/>
 					<path d="M410 373L536 299V324L410 397Z" fill="#a78968"/>
 					<path d="M295 306L410 373V397L295 330Z" fill="#c1a17b"/>
+					<path d="M302 306L421 238 528 299" fill="none" stroke="#f9e9c9" stroke-width="2" opacity=".8"/>
+					<path d="M312 310l78 45m-64-53l83 48m-67-58l42 24" fill="none" stroke="#d7bb91" stroke-width="1" opacity=".5"/>
+					<path d="M379 291L423 266 458 286 414 311Z" fill="#d0b998"/>
 					<path d="M357 301L401 276 436 296 392 321Z" fill="#f8f3e5"/>
-					<path d="M367 300L396 283M373 304L406 285" stroke="#b6c5b7" stroke-width="2"/>
-					<ellipse cx="464" cy="310" rx="13" ry="7" fill="#f8f3e5"/><path d="M451 310V316C451 325 477 325 477 316V310" fill="#d8e8d9"/>
+					<path d="M367 300L396 283M373 304L406 285M378 307l18-10" stroke="#b6c5b7" stroke-width="2"/>
+					<path d="M408 279l4-2 17 10-4 2z" fill="#3c7770"/>
+					<path d="M451 310V316C451 325 477 325 477 316V310" fill="#d8e8d9"/><ellipse cx="464" cy="310" rx="13" ry="7" fill="#f8f3e5"/><ellipse cx="464" cy="309" rx="9" ry="4" fill="#b9946c"/>
+					<path d="M476 311c8-1 8 7 0 7" fill="none" stroke="#d8e8d9" stroke-width="3"/>
 					<path d="M290 360L317 375M487 263L510 277" stroke="#a9c3b4" stroke-width="3" stroke-linecap="round"/>
 				</svg>
 				${idPrefix === 'home' ? '<canvas class="room-preview-canvas" width="760" height="510" aria-hidden="true"></canvas>' : ''}
@@ -1657,7 +1931,7 @@ const guestbookStorageKey = 'company-guestbook-v1';
 		}
 		} else {
 			document.getElementById('returnToCompanies').href = `index.html?company=${encodeURIComponent(simulationTargetCompanyId)}`;
-			renderSimulation();
+			startRoomPrelude();
 			if (requestedCompanyId && requestedCompanyId !== simulationTargetCompanyId) showToast('未找到指定企业，已显示其他企业。');
 			if (simulationStorageError) showToast('无法读取原有模拟盘，已暂停修改以保护数据。请检查浏览器存储。');
 		}
