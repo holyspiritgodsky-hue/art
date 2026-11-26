@@ -4,6 +4,25 @@
 .room-page-header h1 { margin: 4px 0 0; color: #f1faf7; font-size: clamp(20px, 2.4vw, 30px); }
 .room-page-kicker { color: #a7cec3; font-size: 11px; }
 .room-back { text-decoration: none; white-space: nowrap; }
+.room-prelude[hidden], #simulationContent[hidden], .room-page-header[hidden] { display: none; }
+.room-prelude { width: min(940px, 100%); margin: 0 auto; }
+.room-prelude-stage { position: relative; aspect-ratio: 760 / 560; overflow: hidden; border: 1px solid #334d60; border-radius: 16px; background: radial-gradient(ellipse at 50% 48%, #193c58 0%, #0b1c31 48%, #050c19 100%); }
+#roomPreludeStars { position: absolute; z-index: 0; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.room-prelude .room-prelude-earth { position: absolute; z-index: 1; top: 10%; left: 19%; width: 62%; height: auto; aspect-ratio: 1; pointer-events: none; }
+.room-prelude-earth canvas { width: 100%; height: 100%; }
+.room-prelude-bubble { position: absolute; z-index: 3; top: 30%; left: 30%; display: grid; gap: 5px; width: max-content; max-width: min(230px, 55%); padding: 10px 13px; color: #304b50; border: 1px solid rgba(188,220,214,.9); border-radius: 12px; background: rgba(248,252,249,.96); box-shadow: 0 8px 22px rgba(0,0,0,.2); font-size: 12px; line-height: 1.55; overflow-wrap: anywhere; pointer-events: none; transform: translate(-50%, -100%); }
+.room-prelude-bubble::after { position: absolute; bottom: -7px; left: calc(var(--bubble-tail, 50%) - 6px); width: 12px; height: 12px; border-right: 1px solid #bcddd6; border-bottom: 1px solid #bcddd6; background: #f8fcf9; content: ""; transform: rotate(45deg); }
+#roomPreludeCanvas { position: absolute; z-index: 2; inset: 0; width: 100%; height: 100%; cursor: crosshair; touch-action: none; }
+.room-prelude-controls { position: absolute; z-index: 3; right: 4%; bottom: 4%; left: 4%; display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 8px; }
+.room-prelude-controls:not(:focus-within) { width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); }
+.room-prelude-go, .room-prelude-skip { min-height: 38px; padding: 8px 18px; border: 1px solid #b2ded3; border-radius: 8px; color: #f5fffb; background: #167468; font-size: 13px; font-weight: 700; cursor: pointer; }
+.room-prelude-skip { border-color: #6a8793; color: #d6e6e5; background: rgba(15,35,48,.85); }
+.room-prelude-go:hover, .room-prelude-skip:hover { filter: brightness(1.2); }
+.room-prelude-go:focus-visible, .room-prelude-skip:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+.room-prelude-status { display: none; position: absolute; z-index: 4; right: 4%; bottom: 16%; left: 4%; color: #fff; font-size: 12px; text-align: center; }
+.room-prelude-earth.earth-fallback ~ .room-prelude-status { display: block; }
+.room-prelude-flash { position: fixed; z-index: 1000; inset: 0; display: flex; align-items: center; justify-content: center; padding: 24px; color: #476468; background: #fff; font-size: clamp(14px, 2vw, 18px); text-align: center; opacity: 0; pointer-events: none; transition: opacity .4s ease; }
+.room-prelude-flash.is-active { opacity: 1; pointer-events: auto; }
 .room-page .meeting-room { position: relative; display: block; height: auto; min-height: 0; aspect-ratio: 760 / 400; overflow: hidden; border: 1px solid #536e6a; border-radius: 16px; background: #1b3239; }
 .room-page .room-stage { position: absolute; inset: 0; min-height: 0; border-radius: 0; }
 .room-page .room-stage svg { width: calc(100% - 380px); }
@@ -108,6 +127,7 @@
 @keyframes room-space-copy-in { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
 @media (prefers-reduced-motion: reduce) {
 	.room-space-stars, .room-space-planet, .room-space-orbit, .room-space-signal, .room-space-satellite, .room-space-copy { animation: none; }
+	.room-prelude-flash { transition: none; }
 }
 @media (max-width: 800px) {
 	.room-next-actions-grid { grid-template-columns: 1fr; }
@@ -166,6 +186,9 @@
 }
 @media (max-width: 480px) {
 	.room-page-main { padding: 12px 10px 24px; }
+	.room-prelude-stage { min-height: 450px; aspect-ratio: auto; }
+	.room-prelude .room-prelude-earth { top: 24%; left: 8%; width: 84%; }
+	.room-prelude-controls { bottom: 5%; }
 	.room-page .meeting-room { width: calc(100% + 20px); margin-right: -10px; margin-left: -10px; border-radius: 10px; }
 	.room-page .room-play-stage { overflow: hidden; }
 	.room-page .room-play-stage svg { top: 0; left: 50%; width: auto; min-width: 100%; height: min(55vh, 360px); transform: translateX(-50%); }
