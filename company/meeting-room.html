@@ -3,7 +3,7 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<title>企业会客室 · 华鑫投资企业库</title>
+	<title>企业会客室 · 华鑫企业合作与融资洽谈</title>
 	<link rel="stylesheet" href="styles.css">
 	<link rel="stylesheet" href="room.css">
 </head>
@@ -13,10 +13,29 @@
 			<div><span class="room-page-kicker">华鑫企业库</span><h1>企业会客室</h1></div>
 			<a class="btn room-back" id="returnToCompanies" href="index.html">← 返回企业库</a>
 		</header>
+		<section class="room-prelude" id="roomPrelude" aria-label="地球上的旅程" hidden>
+			<div class="room-prelude-stage">
+				<canvas id="roomPreludeStars" aria-hidden="true"></canvas>
+				<div class="earth room-prelude-earth" id="earth" aria-hidden="true"></div>
+				<canvas id="roomPreludeCanvas" width="760" height="560" tabindex="0" aria-label="控制企业主，点击会客室入口或用方向键和 WASD 移动。按 Tab 可选择前往或跳过。"></canvas>
+				<div class="room-prelude-bubble" id="roomPreludeBubble" role="status">
+					<span id="roomPreludeIntroduction"></span>
+					<span>希望这次，能找到合适的人来投资</span>
+				</div>
+				<p id="earthStatus" hidden role="status"></p>
+				<p class="room-prelude-status" role="status">地球画面暂时不可用，仍可继续前往会客室。</p>
+				<div class="room-prelude-controls">
+					<button class="room-prelude-go" id="roomPreludeGo" type="button">走向会客室</button>
+					<button class="room-prelude-skip" id="roomPreludeSkip" type="button">直接进入</button>
+				</div>
+			</div>
+		</section>
 		<div id="simulationContent"></div>
 	</main>
+	<div class="room-prelude-flash" id="roomPreludeFlash" role="status" aria-live="polite"></div>
 	<div class="toast" id="toast" role="status"></div>
 	<script src="heroes.js"></script>
 	<script src="app.js"></script>
+	<script src="globe/globe.bundle.js?v=11" onload="document.querySelector('#earth canvas')?.setAttribute('tabindex', '-1');" onerror="console.error('地球脚本加载失败'); document.getElementById('earth').classList.add('earth-fallback');"></script>
 </body>
 </html>
