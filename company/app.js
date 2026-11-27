@@ -6,7 +6,7 @@ const guestbookStorageKey = 'company-guestbook-v1';
 		const requestedCompanyId = new URLSearchParams(window.location.search).get('company');
 		const demoCompanies = [
 			{
-				id: 'demo-1', name: '青禾生态农业（示例）', sector: '农业种植', region: '华东 · 示例地区',
+				id: 'demo-1', name: '禾盛农业（示例）', sector: '农业种植', region: '华东 · 示例地区',
 				product: '规模化种植与产地初加工，主打订单农业和稳定供货。', need: '寻找稳定采购方及加工渠道，验证连续供货能力。',
 				fundingAmount: 500,
 				path: '供应链', status: '重点推进', score: 55, dims: [['经营基础', 56], ['信息可信度', 42], ['需求清晰度', 64], ['对接准备度', 58]],
@@ -14,7 +14,7 @@ const guestbookStorageKey = 'company-guestbook-v1';
 				next: '补充近两年产量、品控标准、现有客户和交付半径。', source: '演示样例 · 非真实项目', updated: '2026-11-15',
 			},
 			{
-				id: 'demo-2', name: '岭南本草科技（示例）', sector: '中药材', region: '华南 · 示例地区',
+				id: 'demo-2', name: '本草源农业（示例）', sector: '中药材', region: '华南 · 示例地区',
 				product: '中药材种植、产地加工与质量追溯，拟打通从基地到加工端的供应链。', need: '寻找饮片、制药或健康产品领域的采购与产业合作方。',
 				fundingAmount: 800,
 				path: '供应链', status: '待验证', score: 54, dims: [['经营基础', 52], ['信息可信度', 45], ['需求清晰度', 60], ['对接准备度', 58]],
@@ -30,7 +30,7 @@ const guestbookStorageKey = 'company-guestbook-v1';
 				next: '核验场地用途、经营资质、客群来源、投入预算及双方收益分配设想。', source: '演示样例 · 非真实项目', updated: '2026-11-15',
 			},
 			{
-				id: 'demo-4', name: '远山药植基地（示例）', sector: '中药材', region: '西南 · 示例地区',
+				id: 'demo-4', name: '岷源药材（示例）', sector: '中药材', region: '西南 · 示例地区',
 				product: '以道地药材种植为主，拟扩展初加工与产地仓储能力。', need: '希望对接药材加工企业、仓储物流及产业投资方。',
 				fundingAmount: 650,
 				path: '投资 / 并购', status: '持续观察', score: 54, dims: [['经营基础', 50], ['信息可信度', 48], ['需求清晰度', 59], ['对接准备度', 57]],
@@ -38,7 +38,7 @@ const guestbookStorageKey = 'company-guestbook-v1';
 				next: '补齐股权结构、产能利用率、加工投资预算和大股东合作意向。', source: '演示样例 · 非真实项目', updated: '2026-11-15',
 			},
 			{
-				id: 'demo-5', name: '澄海食品制造（示例）', sector: '食品加工', region: '华南 · 示例地区',
+				id: 'demo-5', name: '海晟食品（示例）', sector: '食品加工', region: '华南 · 示例地区',
 				product: '区域特色农产品加工与品牌代工，具备多品类生产线。', need: '拓展原料供应和上市公司渠道合作，评估产线协同。',
 				fundingAmount: 1000,
 				path: '供应链', status: '重点推进', score: 56, dims: [['经营基础', 57], ['信息可信度', 48], ['需求清晰度', 61], ['对接准备度', 58]],
@@ -46,7 +46,7 @@ const guestbookStorageKey = 'company-guestbook-v1';
 				next: '整理产品目录、质量体系、产线负荷、报价区间和现有客户结构。', source: '演示样例 · 非真实项目', updated: '2026-11-15',
 			},
 			{
-				id: 'demo-6', name: '云岭生物原料（示例）', sector: '生物制造', region: '西南 · 示例地区',
+				id: 'demo-6', name: '青源生物（示例）', sector: '生物制造', region: '西南 · 示例地区',
 				product: '以植物活性原料提取和定制化加工为主，面向健康消费品客户。', need: '寻找产业客户、联合开发伙伴及潜在股权投资方。',
 				fundingAmount: 1500,
 				path: '投资 / 并购', status: '持续观察', score: 53, dims: [['经营基础', 51], ['信息可信度', 43], ['需求清晰度', 60], ['对接准备度', 58]],
@@ -134,15 +134,55 @@ const guestbookStorageKey = 'company-guestbook-v1';
 				next: '核验三年财务报表、营业执照及资质、股东构成、在手订单、主要客户和供应商、设备交付记录，以及5000万元资金用途和股份估值依据。',
 				source: '融资申请表（影印件）', updated: '2026-11-23',
 			},
+			{
+				id: 'real-xingjuyu', name: '惠州星聚宇光学', sector: '光学制造', region: '惠州',
+				product: '光学与智能制造相关业务；具体产品和经营资料待补充。',
+				need: '合作诉求待企业资料补充。', fundingAmount: null,
+				path: '待确认', status: '待验证', score: null, dims: [], assessed: false,
+				thesis: '资料尚未补充，暂不形成机会假设。',
+				next: '补充经企业授权的业务、经营和合作资料。', source: '用户提供企业名称与行业背景', updated: '2026-11-27',
+			},
+			{
+				id: 'real-haizhuotaike', name: '海卓泰克', sector: '工业技术', region: '武汉',
+				product: '伺服阀技术相关业务；具体产品和经营资料待补充。',
+				need: '合作诉求待企业资料补充。', fundingAmount: null,
+				path: '待确认', status: '待验证', score: null, dims: [], assessed: false,
+				thesis: '资料尚未补充，暂不形成机会假设。',
+				next: '补充经企业授权的业务、经营和合作资料。', source: '用户提供企业名称与行业背景', updated: '2026-11-27',
+			},
+			{
+				id: 'real-tangrengong', name: '唐仁宫', sector: '健康管理', region: '待补充',
+				product: '健康管理相关业务；具体产品和经营资料待补充。',
+				need: '合作诉求待企业资料补充。', fundingAmount: null,
+				path: '待确认', status: '待验证', score: null, dims: [], assessed: false,
+				thesis: '资料尚未补充，暂不形成机会假设。',
+				next: '补充经企业授权的业务、经营和合作资料。', source: '用户提供企业名称与行业背景', updated: '2026-11-27',
+			},
+			{
+				id: 'real-yilingke', name: '易玲科', sector: '信息安全', region: '待补充',
+				product: '信息安全相关业务；具体产品和经营资料待补充。',
+				need: '合作诉求待企业资料补充。', fundingAmount: null,
+				path: '待确认', status: '待验证', score: null, dims: [], assessed: false,
+				thesis: '资料尚未补充，暂不形成机会假设。',
+				next: '补充经企业授权的业务、经营和合作资料。', source: '用户提供企业名称与行业背景', updated: '2026-11-27',
+			},
+			{
+				id: 'real-shangyouwenlv', name: '江苏上游文旅', sector: '文旅运营', region: '江苏',
+				product: '文旅与游乐园相关业务；具体产品和经营资料待补充。',
+				need: '合作诉求待企业资料补充。', fundingAmount: null,
+				path: '待确认', status: '待验证', score: null, dims: [], assessed: false,
+				thesis: '资料尚未补充，暂不形成机会假设。',
+				next: '补充经企业授权的业务、经营和合作资料。', source: '用户提供企业名称与行业背景', updated: '2026-11-27',
+			},
 		];
 
 		const demoNames = {
-			'demo-1': ['青禾生态农业', '青禾生态农业科技有限公司'],
-			'demo-2': ['岭南本草科技', '岭南本草农业科技有限公司'],
+			'demo-1': ['禾盛农业', '安徽禾盛农业发展有限公司'],
+			'demo-2': ['本草源农业', '广东本草源农业有限公司'],
 			'demo-3': ['松溪康养运营', '松溪健康养老服务有限公司'],
-			'demo-4': ['远山药植基地', '远山药材种植有限公司'],
-			'demo-5': ['澄海食品制造', '澄海食品加工有限公司'],
-			'demo-6': ['云岭生物原料', '云岭生物科技有限公司'],
+			'demo-4': ['岷源药材', '四川岷源药材有限公司'],
+			'demo-5': ['海晟食品', '汕头海晟食品有限公司'],
+			'demo-6': ['青源生物', '云南青源生物科技有限公司'],
 			'demo-7': ['安禾田园综合体', '安禾田园文旅发展有限公司'],
 			'demo-8': ['精工装备科技', '精工智能装备科技有限公司'],
 			'demo-9': ['阳岭粮油合作社', '阳岭粮油种植专业合作社'],
@@ -154,13 +194,22 @@ const guestbookStorageKey = 'company-guestbook-v1';
 			'demo-15': ['江苏海拉复生设备有限公司', '江苏海拉复生设备有限公司'],
 		};
 
+		const legacyDemoNames = {
+			'demo-1': ['青禾生态农业', '青禾生态农业科技有限公司'],
+			'demo-2': ['岭南本草科技', '岭南本草农业科技有限公司'],
+			'demo-4': ['远山药植基地', '远山药材种植有限公司'],
+			'demo-5': ['澄海食品制造', '澄海食品加工有限公司'],
+			'demo-6': ['云岭生物原料', '云岭生物科技有限公司'],
+		};
+
 		function cleanDemoLabels(company) {
 			if (!company?.id?.startsWith('demo-')) return company;
 			const name = String(company.name || '').replace('（示例）', '');
 			const names = demoNames[company.id];
+			const legacyNames = legacyDemoNames[company.id] || [];
 			return {
 				...company,
-				name: names && name === names[0] ? names[1] : name,
+				name: names && (name === names[0] || legacyNames.includes(name)) ? names[1] : name,
 				region: String(company.region || '').replace(' · 示例地区', ''),
 				source: String(company.source || '').replace('演示样例 · 非真实项目', '').trim(),
 			};
@@ -587,14 +636,23 @@ const guestbookStorageKey = 'company-guestbook-v1';
 		}
 
 		function roomReply(company, topic) {
-			const replies = {
-				product: company?.product || '这家企业的业务资料尚未补充。',
-				competitors: `${company?.sector || '所在行业'}的竞争主要来自拥有成熟客户、稳定交付和规模化渠道的企业。当前还缺少明确的竞争对手名单，需要进一步核实市场份额、产品差异和客户重合度。`,
-				need: company?.need || '这家企业的合作需求尚未补充。',
-				risk: company?.next || '目前缺少详细核验资料，请先补充经营数据和相关证明。',
-				future: company?.thesis || '当前尚未形成机会假设，需要补充资料后再讨论未来。',
+			const companyDialogues = {
+				'demo-3': {
+					intro: '你好。我们想把当地的住宿和自然环境做成康养项目，不过运营这块还没有真正跑起来。',
+					product: '简单说，就是把住宿、休养和健康服务放在一起，做短住康养。现在还在摸索怎么运营。',
+					risk: '最没把握的是客源。场地有了，但谁会长期来、来了以后会不会再来，我们还没验证。',
+					future: '我们想先找个有经验的运营团队，把产品和客源跑通，再考虑后面的投入。',
+				},
 			};
-			return replies[topic] || '欢迎来到会客室。想先了解我们的业务、需求，还是需要核验的事项？';
+			const companyDialogue = companyDialogues[company?.id];
+			if (companyDialogue?.[topic]) return companyDialogue[topic];
+			const replies = {
+				intro: '你好，感谢你愿意听我介绍这个项目。',
+				product: company?.product ? `我们现在主要做的是：${company.product}` : '我们的业务还在整理，暂时没有完整的介绍。',
+				risk: company?.next ? `目前最需要解决的是：${company.next}` : '现在还有一些经营数据和证明材料没有补齐。',
+				future: company?.need ? `我们现在最希望解决的是：${company.need}` : '下一步怎么合作，我们还需要再想清楚。',
+			};
+			return replies[topic] || replies.intro;
 		}
 
 		function requestedFundingWan(company) {
@@ -637,9 +695,9 @@ const guestbookStorageKey = 'company-guestbook-v1';
 			const fundingWan = requestedFundingWan(company);
 			const amountLabel = fundingWan === null ? '待企业确认' : `${fundingWan} 万元`;
 			const amountAction = fundingWan === null ? '融资金额待补充' : `是，投资 ${fundingWan} 万元`;
-			return `<section class="room-investment-flow" id="roomInvestmentFlow" hidden>
+			return `<section class="room-investment-flow" id="roomInvestmentFlow">
 				<div class="room-investment-head">
-					<div><h2>会谈完成：是否投资？</h2></div>
+					<div><h2 id="roomInvestmentTitle">是否投资？</h2></div>
 					<span class="room-investment-amount">企业融资需求：${escapeHtml(amountLabel)}</span>
 				</div>
 				<div class="room-investment-actions">
@@ -666,11 +724,9 @@ const guestbookStorageKey = 'company-guestbook-v1';
 						<div class="room-game-dialog-head"><strong>你</strong><span>提问</span></div>
 						<p id="roomPlayerMessage" hidden></p>
 						<div class="room-game-questions" id="roomGameQuestions">
-							<button type="button" data-room-game-topic="product">了解业务和产品</button>
-							<button type="button" data-room-game-topic="competitors">了解同行业竞争对手</button>
-							<button type="button" data-room-game-topic="need">询问合作需求</button>
-							<button type="button" data-room-game-topic="risk">追问风险和证据</button>
-							<button type="button" data-room-game-topic="future">讨论下一步机会</button>
+							<button type="button" data-room-game-topic="product">你们主要做什么？</button>
+							<button type="button" data-room-game-topic="risk">目前最没把握的是什么？</button>
+							<button type="button" data-room-game-topic="future">如果合作，下一步怎么做？</button>
 						</div>
 						<button class="room-game-close" id="roomGameClose" type="button">结束访谈</button>
 					</div>
@@ -755,6 +811,11 @@ const guestbookStorageKey = 'company-guestbook-v1';
 				农业文旅: 'xiaoqiao',
 				生物制造: 'ironman',
 				先进制造: 'lancelot',
+				光学制造: 'hawkeye',
+				工业技术: 'ironman',
+				健康管理: 'daqiao',
+				信息安全: 'blackwidow',
+				文旅运营: 'xiaoqiao',
 			};
 			const heroByCompany = {
 				'demo-1': 'zhugeliang',
@@ -949,7 +1010,8 @@ const guestbookStorageKey = 'company-guestbook-v1';
 			content.hidden = true;
 			const company = companies.find((item) => item.id === simulationTargetCompanyId) || companies[0];
 			const hero = createRoomGameHero(company, 'representative', 0, 0);
-			document.getElementById('roomPreludeIntroduction').textContent = company ? `我来自${companyName(company)}。` : '我来赴一场会谈。';
+			const preludeCompanyName = demoNames[company?.id]?.[0] || companyName(company);
+			document.getElementById('roomPreludeIntroduction').textContent = preludeCompanyName;
 			const player = { x: -.4, y: .18, targetX: -.4, targetY: .18 };
 			const entrance = { x: .38, y: .16 };
 			const keys = new Set();
@@ -1018,7 +1080,7 @@ const guestbookStorageKey = 'company-guestbook-v1';
 				skip.disabled = true;
 				flash.textContent = '现在，你将以投资人的身份进入会谈。';
 				flash.classList.add('is-active');
-				const delay = reducedMotion.matches ? 1200 : 1600;
+				const delay = reducedMotion.matches ? 700 : 1000;
 				window.setTimeout(() => {
 					prelude.hidden = true;
 					header.hidden = false;
@@ -1183,7 +1245,7 @@ const guestbookStorageKey = 'company-guestbook-v1';
 				player: { ...createRoomGameHero(company, 'player', 530, 230), targetX: 530, targetY: 230 },
 				representative: { ...createRoomGameHero(company, 'representative', 230, 195), targetX: 230, targetY: 195, dir: 0 },
 				clueScreen: { x: 490, y: 105 },
-				keys: new Set(), asked: new Set(), message: '走近企业代表，开始这次会谈。',
+				keys: new Set(), asked: new Set(), message: roomReply(company, 'intro'),
 				approachRequested: false, interactionTarget: null, interactionKind: '',
 				transparent: true,
 				dialogOpen: false, lastTime: performance.now(), frame: 0,
@@ -1227,7 +1289,7 @@ const guestbookStorageKey = 'company-guestbook-v1';
 				dialog.hidden = false;
 				runtime.interactionKind = 'representative';
 				positionDialog();
-				document.getElementById('roomGameDialogTitle').textContent = '企业代表';
+				document.getElementById('roomGameDialogTitle').textContent = '企业主';
 				document.getElementById('roomGameQuestions').hidden = false;
 				document.getElementById('roomGameClose').textContent = '结束访谈';
 				document.getElementById('roomGameClose').dataset.complete = '';
@@ -1334,11 +1396,9 @@ const guestbookStorageKey = 'company-guestbook-v1';
 			dialog.querySelectorAll('[data-room-game-topic]').forEach((button) => button.addEventListener('click', () => {
 				const topic = button.dataset.roomGameTopic;
 				const playerQuestions = {
-					product: '了解业务和产品',
-					competitors: '了解同行业竞争对手',
-					need: '询问合作需求',
-					risk: '追问风险和证据',
-					future: '讨论下一步机会',
+					product: '你们主要做什么？',
+					risk: '目前最没把握的是什么？',
+					future: '如果合作，下一步怎么做？',
 				};
 				const playerMessage = document.getElementById('roomPlayerMessage');
 				playerMessage.textContent = playerQuestions[topic] || '我想进一步了解这家企业。';
@@ -1351,6 +1411,8 @@ const guestbookStorageKey = 'company-guestbook-v1';
 					const closeButton = document.getElementById('roomGameClose');
 					closeButton.textContent = '结束会谈';
 					closeButton.dataset.complete = 'true';
+					const investmentTitle = document.getElementById('roomInvestmentTitle');
+					if (investmentTitle) investmentTitle.textContent = '会谈完成：是否投资？';
 				}
 			}));
 			document.getElementById('roomGameClose').addEventListener('click', (event) => {
@@ -1570,7 +1632,13 @@ const guestbookStorageKey = 'company-guestbook-v1';
 			document.getElementById('simulationContent').innerHTML = `
 				<div class="meeting-room">
 					${renderMeetingScene(target, 'meeting', isRoomPage)}
-					<div class="room-game-aftercare"><strong>会谈完成后</strong><span>完成会谈后，在下方决定是否投资。</span></div>
+					<div class="room-hasty-investment" id="roomHastyInvestment" hidden role="dialog" aria-modal="true" aria-labelledby="roomHastyInvestmentTitle">
+						<div class="room-hasty-investment-copy">
+							<strong id="roomHastyInvestmentTitle">你还没弄清这家企业靠什么赚钱，就投入了 ${escapeHtml(requestedFundingWan(target) ?? '')} 万元。</strong>
+							<p>照这种方式继续投资，赔光只是时间问题。</p>
+							<button class="btn btn-primary" id="roomHastyInvestmentRestart" type="button">重新开始，先去聊聊</button>
+						</div>
+					</div>
 				</div>
 				${renderInvestmentFlow(target)}`;
 			startRoomGame(target);
@@ -1580,6 +1648,12 @@ const guestbookStorageKey = 'company-guestbook-v1';
 				const fundingWan = requestedFundingWan(target);
 				if (fundingWan === null) {
 					showToast('请先补充企业提出的融资金额。');
+					return;
+				}
+				if (!roomGameRuntime || roomGameRuntime.company?.id !== target.id || roomGameRuntime.asked.size < 3) {
+					const warning = document.getElementById('roomHastyInvestment');
+					warning.hidden = false;
+					warning.scrollIntoView({ behavior: 'smooth', block: 'center' });
 					return;
 				}
 				const equityRatio = estimatedEquityRatio(target, fundingWan);
@@ -1634,6 +1708,11 @@ const guestbookStorageKey = 'company-guestbook-v1';
 			investmentFlow.querySelector('[data-investment-choice="no"]').addEventListener('click', () => {
 				investmentResult.hidden = false;
 				investmentResult.innerHTML = '<div class="room-investment-declined"><strong>暂不投资</strong><span>保留本次会谈记录，可回到企业库继续观察或补充核验资料。</span></div>';
+			});
+			document.getElementById('roomHastyInvestmentRestart').addEventListener('click', () => {
+				const warning = document.getElementById('roomHastyInvestment');
+				warning.hidden = true;
+				document.getElementById('roomGameCanvas').scrollIntoView({ behavior: 'smooth', block: 'center' });
 			});
 			document.querySelectorAll('[data-sell]').forEach((button) => button.addEventListener('click', () => sellSimulationPosition(button.dataset.sell)));
 			document.querySelectorAll('[data-edit-decision]').forEach((button) => button.addEventListener('click', () => {
