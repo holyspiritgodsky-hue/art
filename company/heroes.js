@@ -1251,12 +1251,121 @@
   function drawXiaoqiao(opts) {
     const h = opts.hero;
     const ctx = opts.ctx;
-    const drawSoldier = opts.drawSoldier;
     const drawHealthBar = opts.drawHealthBar;
+    const getFacing = opts.getFacing;
     const showName = opts.showName !== false;
     const nameColor = opts.nameColor || "#f8e7ff";
+    const facing = getFacing ? getFacing(h.dir || 0) : (Math.cos(h.dir || 0) >= 0 ? 1 : -1);
 
-    drawSoldier(h, true, "#cda3e3", "#f6e9ff");
+    ctx.save();
+    ctx.translate(h.x, h.y);
+    ctx.scale(facing, 1);
+
+    const aura = ctx.createRadialGradient(0, -5, 2, 0, -5, 20);
+    aura.addColorStop(0, "rgba(232, 196, 255, 0.48)");
+    aura.addColorStop(0.55, "rgba(209, 161, 239, 0.18)");
+    aura.addColorStop(1, "rgba(209, 161, 239, 0)");
+    ctx.fillStyle = aura;
+    ctx.beginPath();
+    ctx.arc(0, -5, 20, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.strokeStyle = "rgba(250, 231, 255, 0.9)";
+    ctx.lineWidth = 2.2;
+    ctx.lineCap = "round";
+    ctx.beginPath();
+    ctx.moveTo(-5.8, -4);
+    ctx.bezierCurveTo(-13.5, -1.5, -13, 5.5, -8.5, 9.5);
+    ctx.moveTo(5.8, -4);
+    ctx.bezierCurveTo(13.5, -1.5, 13, 5.5, 8.5, 9.5);
+    ctx.stroke();
+
+    ctx.fillStyle = h.body || "#d7a7f0";
+    ctx.beginPath();
+    ctx.moveTo(-4.8, -7.5);
+    ctx.quadraticCurveTo(-8.8, -2, -9.7, 9.2);
+    ctx.quadraticCurveTo(0, 13.8, 9.7, 9.2);
+    ctx.quadraticCurveTo(8.8, -2, 4.8, -7.5);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle = "#b87bd5";
+    ctx.beginPath();
+    ctx.moveTo(-1, -7.7);
+    ctx.lineTo(-5.2, 9.7);
+    ctx.quadraticCurveTo(0, 12.5, 5.2, 9.7);
+    ctx.lineTo(1, -7.7);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle = h.accent || "#fbe7ff";
+    ctx.beginPath();
+    ctx.moveTo(-5.2, -7.8);
+    ctx.quadraticCurveTo(0, -4.2, 5.2, -7.8);
+    ctx.lineTo(4.3, -1.2);
+    ctx.quadraticCurveTo(0, 1.5, -4.3, -1.2);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillRect(-7.5, 2.3, 15, 2.1);
+
+    ctx.fillStyle = "#4a3348";
+    ctx.beginPath();
+    ctx.ellipse(0, -12.9, 5.7, 5.6, 0, 0, Math.PI * 2);
+    ctx.ellipse(-4.2, -10.8, 2.6, 5.5, -0.2, 0, Math.PI * 2);
+    ctx.ellipse(4.2, -10.8, 2.6, 5.5, 0.2, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = h.head || "#f0cfac";
+    ctx.beginPath();
+    ctx.ellipse(0, -12.1, 4.25, 4.7, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = "#4a3348";
+    ctx.beginPath();
+    ctx.moveTo(-4, -14.3);
+    ctx.quadraticCurveTo(0, -18, 4, -14.3);
+    ctx.lineTo(2.8, -12.8);
+    ctx.quadraticCurveTo(0, -14.5, -2.8, -12.8);
+    ctx.closePath();
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(-2.8, -17.1, 2.3, 0, Math.PI * 2);
+    ctx.arc(2.8, -17.1, 2.3, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = "#f0cf68";
+    ctx.fillRect(-5.3, -18.2, 2.8, 1);
+    ctx.fillRect(2.5, -18.2, 2.8, 1);
+    ctx.fillStyle = "#f5b8d5";
+    ctx.beginPath();
+    ctx.arc(-5.5, -18, 1.1, 0, Math.PI * 2);
+    ctx.arc(5.5, -18, 1.1, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.strokeStyle = "#865b40";
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(6.5, -7.5);
+    ctx.lineTo(11.7, 3.5);
+    ctx.stroke();
+    ctx.fillStyle = "#f7e8fb";
+    ctx.beginPath();
+    ctx.arc(10, -4.5, 5.4, -1.05, 2.08);
+    ctx.lineTo(10, -4.5);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = "#c995d8";
+    ctx.lineWidth = 0.7;
+    ctx.beginPath();
+    ctx.moveTo(10, -4.5);
+    ctx.lineTo(12.6, -8.8);
+    ctx.moveTo(10, -4.5);
+    ctx.lineTo(15.1, -4.8);
+    ctx.moveTo(10, -4.5);
+    ctx.lineTo(12.5, 0);
+    ctx.stroke();
+    ctx.restore();
+
     if (showName) {
       ctx.fillStyle = nameColor;
       ctx.font = "700 12px Microsoft YaHei";
