@@ -16,11 +16,12 @@
 		<section class="room-prelude" id="roomPrelude" aria-label="地球上的旅程" hidden>
 			<div class="room-prelude-stage">
 				<canvas id="roomPreludeStars" aria-hidden="true"></canvas>
+				<p class="room-prelude-guide">走向右侧的会客室，开始这次会谈。</p>
 				<div class="earth room-prelude-earth" id="earth" aria-hidden="true"></div>
 				<canvas id="roomPreludeCanvas" width="760" height="560" tabindex="0" aria-label="控制企业主，点击会客室入口或用方向键和 WASD 移动。按 Tab 可选择前往或跳过。"></canvas>
 				<div class="room-prelude-bubble" id="roomPreludeBubble" role="status">
-					<span id="roomPreludeIntroduction"></span>
-					<span>希望这次，能找到合适的人来投资</span>
+					<div class="room-prelude-speaker"><span>企业主</span><strong id="roomPreludeIntroduction"></strong></div>
+					<p>希望这次，有人愿意听听我的想法。</p>
 				</div>
 				<p id="earthStatus" hidden role="status"></p>
 				<p class="room-prelude-status" role="status">地球画面暂时不可用，仍可继续前往会客室。</p>
