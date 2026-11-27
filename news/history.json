@@ -1035,6 +1035,35 @@
         }
       ],
       "outcome": null
+    },
+    {
+      "prediction_at": "2026-11-27T08:52:16+08:00",
+      "trading_date": "2026-11-27",
+      "market_date": "2026-11-26",
+      "mode": "live_forecast",
+      "ranked_sectors": [
+        "通信",
+        "家用电器",
+        "计算机"
+      ],
+      "ranked_sector_details": [
+        {
+          "name": "通信",
+          "score": 85.5,
+          "up_probability": null
+        },
+        {
+          "name": "家用电器",
+          "score": 72.6,
+          "up_probability": null
+        },
+        {
+          "name": "计算机",
+          "score": 71.2,
+          "up_probability": null
+        }
+      ],
+      "outcome": null
     }
   ],
   "backtests": [
