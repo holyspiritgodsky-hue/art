@@ -1034,7 +1034,31 @@
           "up_probability": null
         }
       ],
-      "outcome": null
+      "outcome": {
+        "reviewed_at": "2026-11-27T15:49:12+08:00",
+        "top1_sector": "银行",
+        "top1_close_change_pct": 0.7305,
+        "top1_correct": true,
+        "top3_up_count": 2,
+        "ranked_sector_results": [
+          {
+            "name": "银行",
+            "close_change_pct": 0.7305,
+            "up": true
+          },
+          {
+            "name": "通信",
+            "close_change_pct": 2.3566,
+            "up": true
+          },
+          {
+            "name": "汽车",
+            "close_change_pct": -1.2698,
+            "up": false
+          }
+        ],
+        "basis": "按预测行业指数预测日收盘价是否高于前一交易日收盘价判定；不代表个股或实际交易收益。"
+      }
     },
     {
       "prediction_at": "2026-11-27T08:52:16+08:00",
